@@ -14,7 +14,7 @@ function quadrant(page: Page, name: string) {
 test('captures a task, shows the proposal and saves it in Hacer', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toBeFocused();
-	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy, media hora');
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller mañana, media hora');
 	await expect(sheet.getByText('VA A')).toBeVisible();
 	await expect(sheet.getByText('Sí · vence')).toBeVisible();
 	await expect(sheet.getByText('30 min')).toBeVisible();

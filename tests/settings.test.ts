@@ -56,3 +56,39 @@ test('deleting all data needs two confirmations and returns to the welcome', asy
 	await expect(page).toHaveURL(/\/welcome$/);
 	await expect(page.getByRole('textbox', { name: 'Objetivo 1' })).toHaveValue('');
 });
+
+test('exports and imports tasks as JSON', async ({ page }) => {
+	await startApp(page);
+	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
+	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
+	await expect(sheet.getByText('VA A')).toBeVisible();
+	await sheet.getByRole('button', { name: 'Guardar' }).click();
+
+	await page.getByRole('link', { name: 'Ajustes' }).click();
+	const downloadPromise = page.waitForEvent('download');
+	await page.getByRole('button', { name: 'Exportar tareas' }).click();
+	const download = await downloadPromise;
+	expect(download.suggestedFilename()).toMatch(/^cuadrante-\d{4}-\d{2}-\d{2}\.json$/);
+	const path = await download.path();
+	const { readFileSync } = await import('node:fs');
+	const data = JSON.parse(readFileSync(path, 'utf8'));
+	expect(data.version).toBe(1);
+	expect(data.tasks[0].title).toBe('Llamar al taller');
+	expect(data.settings).not.toHaveProperty('theme');
+
+	// Same file again: nothing new.
+	await page.getByLabel('Fichero para importar').setInputFiles(path);
+	await expect(page.getByRole('status').filter({ hasText: 'Importado' })).toHaveText(/0 nuevos, 0 actualizados/);
+
+	// A new task from another device appears in the Matrix.
+	data.tasks.push({ ...data.tasks[0], id: crypto.randomUUID(), title: 'Tarea de otro dispositivo' });
+	await page.getByLabel('Fichero para importar').setInputFiles({
+		name: 'otra.json',
+		mimeType: 'application/json',
+		buffer: Buffer.from(JSON.stringify(data))
+	});
+	await expect(page.getByRole('status').filter({ hasText: 'Importado' })).toHaveText(/1 nuevos/);
+	await page.getByRole('link', { name: 'Matriz' }).click();
+	await expect(page.getByRole('link', { name: 'Tarea de otro dispositivo' })).toBeVisible();
+});

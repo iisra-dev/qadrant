@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { currentSettings } from '$lib/app/context';
+	import { exportData, exportFileName, ImportError, importData } from '$lib/db/backup';
 	import { repos } from '$lib/db/repositories';
+	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme } from '$lib/theme';
 	import { Button, Sheet } from '$lib/ui';
 
@@ -8,6 +11,35 @@
 	// Double confirmation (docs/01): a sheet, then typing a word.
 	let step = $state<0 | 1 | 2>(0);
 	let confirmation = $state('');
+
+	let message = $state('');
+	let fileInput: HTMLInputElement | undefined = $state();
+
+	async function download() {
+		const data = await exportData();
+		const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = exportFileName();
+		link.click();
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
+		message = `Exportadas ${data.tasks.length} tareas.`;
+	}
+
+	async function upload(file: File | undefined) {
+		if (!file) return;
+		try {
+			const result = await importData(JSON.parse(await file.text()));
+			await taskActions.reevaluateOpenTasks(currentSettings());
+			message = `Importado: ${result.added} nuevos, ${result.updated} actualizados, ${result.unchanged} sin cambios.`;
+		} catch (error) {
+			message =
+				error instanceof ImportError ? error.message : 'No se pudo leer el fichero. ¿Es una exportación de Cuadrante?';
+		} finally {
+			if (fileInput) fileInput.value = '';
+		}
+	}
 
 	async function clearAll() {
 		await repos.clearAll();
@@ -19,8 +51,20 @@
 <section aria-labelledby="s-data">
 	<h2 id="s-data">Datos</h2>
 	<div class="actions">
+		<Button variant="secondary" onclick={download}>Exportar tareas</Button>
+		<Button variant="secondary" onclick={() => fileInput?.click()}>Importar tareas</Button>
+		<input
+			class="visually-hidden"
+			type="file"
+			accept="application/json,.json"
+			aria-label="Fichero para importar"
+			tabindex="-1"
+			bind:this={fileInput}
+			onchange={(e) => upload(e.currentTarget.files?.[0])}
+		/>
 		<Button variant="danger" onclick={() => (step = 1)}>Borrar todos los datos</Button>
 	</div>
+	<p class="note" role="status">{message}</p>
 	{#if persisted === false}
 		<p class="note">
 			El navegador no garantiza que guarde tus tareas. Instala la app y exporta tus tareas de vez en cuando.
