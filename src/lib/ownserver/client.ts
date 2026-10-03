@@ -1,4 +1,12 @@
+import type { CalendarEvent } from '$lib/domain/types';
 import type { Reminder } from './reminders';
+
+export interface CalendarState {
+	connected: boolean;
+	events: CalendarEvent[];
+	fetchedAt?: string;
+	error?: string;
+}
 
 export interface ServerConfig {
 	url: string;
@@ -60,5 +68,22 @@ export const serverApi = {
 	},
 	async putReminders(config: ServerConfig, reminders: Reminder[]): Promise<void> {
 		await call(config, '/reminders', { method: 'PUT', body: JSON.stringify(reminders) });
+	},
+	async calendar(config: ServerConfig): Promise<CalendarState> {
+		return (await call(config, '/calendar')).json();
+	},
+	/** The secret address goes to the server only; the app keeps nothing but the events. */
+	async connectCalendar(config: ServerConfig, url: string): Promise<CalendarState> {
+		try {
+			return (await call(config, '/calendar', { method: 'PUT', body: JSON.stringify({ url }) })).json();
+		} catch (error) {
+			if (error instanceof ServerError && error.status === 400) {
+				throw new ServerError('El servidor no pudo leer ese calendario. Revisa la dirección (https:// o webcal://).', 400);
+			}
+			throw error;
+		}
+	},
+	async disconnectCalendar(config: ServerConfig): Promise<void> {
+		await call(config, '/calendar', { method: 'DELETE' });
 	}
 };

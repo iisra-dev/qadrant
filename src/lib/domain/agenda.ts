@@ -1,6 +1,6 @@
 import { DEFAULT_DURATION_MIN } from './scheduler';
-import { addDays, isoWeekday, sameDay, startOfDay } from './dates';
-import type { Task } from './types';
+import { addDays, dateKey, isoWeekday, sameDay, startOfDay } from './dates';
+import type { CalendarEvent, Task } from './types';
 
 /** Open tasks scheduled on the given local day, by start time. */
 export function agendaForDay(tasks: Task[], day: Date): Task[] {
@@ -66,4 +66,13 @@ export function waitingOnOthers(tasks: Task[]): Task[] {
 	return tasks
 		.filter((t) => t.status === 'open' && !t.deletedAt && t.quadrant === 'delegate')
 		.sort((a, b) => (a.followUpAt ?? '\uffff').localeCompare(b.followUpAt ?? '\uffff'));
+}
+
+/** Calendar events of a local day: all-day ones go on top and take no time (docs/01, Agenda). */
+export function eventsForDay(events: CalendarEvent[], day: Date): { allDay: CalendarEvent[]; timed: CalendarEvent[] } {
+	const key = dateKey(day);
+	return {
+		allDay: events.filter((e) => e.allDay && e.start <= key && key < e.end),
+		timed: events.filter((e) => !e.allDay && sameDay(new Date(e.start), day)).sort((a, b) => a.start.localeCompare(b.start))
+	};
 }

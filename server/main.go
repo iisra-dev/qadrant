@@ -1,6 +1,7 @@
 // Cuadrante's optional server: PocketBase used as a Go framework.
 // Phase 3: access key, VAPID keys, push subscriptions, reminders and a cron
 // that sends due and follow-up notices with webpush-go (docs/02, docs/06).
+// Optional: a read-only calendar from a secret iCal address, refreshed every 15 min.
 package main
 
 import (
@@ -42,7 +43,10 @@ func main() {
 		if vapid, err = loadOrCreateVAPID(app.DataDir()); err != nil {
 			return err
 		}
-		return ensureCollections(app)
+		if err := ensureCollections(app); err != nil {
+			return err
+		}
+		return ensureCalendarCollection(app)
 	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
@@ -109,7 +113,18 @@ func main() {
 			return e.NoContent(http.StatusNoContent)
 		})
 
+		// Optional calendar (secret iCal address), read-only.
+		api.GET("/calendar", calendarGet(app))
+		api.PUT("/calendar", calendarPut(app))
+		api.DELETE("/calendar", calendarDelete(app))
+
 		return se.Next()
+	})
+
+	app.Cron().MustAdd("cuadrante_calendar", "*/15 * * * *", func() {
+		if err := refreshCalendar(app, time.Now()); err != nil {
+			app.Logger().Error("refreshing calendar", "error", err)
+		}
 	})
 
 	app.Cron().MustAdd("cuadrante_reminders", "* * * * *", func() {

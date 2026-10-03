@@ -162,6 +162,21 @@ describe('settings', () => {
 	});
 });
 
+describe('events (schema v2)', () => {
+	it('replaces the calendar copy and keeps it out of clearAll leftovers', async () => {
+		await repos.events.replace([
+			{ id: 'b', start: '2026-10-05T08:00:00Z', end: '2026-10-05T09:00:00Z', title: 'B', allDay: false },
+			{ id: 'a', start: '2026-10-02', end: '2026-10-03', title: 'A', allDay: true }
+		]);
+		expect((await repos.events.list()).map((e) => e.id)).toEqual(['a', 'b']);
+		await repos.events.replace([]);
+		expect(await repos.events.list()).toEqual([]);
+		await repos.events.replace([{ id: 'c', start: '2026-10-05', end: '2026-10-06', title: 'C', allDay: true }]);
+		await repos.clearAll();
+		expect(await db.events.count()).toBe(0);
+	});
+});
+
 describe('live stores', () => {
 	it('emits again when the table changes', async () => {
 		const store = live(() => repos.tasks.listOpen(), [] as Task[]);

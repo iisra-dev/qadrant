@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Correction, Goal, Person, Settings, Task } from '$lib/domain/types';
+import type { CalendarEvent, Correction, Goal, Person, Settings, Task } from '$lib/domain/types';
 
 export class CuadranteDB extends Dexie {
 	tasks!: EntityTable<Task, 'id'>;
@@ -7,6 +7,8 @@ export class CuadranteDB extends Dexie {
 	people!: EntityTable<Person, 'id'>;
 	corrections!: EntityTable<Correction, 'id'>;
 	settings!: EntityTable<Settings, 'id'>;
+	/** Read-only copy of the calendar; replaced on every download, never exported or synced (docs/04). */
+	events!: EntityTable<CalendarEvent, 'id'>;
 
 	constructor(name = 'cuadrante') {
 		super(name);
@@ -18,6 +20,7 @@ export class CuadranteDB extends Dexie {
 			corrections: 'id, taskId, createdAt, updatedAt',
 			settings: 'id'
 		});
+		this.version(2).stores({ events: 'id, start' });
 	}
 }
 

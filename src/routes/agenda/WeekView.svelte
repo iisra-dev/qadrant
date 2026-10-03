@@ -1,22 +1,25 @@
 <script lang="ts">
-	import { agendaForDay, agendaItems, hourRange } from '$lib/domain/agenda';
+	import { agendaForDay, agendaItems, eventsForDay, hourRange } from '$lib/domain/agenda';
 	import { sameDay } from '$lib/domain/dates';
 	import { formatDuration, formatTime } from '$lib/domain/format';
-	import type { Task } from '$lib/domain/types';
+	import type { CalendarEvent, Task } from '$lib/domain/types';
 	import { AiDot, QUADRANT_META, quadrantVars } from '$lib/ui';
 
 	let {
 		days,
 		tasks,
+		events = [],
 		now,
 		workHours
-	}: { days: Date[]; tasks: Task[]; now: Date; workHours: { start: string; end: string } } = $props();
+	}: { days: Date[]; tasks: Task[]; events?: CalendarEvent[]; now: Date; workHours: { start: string; end: string } } = $props();
 
 	const ROW = 56; // px per hour, as in WebAgenda.html
 	const WEEKDAY = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 	const WEEKDAY_NAME = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
-	const columns = $derived(days.map((day) => ({ day, items: agendaItems(agendaForDay(tasks, day)) })));
+	const columns = $derived(
+		days.map((day) => ({ day, items: agendaItems(agendaForDay(tasks, day)), events: eventsForDay(events, day) }))
+	);
 	const range = $derived(hourRange(columns.flatMap((c) => c.items.flatMap((i) => i.tasks)), workHours));
 	const hours = $derived(Array.from({ length: range.to - range.from }, (_, i) => range.from + i));
 
@@ -43,6 +46,17 @@
 
 		{#each columns as column (column.day.getTime())}
 			<ul class="column" aria-label={`${WEEKDAY_NAME[column.day.getDay()]} ${column.day.getDate()}`}>
+				{#each column.events.allDay as event (event.id)}
+					<li class="all-day">{event.title}</li>
+				{/each}
+				{#each column.events.timed as event (event.id)}
+					{@const start = new Date(event.start)}
+					{@const minutes = Math.max(15, (new Date(event.end).getTime() - start.getTime()) / 60_000)}
+					<li class="event" style="top: {top(start)}px; height: {Math.max(28, minutes * (ROW / 60) - 4)}px">
+						<span class="title">{event.title}</span>
+						<span class="meta">{formatTime(start)} · Calendario</span>
+					</li>
+				{/each}
 				{#each column.items as item (item.tasks[0].id)}
 					{@const quadrant = item.tasks[0].quadrant}
 					<li style="top: {top(item.start)}px; height: {Math.max(28, item.minutes * (ROW / 60) - 4)}px; {quadrantVars(quadrant)}">
@@ -122,6 +136,33 @@
 		position: absolute;
 		left: 0;
 		right: 0;
+	}
+	.event {
+		box-sizing: border-box;
+		border-radius: var(--radius-control);
+		border: 1px solid var(--border-strong);
+		background: var(--surface);
+		padding: 6px var(--space-2);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+	.event .meta {
+		color: var(--text-muted);
+	}
+	.all-day {
+		position: static;
+		margin-bottom: 2px;
+		padding: 2px var(--space-2);
+		border-radius: var(--radius-control);
+		border: 1px solid var(--border-strong);
+		background: var(--surface);
+		font-size: 11px;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		position: relative;
+		z-index: 1;
 	}
 	a {
 		height: 100%;

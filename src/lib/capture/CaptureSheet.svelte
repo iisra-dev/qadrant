@@ -12,7 +12,7 @@
 	import { classify, latestClassifier } from '$lib/engine';
 	import { taskActions } from '$lib/tasks/actions';
 	import { AiDot, Button, IconButton, QuadrantPicker, QUADRANT_META, quadrantVars, Sheet } from '$lib/ui';
-	import { activeGoals, openTasks, people } from '$lib/stores';
+	import { activeGoals, calendarEvents, openTasks, people } from '$lib/stores';
 
 	const DEBOUNCE_MS = 400;
 	const classifyLatest = latestClassifier();
@@ -37,7 +37,7 @@
 		if (!decision || !target) return undefined;
 		const slot = proposeSlot(
 			{ quadrant: target, durationMin: decision.durationMin, dueAt: decision.urgent.dueAt },
-			{ now: new Date(), tasks: $openTasks, settings: currentSettings() }
+			{ now: new Date(), tasks: $openTasks, settings: currentSettings(), events: $calendarEvents }
 		);
 		return slot?.start;
 	}

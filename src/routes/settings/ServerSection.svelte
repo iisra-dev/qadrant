@@ -2,6 +2,7 @@
 	import { repos } from '$lib/db/repositories';
 	import type { Settings } from '$lib/domain/types';
 	import { normaliseUrl, ServerError, serverApi } from '$lib/ownserver/client';
+	import { refreshCalendar } from '$lib/ownserver/calendar';
 	import { disablePush, enablePush } from '$lib/ownserver/push';
 	import { Button } from '$lib/ui';
 
@@ -11,6 +12,54 @@
 	let token = $state('');
 	let message = $state('');
 	let busy = $state(false);
+
+	// Calendar (optional, only with the own server). The address stays on the server.
+	let calendarConnected = $state<boolean | null>(null);
+	let calendarUrl = $state('');
+	let calendarMessage = $state('');
+
+	$effect(() => {
+		const current = server;
+		calendarConnected = null;
+		if (!current) return;
+		serverApi
+			.calendar(current)
+			.then((state) => (calendarConnected = state.connected))
+			.catch(() => (calendarConnected = null));
+	});
+
+	async function connectCalendar(event: SubmitEvent) {
+		event.preventDefault();
+		if (!server) return;
+		busy = true;
+		calendarMessage = 'Leyendo el calendario…';
+		try {
+			const state = await serverApi.connectCalendar(server, calendarUrl.trim());
+			calendarConnected = state.connected;
+			calendarUrl = '';
+			calendarMessage = `Conectado: ${state.events.length} eventos en los próximos 30 días.`;
+			await refreshCalendar(server);
+		} catch (error) {
+			calendarMessage = error instanceof ServerError ? error.message : 'No se pudo conectar el calendario.';
+		} finally {
+			busy = false;
+		}
+	}
+
+	async function disconnectCalendar() {
+		if (!server) return;
+		busy = true;
+		try {
+			await serverApi.disconnectCalendar(server);
+			calendarConnected = false;
+			calendarMessage = 'Calendario quitado.';
+			await refreshCalendar(server);
+		} catch (error) {
+			calendarMessage = error instanceof ServerError ? error.message : 'No se pudo quitar el calendario.';
+		} finally {
+			busy = false;
+		}
+	}
 
 	const PUSH_MESSAGES = {
 		enabled: 'Conectado. Recibirás avisos en este dispositivo.',
@@ -74,6 +123,39 @@
 		{/if}
 	</div>
 	<p class="note" role="status">{message}</p>
+
+	{#if server}
+		<h3 id="s-calendar">Calendario</h3>
+		<div class="card" aria-labelledby="s-calendar" role="group">
+			{#if calendarConnected}
+				<div class="row">
+					<span>Conectado</span>
+					<Button variant="text" onclick={disconnectCalendar} disabled={busy}>Quitar</Button>
+				</div>
+			{:else if calendarConnected === false}
+				<form onsubmit={connectCalendar}>
+					<label for="calendar-url">Dirección secreta en formato iCal</label>
+					<input
+						id="calendar-url"
+						type="url"
+						inputmode="url"
+						autocomplete="off"
+						placeholder="https://… o webcal://…"
+						bind:value={calendarUrl}
+						required
+					/>
+					<Button type="submit" variant="secondary" disabled={busy}>Conectar calendario</Button>
+				</form>
+			{:else}
+				<p class="note">No se puede consultar el calendario ahora.</p>
+			{/if}
+		</div>
+		<p class="note" role="status">{calendarMessage}</p>
+		<p class="note">
+			Google, iCloud y Outlook ofrecen una dirección secreta de solo lectura. Se guarda en tu servidor, no en este dispositivo; la
+			agenda muestra tus eventos y no coloca tareas encima de los que tienen hora.
+		</p>
+	{/if}
 	<p class="note">
 		Tus tareas no salen del dispositivo. El servidor solo recibe, para avisarte, el título y la fecha de las tareas con aviso; más adelante
 		servirá también para sincronizar y para clasificar cuando el asistente no esté en el dispositivo.
@@ -96,6 +178,12 @@
 		border: 1px solid var(--border);
 		border-radius: 18px;
 		padding: var(--space-3) var(--space-4);
+	}
+	h3 {
+		margin: var(--space-2) var(--space-1) 0;
+		font-family: var(--font-body);
+		font-size: 15px;
+		font-weight: 600;
 	}
 	.row {
 		display: flex;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agendaForDay, agendaItems, hourRange, waitingOnOthers, weekDays, withoutSlot } from './agenda';
+import { agendaForDay, agendaItems, eventsForDay, hourRange, waitingOnOthers, weekDays, withoutSlot } from './agenda';
 import type { Task } from './types';
 
 function task(id: string, scheduledAt?: Date, overrides: Partial<Task> = {}): Task {
@@ -84,5 +84,21 @@ describe('waitingOnOthers', () => {
 			task('other', undefined, { quadrant: 'do' })
 		];
 		expect(waitingOnOthers(tasks).map((t) => t.id)).toEqual(['soon', 'late', 'none']);
+	});
+});
+
+describe('eventsForDay', () => {
+	it('splits all-day (end exclusive) and timed events of the day', () => {
+		const events = [
+			{ id: 'trip', start: '2026-10-01', end: '2026-10-03', title: 'Viaje', allDay: true },
+			{ id: 'holiday', start: '2026-10-12', end: '2026-10-13', title: 'Fiesta', allDay: true },
+			{ id: 'late', start: new Date(2026, 9, 2, 16).toISOString(), end: new Date(2026, 9, 2, 17).toISOString(), title: 'B', allDay: false },
+			{ id: 'early', start: new Date(2026, 9, 2, 9).toISOString(), end: new Date(2026, 9, 2, 10).toISOString(), title: 'A', allDay: false },
+			{ id: 'other', start: new Date(2026, 9, 3, 9).toISOString(), end: new Date(2026, 9, 3, 10).toISOString(), title: 'C', allDay: false }
+		];
+		const day = eventsForDay(events, new Date(2026, 9, 2));
+		expect(day.allDay.map((e) => e.id)).toEqual(['trip']);
+		expect(day.timed.map((e) => e.id)).toEqual(['early', 'late']);
+		expect(eventsForDay(events, new Date(2026, 9, 3)).allDay).toEqual([]);
 	});
 });

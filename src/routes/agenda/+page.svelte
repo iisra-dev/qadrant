@@ -2,10 +2,10 @@
 	import { clock } from '$lib/app/clock.svelte';
 	import { media } from '$lib/app/media.svelte';
 	import { currentSettings } from '$lib/app/context';
-	import { agendaForDay, agendaItems, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
+	import { agendaForDay, agendaItems, eventsForDay, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, sameDay, startOfDay } from '$lib/domain/dates';
 	import { formatDuration, formatLongDate, formatShortDate, formatTime } from '$lib/domain/format';
-	import { people, settings } from '$lib/stores';
+	import { calendarEvents, people, settings } from '$lib/stores';
 	import WeekView from './WeekView.svelte';
 	import { openTasks } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
@@ -24,6 +24,20 @@
 	let offset = $state(0);
 	const day = $derived(addDays(startOfDay(clock.now), offset));
 	const items = $derived(agendaItems(agendaForDay($openTasks, day)));
+	const dayEvents = $derived(eventsForDay($calendarEvents, day));
+	type Row = { kind: 'task'; item: (typeof items)[number] } | { kind: 'event'; event: (typeof dayEvents.timed)[number] };
+	const rows = $derived(
+		[
+			...items.map((item): Row => ({ kind: 'task', item })),
+			...dayEvents.timed.map((event): Row => ({ kind: 'event', event }))
+		].sort((a, b) => rowStart(a) - rowStart(b))
+	);
+	function rowStart(row: Row): number {
+		return row.kind === 'task' ? row.item.start.getTime() : new Date(row.event.start).getTime();
+	}
+	function minutesBetween(start: string, end: string): number {
+		return Math.max(15, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60_000));
+	}
 	const pending = $derived(withoutSlot($openTasks));
 	const waiting = $derived(waitingOnOthers($openTasks));
 	const SHORT_WEEKDAY = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
@@ -103,20 +117,34 @@
 
 	{#if week}
 		<div class="week">
-			<WeekView {days} tasks={$openTasks} now={clock.now} workHours={($settings ?? currentSettings()).workHours} />
+			<WeekView {days} tasks={$openTasks} events={$calendarEvents} now={clock.now} workHours={($settings ?? currentSettings()).workHours} />
 		</div>
 	{:else}
 	<div class="blocks">
-		{#each items as item (item.tasks[0].id)}
-			<AgendaBlock
-				time={formatTime(item.start)}
-				title={item.tasks.map((t) => t.title).join(' · ')}
-				meta={`${QUADRANT_META[item.tasks[0].quadrant].name} · ${formatDuration(item.minutes)}`}
-				href={`/task/${item.tasks[0].id}`}
-				quadrant={item.tasks[0].quadrant}
-				focus={item.focus}
-				minutes={item.minutes}
-			/>
+		{#each dayEvents.allDay as event (event.id)}
+			<div class="all-day"><span class="all-day-label">Todo el día</span>{event.title}</div>
+		{/each}
+		{#each rows as row (row.kind === 'task' ? row.item.tasks[0].id : row.event.id)}
+			{#if row.kind === 'task'}
+				{@const item = row.item}
+				<AgendaBlock
+					time={formatTime(item.start)}
+					title={item.tasks.map((t) => t.title).join(' · ')}
+					meta={`${QUADRANT_META[item.tasks[0].quadrant].name} · ${formatDuration(item.minutes)}`}
+					href={`/task/${item.tasks[0].id}`}
+					quadrant={item.tasks[0].quadrant}
+					focus={item.focus}
+					minutes={item.minutes}
+				/>
+			{:else}
+				{@const minutes = minutesBetween(row.event.start, row.event.end)}
+				<AgendaBlock
+					time={formatTime(new Date(row.event.start))}
+					title={row.event.title}
+					meta={`Calendario · ${formatDuration(minutes)}`}
+					{minutes}
+				/>
+			{/if}
 		{:else}
 			<p class="empty">Nada en la agenda este día.</p>
 		{/each}
@@ -236,6 +264,26 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
+	}
+	.all-day {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: 36px;
+		padding: 0 var(--space-3);
+		margin-left: 54px;
+		border-radius: var(--radius-control);
+		border: 1px solid var(--border);
+		background: var(--surface);
+		font-size: 13px;
+	}
+	.all-day-label {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--text-muted);
 	}
 	.empty,
 	.note {

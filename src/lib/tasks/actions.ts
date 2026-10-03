@@ -149,7 +149,8 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 
 	/** "Buscarles hueco": gives a time to open Hacer and Programar tasks that have none. */
 	async function findSlots(settings: Settings, now = new Date()): Promise<{ placed: number; unplaced: number }> {
-		const result = schedule({ now, tasks: await repos.tasks.listOpen(), settings });
+		const events = await repos.events.list();
+		const result = schedule({ now, tasks: await repos.tasks.listOpen(), settings, events });
 		if (result.placements.length) {
 			await repos.tasks.updateMany(
 				result.placements.map((p) => ({ id: p.taskId, changes: { scheduledAt: p.start } })),
