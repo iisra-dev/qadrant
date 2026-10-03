@@ -78,6 +78,7 @@ export interface Settings extends Base {
 	thresholds: { low: number; high: number };
 	// Device-local fields: never exported, imported or synced.
 	theme: 'light' | 'dark' | 'system';
+	language: 'en' | 'es'; // interface language and first language for reading tasks
 	model: {
 		state: ModelState;
 		progress?: number;
@@ -89,7 +90,7 @@ export interface Settings extends Base {
 	onboardingDone: boolean;
 }
 
-export const DEVICE_LOCAL_SETTINGS = ['theme', 'model', 'server', 'onboardingDone'] as const;
+export const DEVICE_LOCAL_SETTINGS = ['theme', 'language', 'model', 'server', 'onboardingDone'] as const;
 export type DeviceLocalSettingsKey = (typeof DEVICE_LOCAL_SETTINGS)[number];
 export type SharedSettings = Omit<Settings, DeviceLocalSettingsKey>;
 

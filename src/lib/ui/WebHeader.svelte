@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n/index.svelte';
 	let { current, oncapture }: { current: string; oncapture: (text: string) => void } = $props();
 
-	const links = [
-		{ href: '/', label: 'Matriz' },
-		{ href: '/agenda', label: 'Agenda' },
-		{ href: '/settings', label: 'Ajustes' }
-	];
+	const links = $derived([
+		{ href: '/', label: i18n.m.nav.matrix },
+		{ href: '/agenda', label: i18n.m.nav.agenda },
+		{ href: '/settings', label: i18n.m.nav.settings }
+	]);
 	let text = $state('');
 
 	function submit(event: SubmitEvent) {
@@ -17,15 +18,15 @@
 
 <header>
 	<div class="inner">
-		<a class="brand" href="/">Qadrant</a>
-		<nav aria-label="Navegación principal">
+		<a class="brand" href="/">{i18n.m.common.appName}</a>
+		<nav aria-label={i18n.m.nav.label}>
 			{#each links as link (link.href)}
 				<a href={link.href} aria-current={current === link.href ? 'page' : undefined}>{link.label}</a>
 			{/each}
 		</nav>
 		<form onsubmit={submit}>
-			<input type="text" aria-label="Nueva tarea" placeholder="¿Qué tienes en mente?" bind:value={text} />
-			<button type="submit">Añadir</button>
+			<input type="text" aria-label={i18n.m.nav.newTask} placeholder={i18n.m.nav.placeholder} bind:value={text} />
+			<button type="submit">{i18n.m.common.add}</button>
 		</form>
 	</div>
 </header>

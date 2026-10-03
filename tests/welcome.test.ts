@@ -4,6 +4,7 @@ import { startApp } from './helpers';
 test('first run asks for a goal, saves it and is shown only once', async ({ page }) => {
 	await page.goto('/');
 	await expect(page).toHaveURL(/\/welcome$/);
+	await page.getByLabel('Español').check();
 	await page.getByRole('button', { name: 'Empezar' }).click();
 	await expect(page.getByRole('alert')).toHaveText('Escribe al menos un objetivo.');
 	await expect(page.getByRole('textbox', { name: 'Objetivo 1' })).toBeFocused();

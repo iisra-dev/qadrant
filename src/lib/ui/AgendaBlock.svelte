@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Quadrant } from '$lib/domain/types';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import AiDot from './AiDot.svelte';
 	import { quadrantVars } from './quadrants';
 
@@ -31,7 +32,7 @@
 	<span class="time">{time}</span>
 	{#if href}
 		<a class="block" class:event={!quadrant} {href} style="{quadrant ? quadrantVars(quadrant) : ''} min-height: {height}px">
-			{#if focus}<span class="label"><AiDot />BLOQUE DE FOCO</span>{/if}
+			{#if focus}<span class="label"><AiDot />{i18n.m.common.focusBlock}</span>{/if}
 			<span class="title">{title}</span>
 			<span class="meta">{meta}</span>
 		</a>

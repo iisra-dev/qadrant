@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { QUADRANTS, type Quadrant } from '$lib/domain/types';
-	import { QUADRANT_META, quadrantVars } from './quadrants';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { quadrantVars } from './quadrants';
 
 	let {
 		value,
-		label = 'Cuadrante',
+		label,
 		onchange
 	}: { value: Quadrant | null; label?: string; onchange: (quadrant: Quadrant) => void } = $props();
+	const groupLabel = $derived(label ?? i18n.m.common.quadrantGroup);
 </script>
 
-<div class="picker" role="group" aria-label={label}>
+<div class="picker" role="group" aria-label={groupLabel}>
 	{#each QUADRANTS as quadrant (quadrant)}
 		<button
 			type="button"
@@ -17,7 +19,7 @@
 			aria-pressed={value === quadrant}
 			onclick={() => onchange(quadrant)}
 		>
-			{QUADRANT_META[quadrant].name}
+			{i18n.m.quadrants[quadrant].name}
 		</button>
 	{/each}
 </div>

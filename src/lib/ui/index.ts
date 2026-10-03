@@ -11,5 +11,5 @@ export { default as QuadrantPicker } from './QuadrantPicker.svelte';
 export { default as Sheet } from './Sheet.svelte';
 export { default as TabBar } from './TabBar.svelte';
 export { default as TaskRow } from './TaskRow.svelte';
-export { QUADRANT_META, quadrantVars } from './quadrants';
+export { quadrantVars } from './quadrants';
 export { default as WebHeader } from './WebHeader.svelte';

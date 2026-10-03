@@ -13,12 +13,15 @@ export interface ServerConfig {
 	token: string;
 }
 
+export type ServerErrorCode = 'unreachable' | 'unauthorized' | 'status' | 'notQadrant' | 'calendarUnreadable';
+
+/** The interface turns the code into a message in its language. */
 export class ServerError extends Error {
 	constructor(
-		message: string,
+		readonly code: ServerErrorCode,
 		readonly status?: number
 	) {
-		super(message);
+		super(code);
 	}
 }
 
@@ -45,17 +48,17 @@ async function call(config: ServerConfig, path: string, init: RequestInit = {}):
 			}
 		});
 	} catch {
-		throw new ServerError('No se puede conectar con el servidor.');
+		throw new ServerError('unreachable');
 	}
-	if (response.status === 401) throw new ServerError('La clave de acceso no es correcta.', 401);
-	if (!response.ok) throw new ServerError(`El servidor respondió con un error (${response.status}).`, response.status);
+	if (response.status === 401) throw new ServerError('unauthorized', 401);
+	if (!response.ok) throw new ServerError('status', response.status);
 	return response;
 }
 
 export const serverApi = {
 	async ping(config: ServerConfig): Promise<void> {
 		const body = await (await call(config, '/ping')).json();
-		if (!body?.ok) throw new ServerError('Esa dirección no es un servidor de Qadrant.');
+		if (!body?.ok) throw new ServerError('notQadrant');
 	},
 	async vapidKey(config: ServerConfig): Promise<string> {
 		return (await (await call(config, '/vapid')).json()).publicKey;
@@ -78,7 +81,7 @@ export const serverApi = {
 			return (await call(config, '/calendar', { method: 'PUT', body: JSON.stringify({ url }) })).json();
 		} catch (error) {
 			if (error instanceof ServerError && error.status === 400) {
-				throw new ServerError('El servidor no pudo leer ese calendario. Revisa la dirección (https:// o webcal://).', 400);
+				throw new ServerError('calendarUnreadable', 400);
 			}
 			throw error;
 		}

@@ -4,6 +4,8 @@
 	import { repos } from '$lib/db/repositories';
 	import { fromDateKey } from '$lib/domain/dates';
 	import { formatShortDate } from '$lib/domain/format';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import type { Lang } from '$lib/i18n/lang';
 	import type { Settings } from '$lib/domain/types';
 	import { activeGoals, people, settings } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
@@ -13,15 +15,12 @@
 	import ServerSection from './ServerSection.svelte';
 
 	const s = $derived($settings);
-	const WEEKDAYS = [
-		{ day: 1, short: 'L', name: 'lunes' },
-		{ day: 2, short: 'M', name: 'martes' },
-		{ day: 3, short: 'X', name: 'miércoles' },
-		{ day: 4, short: 'J', name: 'jueves' },
-		{ day: 5, short: 'V', name: 'viernes' },
-		{ day: 6, short: 'S', name: 'sábado' },
-		{ day: 7, short: 'D', name: 'domingo' }
-	];
+	const m = $derived(i18n.m.settings);
+
+	async function setLanguage(lang: Lang) {
+		i18n.set(lang);
+		await save({ language: lang });
+	}
 
 	let newGoal = $state('');
 	let newPerson = $state('');
@@ -83,87 +82,87 @@
 </script>
 
 <svelte:head>
-	<title>Ajustes · Qadrant</title>
+	<title>{i18n.m.common.pageTitle(m.title)}</title>
 </svelte:head>
 
 <div class="settings">
-	<h1>Ajustes</h1>
+	<h1>{m.title}</h1>
 
 	{#if s}
 		<section aria-labelledby="s-goals">
-			<h2 id="s-goals">Objetivos</h2>
+			<h2 id="s-goals">{m.goals}</h2>
 			<ul class="card">
 				{#each $activeGoals as goal, index (goal.id)}
 					<li class="row">
 						<input
 							type="text"
-							aria-label={`Objetivo ${index + 1}`}
+							aria-label={m.goal(index + 1)}
 							value={goal.title}
 							maxlength={GOAL_SUMMARY_MAX}
 							onchange={(e) => e.currentTarget.value.trim() && repos.goals.rename(goal.id, e.currentTarget.value)}
 						/>
-						<Button variant="text" aria-label={`Quitar ${goal.title}`} onclick={() => repos.goals.remove(goal.id)}>Quitar</Button>
+						<Button variant="text" aria-label={m.removeItem(goal.title)} onclick={() => repos.goals.remove(goal.id)}>{i18n.m.common.remove}</Button>
 					</li>
 				{/each}
 				{#if $activeGoals.length < MAX_GOALS}
 					<li>
 						<form class="row add" onsubmit={addGoal}>
-							<input type="text" aria-label="Nuevo objetivo" placeholder="Nuevo objetivo" maxlength={GOAL_SUMMARY_MAX} bind:value={newGoal} />
-							<Button type="submit" variant="text">+ Añadir objetivo</Button>
+							<input type="text" aria-label={m.newGoal} placeholder={m.newGoal} maxlength={GOAL_SUMMARY_MAX} bind:value={newGoal} />
+							<Button type="submit" variant="text">{m.addGoal}</Button>
 						</form>
 					</li>
 				{/if}
 			</ul>
-			<p class="note">El asistente los usa para decidir qué es importante. Mejor pocos y concretos (hasta {MAX_GOALS}).</p>
+			<p class="note">{m.goalsNote(MAX_GOALS)}</p>
 		</section>
 
 		<section aria-labelledby="s-urgency">
-			<h2 id="s-urgency">Urgencia y horario</h2>
+			<h2 id="s-urgency">{m.urgency}</h2>
 			<div class="card">
 				<div class="row">
-					<span id="s-urgency-label">Urgente si vence en</span>
+					<span id="s-urgency-label">{m.urgentIf}</span>
 					<div class="stepper" role="group" aria-labelledby="s-urgency-label">
 						<button
 							type="button"
-							aria-label="Un día menos"
+							aria-label={m.lessDays}
 							disabled={s.urgencyDays <= 1}
 							onclick={() => save({ urgencyDays: s.urgencyDays - 1 }, true)}>−</button
 						>
 						<output aria-live="polite"
-							>{s.urgencyDays} {s.urgencyDays === 1 ? 'día' : 'días'}<span class="short" aria-hidden="true"> lab.</span><span class="long"
-								> {s.urgencyDays === 1 ? 'laborable' : 'laborables'}</span
+							><span class="short" aria-hidden="true">{m.daysShort(s.urgencyDays)}</span><span class="long"
+								>{m.daysLong(s.urgencyDays)}</span
 							></output
 						>
 						<button
 							type="button"
-							aria-label="Un día más"
+							aria-label={m.moreDays}
 							disabled={s.urgencyDays >= 5}
 							onclick={() => save({ urgencyDays: s.urgencyDays + 1 }, true)}>+</button
 						>
 					</div>
 				</div>
 				<div class="row">
-					<span id="s-hours">Horario de trabajo</span>
+					<span id="s-hours">{m.hours}</span>
 					<div class="hours" role="group" aria-labelledby="s-hours">
 						<input
 							type="time"
-							aria-label="Empieza"
+							aria-label={m.starts}
 							value={s.workHours.start}
 							onchange={(e) => e.currentTarget.value && save({ workHours: { ...s.workHours, start: e.currentTarget.value } })}
 						/>
 						<span aria-hidden="true">–</span>
 						<input
 							type="time"
-							aria-label="Termina"
+							aria-label={m.ends}
 							value={s.workHours.end}
 							onchange={(e) => e.currentTarget.value && save({ workHours: { ...s.workHours, end: e.currentTarget.value } })}
 						/>
 					</div>
 				</div>
 				<fieldset class="row days">
-					<legend>Días laborables</legend>
+					<legend>{m.workDays}</legend>
 					<div class="day-list">
-						{#each WEEKDAYS as weekday (weekday.day)}
+						{#each m.weekdays as weekday (weekday.day)}
 							<label class="day" title={weekday.name}>
 								<input
 									type="checkbox"
@@ -177,7 +176,7 @@
 					</div>
 				</fieldset>
 				<div class="row">
-					<label for="s-national">Festivos nacionales</label>
+					<label for="s-national">{m.nationalHolidays}</label>
 					<input
 						id="s-national"
 						class="check"
@@ -187,73 +186,73 @@
 					/>
 				</div>
 				<div class="row column">
-					<span id="s-extra">Otros días no laborables</span>
+					<span id="s-extra">{m.otherDays}</span>
 					<ul class="extra" aria-labelledby="s-extra">
 						{#each s.holidays.extra as date (date)}
 							<li>
-								<span>{formatShortDate(fromDateKey(date))} {date.slice(0, 4)}</span>
+								<span>{formatShortDate(fromDateKey(date), i18n.lang)} {date.slice(0, 4)}</span>
 								<Button
 									variant="text"
-									aria-label={`Quitar ${formatShortDate(fromDateKey(date))}`}
+									aria-label={m.removeItem(formatShortDate(fromDateKey(date), i18n.lang))}
 									onclick={() => save({ holidays: { ...s.holidays, extra: s.holidays.extra.filter((d) => d !== date) } }, true)}
-									>Quitar</Button
+									>{i18n.m.common.remove}</Button
 								>
 							</li>
 						{/each}
 					</ul>
 					<form class="add-date" onsubmit={addHoliday}>
-						<input type="date" aria-label="Día no laborable" bind:value={newHoliday} />
-						<Button type="submit" variant="text">+ Añadir</Button>
+						<input type="date" aria-label={m.dayOff} bind:value={newHoliday} />
+						<Button type="submit" variant="text">+ {i18n.m.common.add}</Button>
 					</form>
 				</div>
 			</div>
-			<p class="note">Si un festivo cae en domingo y tu comunidad lo pasa al lunes, añade el lunes.</p>
+			<p class="note">{m.holidaysNote}</p>
 		</section>
 
 		<section aria-labelledby="s-people">
-			<h2 id="s-people">Personas para delegar</h2>
+			<h2 id="s-people">{m.people}</h2>
 			<ul class="card">
 				{#each $people as person (person.id)}
 					<li class="row person">
 						<input
 							type="text"
-							aria-label="Nombre"
+							aria-label={m.name}
 							value={person.name}
 							onchange={(e) => e.currentTarget.value.trim() && repos.people.update(person.id, { name: e.currentTarget.value })}
 						/>
 						<input
 							type="text"
-							aria-label={`Alias de ${person.name}, separados por comas`}
-							placeholder="Alias, separados por comas"
+							aria-label={m.aliases(person.name)}
+							placeholder={m.aliasesPlaceholder}
 							value={person.aliases.join(', ')}
 							onchange={(e) => repos.people.update(person.id, { aliases: aliasesFrom(e.currentTarget.value) })}
 						/>
-						<Button variant="text" aria-label={`Quitar a ${person.name}`} onclick={() => repos.people.remove(person.id)}>Quitar</Button>
+						<Button variant="text" aria-label={m.removeItem(person.name)} onclick={() => repos.people.remove(person.id)}>{i18n.m.common.remove}</Button>
 					</li>
 				{/each}
 				<li>
 					<form class="row add" onsubmit={addPerson}>
-						<input type="text" aria-label="Nueva persona" placeholder="Nombre" bind:value={newPerson} />
-						<Button type="submit" variant="text">+ Añadir persona</Button>
+						<input type="text" aria-label={m.newPerson} placeholder={m.name} bind:value={newPerson} />
+						<Button type="submit" variant="text">{m.addPerson}</Button>
 					</form>
 				</li>
 			</ul>
-			<p class="note">Solo nombres, para reconocerlos al capturar. La app no les envía nada.</p>
+			<p class="note">{m.peopleNote}</p>
 		</section>
 
 		<section aria-labelledby="s-ai">
-			<h2 id="s-ai">Asistente</h2>
+			<h2 id="s-ai">{m.assistant}</h2>
 			<div class="card">
 				<div class="row">
-					<span><AiDot />Estado</span>
-					<span class="badge">No descargado</span>
+					<span><AiDot />{m.state}</span>
+					<span class="badge">{m.notDownloaded}</span>
 				</div>
 				<div class="row">
-					<span>Motor en uso</span>
-					<span>Reglas</span>
+					<span>{m.engine}</span>
+					<span>{m.rules}</span>
 				</div>
 				<div class="row">
-					<label for="s-wifi">Actualizar solo con wifi</label>
+					<label for="s-wifi">{m.wifi}</label>
 					<input
 						id="s-wifi"
 						class="check"
@@ -263,18 +262,28 @@
 					/>
 				</div>
 			</div>
-			<p class="note">Mientras no esté el asistente, la app clasifica con reglas y te pregunta cuando duda. Tus tareas no salen del dispositivo.</p>
+			<p class="note">{m.assistantNote}</p>
 		</section>
 
 		<ServerSection server={s.server} />
 
 		<section aria-labelledby="s-theme">
-			<h2 id="s-theme">Apariencia</h2>
+			<h2 id="s-theme">{m.appearance}</h2>
 			<fieldset class="segmented">
-				<legend class="visually-hidden">Tema</legend>
-				{#each [['light', 'Claro'], ['dark', 'Oscuro'], ['system', 'Sistema']] as [value, label] (value)}
+				<legend class="visually-hidden">{m.theme}</legend>
+				{#each [['light', m.light], ['dark', m.dark], ['system', m.system]] as [value, label] (value)}
 					<label>
 						<input type="radio" name="theme" {value} checked={s.theme === value} onchange={() => setTheme(value as Theme)} />
+						<span>{label}</span>
+					</label>
+				{/each}
+			</fieldset>
+			<fieldset class="segmented two">
+				<legend class="visually-hidden">{m.language}</legend>
+				<!-- Each language named in itself, so it can be found in either. -->
+				{#each [['en', 'English'], ['es', 'Español']] as [value, label] (value)}
+					<label lang={value}>
+						<input type="radio" name="language" {value} checked={s.language === value} onchange={() => setLanguage(value as Lang)} />
 						<span>{label}</span>
 					</label>
 				{/each}
@@ -507,6 +516,9 @@
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 6px;
+	}
+	.segmented.two {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 	.segmented label {
 		position: relative;

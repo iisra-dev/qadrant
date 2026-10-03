@@ -23,7 +23,14 @@ export interface ImportResult {
 	settingsUpdated: boolean;
 }
 
-export class ImportError extends Error {}
+export type ImportErrorCode = 'notAFile' | 'badVersion' | 'damaged';
+
+/** The interface turns the code into a message in its language. */
+export class ImportError extends Error {
+	constructor(readonly code: ImportErrorCode) {
+		super(code);
+	}
+}
 
 function sharedSettings(settings: Settings): SharedSettings {
 	const copy: Record<string, unknown> = { ...settings };
@@ -62,11 +69,11 @@ function isRecord(value: unknown): value is Base {
 
 function validate(data: unknown): ExportFile {
 	const file = data as Partial<ExportFile> | null;
-	if (typeof file !== 'object' || file === null) throw new ImportError('No es un fichero de Qadrant.');
-	if (file.version !== EXPORT_VERSION) throw new ImportError('Versión de fichero no compatible.');
+	if (typeof file !== 'object' || file === null) throw new ImportError('notAFile');
+	if (file.version !== EXPORT_VERSION) throw new ImportError('badVersion');
 	for (const key of ['tasks', 'goals', 'people', 'corrections'] as const) {
 		const list = file[key];
-		if (!Array.isArray(list) || !list.every(isRecord)) throw new ImportError('El fichero está dañado.');
+		if (!Array.isArray(list) || !list.every(isRecord)) throw new ImportError('damaged');
 	}
 	return file as ExportFile;
 }

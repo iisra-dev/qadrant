@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { agendaForDay, agendaItems, eventsForDay, hourRange } from '$lib/domain/agenda';
 	import { sameDay } from '$lib/domain/dates';
-	import { formatDuration, formatTime } from '$lib/domain/format';
+	import { formatDuration, formatTime, weekdayName } from '$lib/domain/format';
 	import type { CalendarEvent, Task } from '$lib/domain/types';
-	import { AiDot, QUADRANT_META, quadrantVars } from '$lib/ui';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { AiDot, quadrantVars } from '$lib/ui';
 
 	let {
 		days,
@@ -14,8 +15,8 @@
 	}: { days: Date[]; tasks: Task[]; events?: CalendarEvent[]; now: Date; workHours: { start: string; end: string } } = $props();
 
 	const ROW = 56; // px per hour, as in WebAgenda.html
-	const WEEKDAY = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-	const WEEKDAY_NAME = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+	// One-letter day initials from the catalog (L M X J V / M T W T F).
+	const initial = (day: Date) => i18n.m.settings.weekdays[(day.getDay() + 6) % 7].short;
 
 	const columns = $derived(
 		days.map((day) => ({ day, items: agendaItems(agendaForDay(tasks, day)), events: eventsForDay(events, day) }))
@@ -32,8 +33,8 @@
 	<div class="grid" style="--cols: {days.length}; --rows: {hours.length}; --row: {ROW}px">
 		<span></span>
 		{#each columns as column (column.day.getTime())}
-			<h3 class="day" class:today={sameDay(column.day, now)} aria-label={`${WEEKDAY_NAME[column.day.getDay()]} ${column.day.getDate()}`}>
-				<span aria-hidden="true">{WEEKDAY[column.day.getDay()]}</span>
+			<h3 class="day" class:today={sameDay(column.day, now)} aria-label={`${weekdayName(column.day, i18n.lang)} ${column.day.getDate()}`}>
+				<span aria-hidden="true">{initial(column.day)}</span>
 				<span aria-hidden="true" class="num">{column.day.getDate()}</span>
 			</h3>
 		{/each}
@@ -45,7 +46,7 @@
 		</div>
 
 		{#each columns as column (column.day.getTime())}
-			<ul class="column" aria-label={`${WEEKDAY_NAME[column.day.getDay()]} ${column.day.getDate()}`}>
+			<ul class="column" aria-label={`${weekdayName(column.day, i18n.lang)} ${column.day.getDate()}`}>
 				{#each column.events.allDay as event (event.id)}
 					<li class="all-day">{event.title}</li>
 				{/each}
@@ -54,7 +55,7 @@
 					{@const minutes = Math.max(15, (new Date(event.end).getTime() - start.getTime()) / 60_000)}
 					<li class="event" style="top: {top(start)}px; height: {Math.max(28, minutes * (ROW / 60) - 4)}px">
 						<span class="title">{event.title}</span>
-						<span class="meta">{formatTime(start)} · Calendario</span>
+						<span class="meta">{formatTime(start)} · {i18n.m.common.calendar}</span>
 					</li>
 				{/each}
 				{#each column.items as item (item.tasks[0].id)}
@@ -63,7 +64,7 @@
 						<a href={`/task/${item.tasks[0].id}`}>
 							{#if item.focus}<span class="label"><AiDot />BLOQUE DE FOCO</span>{/if}
 							<span class="title">{item.tasks.map((t) => t.title).join(' · ')}</span>
-							<span class="meta">{formatTime(item.start)} · {QUADRANT_META[quadrant].name} · {formatDuration(item.minutes)}</span>
+							<span class="meta">{formatTime(item.start)} · {i18n.m.quadrants[quadrant].name} · {formatDuration(item.minutes)}</span>
 						</a>
 					</li>
 				{/each}
