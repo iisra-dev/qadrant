@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { defaultSettings } from '$lib/db/defaults';
 import { createRepositories, type Repositories } from '$lib/db/repositories';
-import { CuadranteDB } from '$lib/db/schema';
+import { QadrantDB } from '$lib/db/schema';
 import type { Decision } from '$lib/domain/types';
 import { createTaskActions } from './actions';
 
@@ -21,12 +21,12 @@ function decision(overrides: Partial<Decision> = {}): Decision {
 	};
 }
 
-let db: CuadranteDB;
+let db: QadrantDB;
 let repos: Repositories;
 let actions: ReturnType<typeof createTaskActions>;
 
 beforeEach(async () => {
-	db = new CuadranteDB(`test-${crypto.randomUUID()}`);
+	db = new QadrantDB(`test-${crypto.randomUUID()}`);
 	await db.open();
 	repos = createRepositories(db);
 	actions = createTaskActions(repos);

@@ -17,7 +17,7 @@
 
 <header>
 	<div class="inner">
-		<a class="brand" href="/">Cuadrante</a>
+		<a class="brand" href="/">Qadrant</a>
 		<nav aria-label="Navegación principal">
 			{#each links as link (link.href)}
 				<a href={link.href} aria-current={current === link.href ? 'page' : undefined}>{link.label}</a>

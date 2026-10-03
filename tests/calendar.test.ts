@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { startApp } from './helpers';
 
-const SERVER = 'https://cuadrante.test';
+const SERVER = 'https://qadrant.test';
 const KEY = 'clave-de-prueba';
 const cors = {
 	'Access-Control-Allow-Origin': '*',
@@ -44,7 +44,7 @@ test('connects a calendar through the server; the agenda shows it and the schedu
 	const stored = await page.evaluate(
 		() =>
 			new Promise<string>((resolve) => {
-				const open = indexedDB.open('cuadrante');
+				const open = indexedDB.open('qadrant');
 				open.onsuccess = () => {
 					const get = open.result.transaction('settings').objectStore('settings').get('settings');
 					get.onsuccess = () => resolve(JSON.stringify(get.result));

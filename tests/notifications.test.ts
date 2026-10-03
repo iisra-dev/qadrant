@@ -16,7 +16,7 @@ test('the service worker shows a notice for a push message and opens the task on
 	// Headless Chromium has no push service; dispatch the same event the browser would.
 	const shown = await worker.evaluate(async () => {
 		const sw = self as unknown as ServiceWorkerGlobalScope;
-		const data = JSON.stringify({ title: 'Cuadrante', body: 'Vence: Pagar recibo', taskId: 'abc', kind: 'due' });
+		const data = JSON.stringify({ title: 'Qadrant', body: 'Vence: Pagar recibo', taskId: 'abc', kind: 'due' });
 		sw.dispatchEvent(new PushEvent('push', { data }));
 		for (let i = 0; i < 50; i++) {
 			const list = await sw.registration.getNotifications();
@@ -25,7 +25,7 @@ test('the service worker shows a notice for a push message and opens the task on
 		}
 		return [];
 	});
-	expect(shown).toEqual([['Cuadrante', 'Vence: Pagar recibo', 'abc:due', 'abc']]);
+	expect(shown).toEqual([['Qadrant', 'Vence: Pagar recibo', 'abc:due', 'abc']]);
 
 	await worker.evaluate(async () => {
 		const sw = self as unknown as ServiceWorkerGlobalScope;

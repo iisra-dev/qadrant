@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-	<title>Tarea · Cuadrante</title>
+	<title>Tarea · Qadrant</title>
 </svelte:head>
 
 <TaskDetail id={page.params.id ?? ''} onclose={back} />

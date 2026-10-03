@@ -36,7 +36,7 @@ self.addEventListener('push', (event) => {
 	}
 	if (!payload) return;
 	event.waitUntil(
-		self.registration.showNotification(payload.title || 'Cuadrante', {
+		self.registration.showNotification(payload.title || 'Qadrant', {
 			body: payload.body,
 			tag: `${payload.taskId}:${payload.kind}`,
 			icon: '/pwa-192x192.png',

@@ -115,7 +115,7 @@
 		{:else}
 			<form onsubmit={connect}>
 				<label for="server-url">Dirección</label>
-				<input id="server-url" type="url" inputmode="url" autocomplete="off" placeholder="https://cuadrante.tudominio.es" bind:value={url} required />
+				<input id="server-url" type="url" inputmode="url" autocomplete="off" placeholder="https://qadrant.tudominio.es" bind:value={url} required />
 				<label for="server-token">Clave de acceso</label>
 				<input id="server-token" type="password" autocomplete="off" bind:value={token} required />
 				<Button type="submit" variant="secondary" disabled={busy}>Conectar</Button>

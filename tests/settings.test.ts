@@ -69,7 +69,7 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	const downloadPromise = page.waitForEvent('download');
 	await page.getByRole('button', { name: 'Exportar tareas' }).click();
 	const download = await downloadPromise;
-	expect(download.suggestedFilename()).toMatch(/^cuadrante-\d{4}-\d{2}-\d{2}\.json$/);
+	expect(download.suggestedFilename()).toMatch(/^qadrant-\d{4}-\d{2}-\d{2}\.json$/);
 	const path = await download.path();
 	const { readFileSync } = await import('node:fs');
 	const data = JSON.parse(readFileSync(path, 'utf8'));

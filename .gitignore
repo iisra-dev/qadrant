@@ -41,4 +41,8 @@ static/models/
 
 # Own server (Go)
 server/pb_data/
-server/cuadrante-server
+server/qadrant-server
+
+# Claude Code local files
+.claude/scheduled_tasks.lock
+.claude/settings.local.json

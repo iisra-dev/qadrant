@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { CuadranteDB } from './schema';
+import { QadrantDB } from './schema';
 import { createRepositories, type Repositories } from './repositories';
 import { live } from '$lib/stores/live';
 import type { Task } from '$lib/domain/types';
@@ -20,11 +20,11 @@ function newTask(overrides: Partial<Task> = {}) {
 	};
 }
 
-let db: CuadranteDB;
+let db: QadrantDB;
 let repos: Repositories;
 
 beforeEach(async () => {
-	db = new CuadranteDB(`test-${crypto.randomUUID()}`);
+	db = new QadrantDB(`test-${crypto.randomUUID()}`);
 	await db.open();
 	repos = createRepositories(db);
 });

@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { CalendarEvent, Correction, Goal, Person, Settings, Task } from '$lib/domain/types';
 
-export class CuadranteDB extends Dexie {
+export class QadrantDB extends Dexie {
 	tasks!: EntityTable<Task, 'id'>;
 	goals!: EntityTable<Goal, 'id'>;
 	people!: EntityTable<Person, 'id'>;
@@ -10,7 +10,7 @@ export class CuadranteDB extends Dexie {
 	/** Read-only copy of the calendar; replaced on every download, never exported or synced (docs/04). */
 	events!: EntityTable<CalendarEvent, 'id'>;
 
-	constructor(name = 'cuadrante') {
+	constructor(name = 'qadrant') {
 		super(name);
 		// Booleans are not valid IndexedDB keys, so goals.active is filtered in memory (docs/04).
 		this.version(1).stores({
@@ -24,4 +24,4 @@ export class CuadranteDB extends Dexie {
 	}
 }
 
-export const db = new CuadranteDB();
+export const db = new QadrantDB();

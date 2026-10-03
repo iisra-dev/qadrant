@@ -1,4 +1,4 @@
-module cuadrante/server
+module qadrant/server
 
 go 1.27.1
 
