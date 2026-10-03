@@ -1,4 +1,5 @@
 import type { Decision, Quadrant, Settings } from './types';
+import { evaluateUrgency } from './urgency';
 
 export interface CombineInput {
 	urgent: boolean;
@@ -81,4 +82,26 @@ export function importantOnSave(input: SaveKind): boolean | undefined {
 			if (input.quadrant === 'do') return input.urgent ? undefined : true;
 			return undefined;
 	}
+}
+
+/**
+ * A new due date from the doubt sheet ("Añadir fecha"): re-run urgency and
+ * combine() with the probabilities already known, without calling the model.
+ */
+export function redecide(
+	decision: Decision,
+	dueAt: string | undefined,
+	now: Date,
+	settings: Pick<Settings, 'urgencyDays' | 'workDays' | 'holidays' | 'thresholds'>
+): Decision {
+	const urgent = evaluateUrgency(dueAt, now, settings);
+	const { quadrant, ask } = combine({
+		urgent: urgent.value,
+		assigned: Boolean(decision.delegable.personId),
+		pImportance: decision.importance.p,
+		pDelegable: decision.delegable.p,
+		thresholds: settings.thresholds
+	});
+	const { ask: _previous, ...rest } = decision;
+	return { ...rest, quadrant, ...(ask && { ask }), urgent };
 }

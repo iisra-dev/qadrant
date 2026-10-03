@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { combine, doubtOutcomes, importantOnSave } from './quadrant';
+import { combine, doubtOutcomes, importantOnSave, redecide } from './quadrant';
 import type { Decision } from './types';
 
 const thresholds = { low: 0.35, high: 0.65 };
@@ -93,5 +93,29 @@ describe('importantOnSave', () => {
 		expect(importantOnSave({ kind: 'manual', quadrant: 'do', urgent: true })).toBeUndefined();
 		expect(importantOnSave({ kind: 'manual', quadrant: 'eliminate', urgent: true })).toBe(false);
 		expect(importantOnSave({ kind: 'manual', quadrant: 'delegate', urgent: false })).toBeUndefined();
+	});
+});
+
+describe('redecide', () => {
+	const settings = { urgencyDays: 2, workDays: [1, 2, 3, 4, 5], holidays: { national: true, extra: [] }, thresholds };
+	const now = new Date(2026, 9, 2, 10, 0);
+
+	it('rules-only doubt with a near date becomes Hacer without asking', () => {
+		const d = decision({ quadrant: null, ask: 'importance', urgent: { value: false, reason: 'no-date' } });
+		const next = redecide(d, new Date(2026, 9, 5, 18).toISOString(), now, settings);
+		expect(next.quadrant).toBe('do');
+		expect(next.ask).toBeUndefined();
+		expect(next.urgent).toMatchObject({ value: true, reason: 'due-soon' });
+	});
+
+	it('a far date keeps the importance question', () => {
+		const d = decision({ quadrant: null, ask: 'importance', urgent: { value: false, reason: 'no-date' } });
+		const next = redecide(d, new Date(2026, 9, 30, 18).toISOString(), now, settings);
+		expect(next).toMatchObject({ quadrant: null, ask: 'importance', urgent: { value: false, reason: 'due-later' } });
+	});
+
+	it('keeps the probabilities', () => {
+		const d = decision({ quadrant: null, ask: 'importance', importance: { p: 0.8 }, urgent: { value: false, reason: 'no-date' } });
+		expect(redecide(d, new Date(2026, 9, 5, 18).toISOString(), now, settings).quadrant).toBe('do');
 	});
 });
