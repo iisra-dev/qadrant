@@ -28,15 +28,15 @@ def weights_revisions() -> dict:
     return {"laya": laya.__version__, **laya.PINNED_REVISIONS}
 
 
-def run_laya(router, text: str, question: str, model: str) -> float:
+def run_laya(router, state, question, model: str) -> float:
     """Return P(true) for a binary 'noul' question.
 
     Verified against laya 0.3.25: the question text goes in "instructions" and
     the answer is result["answers"][qid]["noul"] (P(true), rounded to 4 decimals).
     model="multilingual" forces the multilingual checkpoint (no language routing).
     """
-    questions = {"q": {"type": "noul", "instructions": question}}
-    result = router.predict(text, questions, model=model)
+    qdef = question if isinstance(question, dict) else {"type": "noul", "instructions": question}
+    result = router.predict(state, {"q": qdef}, model=model)
     return float(result["answers"]["q"]["noul"])
 
 
@@ -67,16 +67,74 @@ class Translator:
         return self.tok.decode(out[0], skip_special_tokens=True)
 
 
-def score_importance(router, goals, task, question, model, strategy, prefixes):
+# Two ways to ask, measured side by side (docs/03 uses "text" until phase 0 decides):
+# text:   one string "Objetivos: ...\nTarea: ..." and a plain question.
+# fields: a dict state, the question names its fields in backticks and true/false
+#         criteria describe each answer, as in laya's own presets.
+FORMATS = {
+    "A": {
+        "importance": {
+            "type": "noul",
+            "instructions": "¿La `tarea` ayuda a cumplir alguno de los `objetivos`?",
+            "criteria": {
+                "true": "hacer la tarea acerca a uno de los objetivos",
+                "false": "la tarea no tiene que ver con ninguno de los objetivos",
+            },
+        },
+        "delegable": {
+            "type": "noul",
+            "instructions": "¿Puede hacer la `tarea` otra persona en lugar de mí?",
+            "criteria": {
+                "true": "otra persona podría hacerla igual de bien",
+                "false": "tengo que hacerla yo",
+            },
+        },
+        "fields": ("objetivos", "tarea"),
+    },
+    "B": {
+        "importance": {
+            "type": "noul",
+            "instructions": "Does `task` help achieve any of the `goals`?",
+            "criteria": {
+                "true": "doing the task moves one of the goals forward",
+                "false": "the task is unrelated to every goal",
+            },
+        },
+        "delegable": {
+            "type": "noul",
+            "instructions": "Could someone else do `task` instead of me?",
+            "criteria": {
+                "true": "another person could do it just as well",
+                "false": "I have to do it myself",
+            },
+        },
+        "fields": ("goals", "task"),
+    },
+}
+
+
+def build_state(fmt, variant, prefixes, goals_text, task):
+    if fmt == "text":
+        return f"{prefixes[0]}: {goals_text}\n{prefixes[1]}: {task}"
+    goals_key, task_key = FORMATS[variant]["fields"]
+    return {goals_key: goals_text, task_key: task}
+
+
+def build_delegable_state(fmt, variant, prefixes, task):
+    if fmt == "text":
+        return f"{prefixes[1]}: {task}"
+    return {FORMATS[variant]["fields"][1]: task}
+
+
+def score_importance(router, goals, task, question, model, strategy, prefixes, fmt="text", variant="A"):
     """Return (p, index of the best goal or None).
 
     combined: every goal in one input (one call).
     per-goal: one call per goal, keep the max; this is what the app needs for matchedGoalId.
     """
-    prefix_goals, prefix_task = prefixes
     if strategy == "combined":
-        return run_laya(router, f"{prefix_goals}: {'; '.join(goals)}\n{prefix_task}: {task}", question, model), None
-    scores = [run_laya(router, f"{prefix_goals}: {g}\n{prefix_task}: {task}", question, model) for g in goals]
+        return run_laya(router, build_state(fmt, variant, prefixes, "; ".join(goals), task), question, model), None
+    scores = [run_laya(router, build_state(fmt, variant, prefixes, g, task), question, model) for g in goals]
     best = max(range(len(scores)), key=scores.__getitem__)
     return scores[best], best
 
@@ -86,6 +144,7 @@ def main():
     parser.add_argument("--smoke", action="store_true", help="check the laya API and exit")
     parser.add_argument("--variant", choices=["A", "B"])
     parser.add_argument("--strategy", choices=["combined", "per-goal"], default="combined")
+    parser.add_argument("--format", choices=["text", "fields"], default="text", dest="fmt")
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--low", type=float, default=0.35)
     parser.add_argument("--high", type=float, default=0.65)
@@ -115,15 +174,18 @@ def main():
         prefixes = ("Goals", "Task")
         goals_used = [translate(g) for g in goals]  # once, as the app would cache them
 
+    if args.fmt == "fields":
+        q_imp, q_del = FORMATS[args.variant]["importance"], FORMATS[args.variant]["delegable"]
+
     # Warm-up: keep model loading out of the first task's latency.
-    run_laya(router, f"{prefixes[1]}: warm-up", q_del, model)
+    run_laya(router, build_delegable_state(args.fmt, args.variant, prefixes, "warm-up"), q_del, model)
 
     rows = []
     for _, row in tasks.iterrows():
         start = time.perf_counter()
         task_txt = translate(row[text_col]) if translate else row[text_col]
-        p_imp, goal_idx = score_importance(router, goals_used, task_txt, q_imp, model, args.strategy, prefixes)
-        p_del = run_laya(router, f"{prefixes[1]}: {task_txt}", q_del, model)
+        p_imp, goal_idx = score_importance(router, goals_used, task_txt, q_imp, model, args.strategy, prefixes, args.fmt, args.variant)
+        p_del = run_laya(router, build_delegable_state(args.fmt, args.variant, prefixes, task_txt), q_del, model)
         ms = (time.perf_counter() - start) * 1000
         rows.append({
             **row.to_dict(),
@@ -139,7 +201,7 @@ def main():
     res["pred_delegable"] = (res["p_delegable"] >= args.threshold).astype(int)
     # Same bounds as the engine: p <= low and p >= high are decided, only (low, high) asks.
     res["doubt_zone"] = (res["p_important"] > args.low) & (res["p_important"] < args.high)
-    res.to_csv(HERE / f"results_{args.variant}_{args.strategy}.csv", index=False)
+    res.to_csv(HERE / f"results_{args.variant}_{args.strategy}_{args.fmt}.csv", index=False)
 
     acc_imp = accuracy_score(res["important"], res["pred_important"])
     acc_del = accuracy_score(res["delegable"], res["pred_delegable"])
@@ -151,7 +213,7 @@ def main():
     gate = acc_imp >= GATE_AGREEMENT and doubt_rate <= GATE_MAX_DOUBT
     es = lambda x: f"{x:.2f}".replace(".", ",")  # noqa: E731
     summary = (
-        f"\n## Variante {args.variant} · {args.strategy}\n\n"
+        f"\n## Variante {args.variant} · {args.strategy} · formato {args.fmt}\n\n"
         f"- Tareas: {len(res)} (columna `{text_col}`)\n"
         f"- Versiones: {weights_revisions()}\n"
         f"- Acuerdo en importancia (umbral {es(args.threshold)}): {acc_imp:.1%}\n"
