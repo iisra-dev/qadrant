@@ -7,11 +7,12 @@
 	import { captureLines, doubtText } from '$lib/domain/explain';
 	import { formatPercent } from '$lib/domain/format';
 	import { doubtOutcomes, redecide } from '$lib/domain/quadrant';
+	import { proposeSlot } from '$lib/domain/scheduler';
 	import { QUADRANTS, type Decision, type Quadrant } from '$lib/domain/types';
 	import { classify, latestClassifier } from '$lib/engine';
 	import { taskActions } from '$lib/tasks/actions';
 	import { AiDot, Button, IconButton, QuadrantPicker, QUADRANT_META, quadrantVars, Sheet } from '$lib/ui';
-	import { activeGoals, people } from '$lib/stores';
+	import { activeGoals, openTasks, people } from '$lib/stores';
 
 	const DEBOUNCE_MS = 400;
 	const classifyLatest = latestClassifier();
@@ -32,7 +33,16 @@
 	const quadrant = $derived(chosen ?? decision?.quadrant ?? null);
 	const isDoubt = $derived(Boolean(decision && decision.quadrant === null && !chosen));
 	const explainCtx = $derived({ now: new Date(), settings: currentSettings(), goals: $activeGoals, people: $people });
-	const lines = $derived(decision ? captureLines(decision, explainCtx) : null);
+	function slotFor(target: Quadrant | null): string | undefined {
+		if (!decision || !target) return undefined;
+		const slot = proposeSlot(
+			{ quadrant: target, durationMin: decision.durationMin, dueAt: decision.urgent.dueAt },
+			{ now: new Date(), tasks: $openTasks, settings: currentSettings() }
+		);
+		return slot?.start;
+	}
+	const slotStart = $derived(slotFor(quadrant));
+	const lines = $derived(decision ? captureLines(decision, explainCtx, slotStart ? new Date(slotStart) : undefined) : null);
 
 	// Opening the sheet starts from the text given by the caller (the web header field).
 	$effect(() => {
@@ -95,7 +105,8 @@
 				rawInput: text.trim(),
 				decision: result,
 				choice: chosen ? { kind: 'manual', quadrant: chosen } : { kind: 'accepted' },
-				settings: currentSettings()
+				settings: currentSettings(),
+				scheduledAt: slotFor(chosen ?? result.quadrant)
 			});
 			close();
 			if (options.details) await goto(`/task/${task.id}`);
@@ -112,7 +123,8 @@
 				rawInput: text.trim(),
 				decision,
 				choice: { kind: 'answer', answer: yes },
-				settings: currentSettings()
+				settings: currentSettings(),
+				scheduledAt: outcomes ? slotFor(yes ? outcomes.yes : outcomes.no) : undefined
 			});
 			close();
 		} finally {

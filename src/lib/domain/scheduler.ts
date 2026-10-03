@@ -149,3 +149,43 @@ export function schedule({ now, tasks, settings, events = [], horizonDays = 14 }
 function iso(ms: number): string {
 	return new Date(ms).toISOString();
 }
+
+/** Where a task that is not saved yet would go, given the open tasks (capture sheet). */
+export function proposeSlot(
+	draft: Pick<Task, 'quadrant' | 'durationMin' | 'dueAt'>,
+	input: Omit<ScheduleInput, 'tasks'> & { tasks: Task[] }
+): Placement | null {
+	if (draft.quadrant !== 'do' && draft.quadrant !== 'schedule') return null;
+	const id = '\u0000draft';
+	const virtual: Task = {
+		id,
+		createdAt: input.now.toISOString(),
+		updatedAt: input.now.toISOString(),
+		title: '',
+		rawInput: '',
+		quadrantSource: 'ai',
+		status: 'open',
+		...draft
+	};
+	// Only the tasks that already have a time matter, plus the queue ahead of the draft.
+	const result = schedule({ ...input, tasks: [...input.tasks, virtual] });
+	return result.placements.find((p) => p.taskId === id) ?? null;
+}
+
+export interface NextUp {
+	task: Task;
+	start: Date;
+}
+
+/** The next scheduled open task of today that has not finished yet ("Siguiente" pill). */
+export function nextToday(tasks: Task[], now: Date): NextUp | null {
+	let best: NextUp | null = null;
+	for (const task of tasks) {
+		if (task.status !== 'open' || task.deletedAt || !task.scheduledAt) continue;
+		const start = new Date(task.scheduledAt);
+		const end = start.getTime() + (task.durationMin ?? DEFAULT_DURATION_MIN) * MIN_MS;
+		if (start.toDateString() !== now.toDateString() || end <= now.getTime()) continue;
+		if (!best || start < best.start) best = { task, start };
+	}
+	return best;
+}

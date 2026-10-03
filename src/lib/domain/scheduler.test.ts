@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings } from '$lib/db/defaults';
-import { DEFAULT_DURATION_MIN, schedule, type BusyEvent } from './scheduler';
+import { DEFAULT_DURATION_MIN, nextToday, proposeSlot, schedule, type BusyEvent } from './scheduler';
 import type { Quadrant, Settings, Task } from './types';
 
 const settings: Settings = defaultSettings(); // Mon-Fri 09:00-18:00, national holidays
@@ -127,5 +127,30 @@ describe('schedule: Programar in focus blocks', () => {
 		// 5 working days in 7 calendar days from Friday (Fri, Mon-Thu): two 60-min tasks per block.
 		expect(result.placements).toHaveLength(10);
 		expect(result.unplaced).toHaveLength(30);
+	});
+});
+
+describe('proposeSlot', () => {
+	it('places the draft after the tasks already queued', () => {
+		const existing = task('do', { id: 'e', scheduledAt: at(2, 10, 0), durationMin: 60 });
+		const slot = proposeSlot({ quadrant: 'do', durationMin: 45 }, { now: friday2Oct10, tasks: [existing], settings });
+		expect(slot).toMatchObject({ start: at(2, 11, 0), end: at(2, 11, 45) });
+	});
+
+	it('only Hacer and Programar get a slot', () => {
+		expect(proposeSlot({ quadrant: 'delegate' }, { now: friday2Oct10, tasks: [], settings })).toBeNull();
+	});
+});
+
+describe('nextToday', () => {
+	it('returns the next task of today that has not finished', () => {
+		const tasks = [
+			task('do', { id: 'past', scheduledAt: at(2, 8, 0) }),
+			task('do', { id: 'ongoing', scheduledAt: at(2, 9, 45) }),
+			task('do', { id: 'later', scheduledAt: at(2, 12, 0) }),
+			task('do', { id: 'tomorrow', scheduledAt: at(3, 9, 0) })
+		];
+		expect(nextToday(tasks, friday2Oct10)?.task.id).toBe('ongoing');
+		expect(nextToday(tasks, new Date(2026, 9, 2, 13, 0))).toBeNull();
 	});
 });

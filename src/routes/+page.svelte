@@ -4,6 +4,7 @@
 	import { clock } from '$lib/app/clock.svelte';
 	import { media } from '$lib/app/media.svelte';
 	import { agendaForDay } from '$lib/domain/agenda';
+	import { nextToday } from '$lib/domain/scheduler';
 	import { formatDuration, formatTime } from '$lib/domain/format';
 	import TaskDetail from '$lib/task/TaskDetail.svelte';
 	import { capture } from '$lib/app/capture.svelte';
@@ -12,7 +13,7 @@
 	import { groupByQuadrant, isOverdue } from '$lib/domain/matrix';
 	import { QUADRANTS, type Task } from '$lib/domain/types';
 	import { openTasks, people } from '$lib/stores';
-	import { AgendaBlock, Button, Drawer, Icon, QuadrantCard, QUADRANT_META, Sheet, TaskRow } from '$lib/ui';
+	import { AgendaBlock, Button, Drawer, Icon, Pill, QuadrantCard, QUADRANT_META, Sheet, TaskRow } from '$lib/ui';
 	import ArchiveToast from './ArchiveToast.svelte';
 
 	const groups = $derived(groupByQuadrant($openTasks, clock.now));
@@ -23,6 +24,7 @@
 	}
 
 	const todayAgenda = $derived(agendaForDay($openTasks, clock.now));
+	const next = $derived(nextToday($openTasks, clock.now));
 
 	// On web the detail opens as a side panel with shallow routing (docs/02).
 	function openDetail(event: MouseEvent, id: string) {
@@ -57,6 +59,11 @@
 	<header>
 		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
 		<h1>Hoy</h1>
+		{#if next}
+			<div class="next">
+				<Pill href="/agenda" ai>Siguiente: {next.task.title} · {formatTime(next.start)}</Pill>
+			</div>
+		{/if}
 	</header>
 
 	<div class="grid">
@@ -182,6 +189,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
+	}
+	.next {
+		margin-top: var(--space-2);
+		display: flex;
 	}
 	.date {
 		font-size: 13px;

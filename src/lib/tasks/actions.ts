@@ -1,6 +1,7 @@
 import { repos as defaultRepos, type Repositories } from '$lib/db/repositories';
 import { doubtOutcomes, importantOnSave } from '$lib/domain/quadrant';
 import { reevaluate, reevaluateAll } from '$lib/domain/reevaluate';
+import { schedule } from '$lib/domain/scheduler';
 import type { Decision, Quadrant, Settings, Task } from '$lib/domain/types';
 import { evaluateUrgency } from '$lib/domain/urgency';
 
@@ -16,6 +17,8 @@ export interface SaveCaptureInput {
 	choice: CaptureChoice;
 	settings: Pick<Settings, 'thresholds'>;
 	now?: Date;
+	/** Slot proposed by the scheduler in the capture sheet (Hacer and Programar). */
+	scheduledAt?: string;
 }
 
 function corrections(repos: Repositories) {
@@ -41,7 +44,7 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 	const log = corrections(repos);
 
 	/** Saves a captured task and records a correction when the user changed or answered the proposal. */
-	async function saveCapture({ rawInput, decision, choice, settings, now = new Date() }: SaveCaptureInput): Promise<Task> {
+	async function saveCapture({ rawInput, decision, choice, settings, now = new Date(), scheduledAt }: SaveCaptureInput): Promise<Task> {
 		let quadrant: Quadrant;
 		let quadrantSource: Task['quadrantSource'];
 		let important: boolean | undefined;
@@ -81,6 +84,7 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 				...(decision.urgent.dueAt && { dueAt: decision.urgent.dueAt }),
 				...(decision.durationMin && { durationMin: decision.durationMin }),
 				...(personId && { delegatedTo: personId }),
+				...(scheduledAt && (quadrant === 'do' || quadrant === 'schedule') && { scheduledAt }),
 				status: 'open',
 				decision
 			},
@@ -126,7 +130,19 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 		return moves.length;
 	}
 
-	return { saveCapture, changeQuadrant, changeDueDate, reevaluateOpenTasks };
+	/** "Buscarles hueco": gives a time to open Hacer and Programar tasks that have none. */
+	async function findSlots(settings: Settings, now = new Date()): Promise<{ placed: number; unplaced: number }> {
+		const result = schedule({ now, tasks: await repos.tasks.listOpen(), settings });
+		if (result.placements.length) {
+			await repos.tasks.updateMany(
+				result.placements.map((p) => ({ id: p.taskId, changes: { scheduledAt: p.start } })),
+				now
+			);
+		}
+		return { placed: result.placements.length, unplaced: result.unplaced.length };
+	}
+
+	return { saveCapture, changeQuadrant, changeDueDate, reevaluateOpenTasks, findSlots };
 }
 
 export const taskActions = createTaskActions();
