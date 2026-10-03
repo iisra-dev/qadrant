@@ -9,4 +9,6 @@ try {
 			meta.setAttribute('content', color);
 		});
 	}
+	// Interface language, mirrored by src/lib/i18n (English unless Spanish was chosen).
+	if (localStorage.getItem('qadrant.lang') === 'es') document.documentElement.setAttribute('lang', 'es');
 } catch (e) {}

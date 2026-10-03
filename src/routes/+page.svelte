@@ -13,11 +13,12 @@
 	import { groupByQuadrant, isOverdue, staleEliminate } from '$lib/domain/matrix';
 	import { QUADRANTS, type Task } from '$lib/domain/types';
 	import { openTasks, people } from '$lib/stores';
-	import { AgendaBlock, AiDot, Button, Drawer, Icon, Pill, QuadrantCard, QUADRANT_META, Sheet, TaskRow } from '$lib/ui';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { AgendaBlock, AiDot, Button, Drawer, Icon, Pill, QuadrantCard, Sheet, TaskRow } from '$lib/ui';
 	import ArchiveToast from './ArchiveToast.svelte';
 
 	const groups = $derived(groupByQuadrant($openTasks, clock.now));
-	const today = $derived(formatLongDate(clock.now));
+	const today = $derived(formatLongDate(clock.now, i18n.lang));
 
 	function personName(id: string | undefined): string | undefined {
 		return id ? $people.find((person) => person.id === id)?.name : undefined;
@@ -58,17 +59,17 @@
 </script>
 
 <svelte:head>
-	<title>Hoy · Qadrant</title>
+	<title>{i18n.m.common.pageTitle(i18n.m.matrix.title)}</title>
 </svelte:head>
 
 <div class="page" class:wide={media.wide}>
 <div class="matrix">
 	<header>
 		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
-		<h1>Hoy</h1>
+		<h1>{i18n.m.matrix.title}</h1>
 		{#if next}
 			<div class="next">
-				<Pill href="/agenda" ai>Siguiente: {next.task.title} · {formatTime(next.start)}</Pill>
+				<Pill href="/agenda" ai>{i18n.m.matrix.next(next.task.title, formatTime(next.start))}</Pill>
 			</div>
 		{/if}
 	</header>
@@ -94,14 +95,14 @@
 				{#snippet footer()}
 					{#if quadrant === 'eliminate' && stale.length > 0}
 						<div class="suggest">
-							<p><AiDot />{stale.length === 1 ? 'Una lleva' : `${stale.length} llevan`} 14 días sin tocarse.</p>
+							<p><AiDot />{i18n.m.matrix.stale(stale.length)}</p>
 							<button class="archive" type="button" onclick={archiveStale}>
-								{stale.length === 1 ? 'Archivarla' : 'Archivarlas'}
+								{i18n.m.matrix.archiveStale(stale.length)}
 							</button>
 						</div>
 					{/if}
 					{#if quadrant === 'eliminate' && groups.eliminate.length > 0}
-						<button class="archive" type="button" onclick={() => (confirmArchive = true)}>Archivar</button>
+						<button class="archive" type="button" onclick={() => (confirmArchive = true)}>{i18n.m.matrix.archive}</button>
 					{/if}
 				{/snippet}
 			</QuadrantCard>
@@ -110,7 +111,7 @@
 
 	{#if !media.web}
 		<button class="capture" type="button" onclick={() => capture.show()}>
-			<span>¿Qué tienes en mente?</span>
+			<span>{i18n.m.matrix.capture}</span>
 			<span class="capture-icon" aria-hidden="true"><Icon name="mic" size={18} /></span>
 		</button>
 	{/if}
@@ -118,34 +119,34 @@
 
 {#if media.wide}
 	<aside aria-labelledby="today-agenda">
-		<h2 id="today-agenda">Agenda de hoy</h2>
+		<h2 id="today-agenda">{i18n.m.matrix.todayAgenda}</h2>
 		{#each todayAgenda as task (task.id)}
 			<AgendaBlock
 				time={formatTime(new Date(task.scheduledAt!))}
 				title={task.title}
-				meta={`${QUADRANT_META[task.quadrant].name} · ${formatDuration(task.durationMin ?? 30)}`}
+				meta={`${i18n.m.quadrants[task.quadrant].name} · ${formatDuration(task.durationMin ?? 30)}`}
 				href={`/task/${task.id}`}
 				quadrant={task.quadrant}
 				minutes={task.durationMin ?? 30}
 			/>
 		{:else}
-			<p class="empty">Nada con hora hoy.</p>
+			<p class="empty">{i18n.m.matrix.nothingTimed}</p>
 		{/each}
 	</aside>
 {/if}
 </div>
 
-<Drawer open={Boolean(page.state.taskId)} label="Detalle de tarea" onclose={() => history.back()}>
+<Drawer open={Boolean(page.state.taskId)} label={i18n.m.matrix.detailPanel} onclose={() => history.back()}>
 	{#if page.state.taskId}
 		<TaskDetail id={page.state.taskId} onclose={() => history.back()} />
 	{/if}
 </Drawer>
 
-<Sheet open={confirmArchive} label="Archivar tareas" onclose={() => (confirmArchive = false)}>
-	<h2 class="confirm-title">¿Archivar {groups.eliminate.length === 1 ? 'la tarea' : `las ${groups.eliminate.length} tareas`} de Eliminar?</h2>
-	<p class="confirm-text">Dejarán de verse en la Matriz. Podrás deshacerlo durante unos segundos.</p>
-	<Button size="lg" block onclick={archiveAll}>Archivar</Button>
-	<Button variant="secondary" size="lg" block onclick={() => (confirmArchive = false)}>Cancelar</Button>
+<Sheet open={confirmArchive} label={i18n.m.matrix.archiveSheet} onclose={() => (confirmArchive = false)}>
+	<h2 class="confirm-title">{i18n.m.matrix.archiveAsk(groups.eliminate.length)}</h2>
+	<p class="confirm-text">{i18n.m.matrix.archiveText}</p>
+	<Button size="lg" block onclick={archiveAll}>{i18n.m.matrix.archive}</Button>
+	<Button variant="secondary" size="lg" block onclick={() => (confirmArchive = false)}>{i18n.m.common.cancel}</Button>
 </Sheet>
 
 {#if archived.length}

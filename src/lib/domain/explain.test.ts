@@ -168,3 +168,33 @@ describe('doubtText', () => {
 		);
 	});
 });
+
+describe('English', () => {
+	const en = { ...ctx, lang: 'en' as const };
+
+	it('why text', () => {
+		expect(whyText({ quadrant: 'do', quadrantSource: 'ai', decision: decision() }, en)).toBe(
+			'Due within the next 2 working days. Importance 87% for your goal “Ventas Q4”.'
+		);
+		expect(whyText({ quadrant: 'do', quadrantSource: 'ai', decision: decision({ importance: { p: null }, engine: 'rules' }) }, en)).toBe(
+			'Due within the next 2 working days. No assistant, goes to Do.'
+		);
+		expect(whyText({ quadrant: 'do', quadrantSource: 'user', decision: decision() }, en)).toBe('You moved it.');
+		const friday16 = { ...en, now: new Date(2026, 9, 16, 9, 0) };
+		const tuesday = new Date(2026, 9, 20, 18, 0).toISOString();
+		expect(whyText({ quadrant: 'do', quadrantSource: 'ai', decision: decision(), movedAt: friday16.now.toISOString(), dueAt: tuesday }, friday16)).toBe(
+			'Moved to Do because it is due on Tuesday.'
+		);
+	});
+
+	it('capture lines and doubt', () => {
+		expect(captureLines(decision({ durationMin: 45 }), en, new Date(2026, 9, 2, 12, 0))).toEqual({
+			urgent: 'Yes · due Mon, Oct 5, 09:00',
+			important: '87% · goal “Ventas Q4”',
+			slot: 'Today 12:00 · 45 min'
+		});
+		const d = decision({ quadrant: null, ask: 'importance', urgent: { value: false, reason: 'no-date' } });
+		expect(doubtText(d, en)).toBe("No date, so not urgent. All that's left is whether it matters to you.");
+		expect(quadrantName('eliminate', 'en')).toBe('Eliminate');
+	});
+});

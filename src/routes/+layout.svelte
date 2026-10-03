@@ -15,6 +15,7 @@
 	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
 	import { createReminderSync } from '$lib/ownserver/sync';
 	import { openTasks, settings } from '$lib/stores';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import { applyTheme } from '$lib/theme';
 	import { TabBar, WebHeader } from '$lib/ui';
 
@@ -56,6 +57,11 @@
 	// Settings are the source of truth for the theme; localStorage only mirrors it for the first paint.
 	$effect(() => {
 		if ($settings) applyTheme($settings.theme);
+	});
+
+	// Interface language (device-local setting, English by default).
+	$effect(() => {
+		if ($settings) i18n.set($settings.language ?? 'en');
 	});
 
 	// First run: the welcome screen, only once (docs/01).

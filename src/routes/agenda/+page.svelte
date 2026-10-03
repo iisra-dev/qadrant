@@ -4,12 +4,13 @@
 	import { currentSettings } from '$lib/app/context';
 	import { agendaForDay, agendaItems, eventsForDay, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, sameDay, startOfDay } from '$lib/domain/dates';
-	import { formatDuration, formatLongDate, formatShortDate, formatTime } from '$lib/domain/format';
+	import { formatDayMonth, formatDuration, formatLongDate, formatTime, weekdayShort } from '$lib/domain/format';
 	import { calendarEvents, people, settings } from '$lib/stores';
 	import WeekView from './WeekView.svelte';
 	import { openTasks } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
-	import { AgendaBlock, IconButton, QUADRANT_META } from '$lib/ui';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { AgendaBlock, IconButton } from '$lib/ui';
 
 	// Web: week view by default, working week (docs/01); mobile: day view only.
 	let view = $state<'day' | 'week'>('week');
@@ -17,9 +18,17 @@
 	let weekOffset = $state(0);
 	const days = $derived(weekDays(clock.now, weekOffset, ($settings ?? currentSettings()).workDays));
 	const weekLabel = $derived(
-		days.length ? `${formatShortDate(days[0]).slice(4)} – ${formatShortDate(days.at(-1)!).slice(4)}` : ''
+		days.length ? `${formatDayMonth(days[0], i18n.lang)} – ${formatDayMonth(days.at(-1)!, i18n.lang)}` : ''
 	);
-	const weekTitle = $derived(weekOffset === 0 ? 'Esta semana' : weekOffset === 1 ? 'La semana que viene' : weekOffset === -1 ? 'La semana pasada' : 'Semana');
+	const weekTitle = $derived(
+		weekOffset === 0
+			? i18n.m.agenda.thisWeek
+			: weekOffset === 1
+				? i18n.m.agenda.nextWeekTitle
+				: weekOffset === -1
+					? i18n.m.agenda.lastWeek
+					: i18n.m.agenda.weekTitle
+	);
 
 	let offset = $state(0);
 	const day = $derived(addDays(startOfDay(clock.now), offset));
@@ -40,24 +49,23 @@
 	}
 	const pending = $derived(withoutSlot($openTasks));
 	const waiting = $derived(waitingOnOthers($openTasks));
-	const SHORT_WEEKDAY = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 	function personName(id: string | undefined): string | undefined {
 		return id ? $people.find((p) => p.id === id)?.name : undefined;
 	}
 
-	/** "Revisar lun" within a week, "Revisar 20 oct" later, "Revisar hoy"/"Revisar ya" when due. */
+	/** "Check Mon" within a week, "Check Oct 20" later, "Check today"/"Check now" when due. */
 	function followUpLabel(iso: string | undefined): string {
-		if (!iso) return 'Sin fecha de revisión';
+		if (!iso) return i18n.m.agenda.noFollowUp;
 		const date = new Date(iso);
 		const today = startOfDay(clock.now).getTime();
 		const days = Math.round((startOfDay(date).getTime() - today) / 86_400_000);
-		if (days < 0) return 'Revisar ya';
-		if (days === 0) return 'Revisar hoy';
-		if (days < 7) return `Revisar ${SHORT_WEEKDAY[date.getDay()]}`;
-		return `Revisar ${formatShortDate(date).slice(4)}`;
+		if (days < 0) return i18n.m.agenda.checkNow;
+		if (days === 0) return i18n.m.agenda.checkToday;
+		if (days < 7) return i18n.m.agenda.checkOn(weekdayShort(date, i18n.lang));
+		return i18n.m.agenda.checkOn(formatDayMonth(date, i18n.lang));
 	}
-	const label = $derived(formatLongDate(day));
+	const label = $derived(formatLongDate(day, i18n.lang));
 	const isToday = $derived(sameDay(day, clock.now));
 
 	let message = $state('');
@@ -68,9 +76,7 @@
 		try {
 			const { placed, unplaced } = await taskActions.findSlots(currentSettings());
 			message =
-				placed === 0
-					? 'No hay huecos libres en las próximas dos semanas.'
-					: `${placed === 1 ? 'Colocada 1 tarea' : `Colocadas ${placed} tareas`}${unplaced ? `; ${unplaced} siguen sin hueco` : ''}.`;
+				placed === 0 ? i18n.m.agenda.noGaps : i18n.m.agenda.placed(placed, unplaced);
 		} finally {
 			busy = false;
 		}
@@ -78,7 +84,7 @@
 </script>
 
 <svelte:head>
-	<title>Agenda · Qadrant</title>
+	<title>{i18n.m.common.pageTitle(i18n.m.agenda.title)}</title>
 </svelte:head>
 
 <div class="agenda" class:wide={week}>
@@ -89,28 +95,28 @@
 				<h1>{weekTitle}</h1>
 			{:else}
 				<span class="date" aria-live="polite">{label.charAt(0).toUpperCase() + label.slice(1)}</span>
-				<h1>Agenda</h1>
+				<h1>{i18n.m.agenda.title}</h1>
 			{/if}
 		</div>
 		<div class="nav">
 			{#if media.web}
-				<div class="views" role="group" aria-label="Vista">
-					<button type="button" aria-pressed={view === 'day'} onclick={() => (view = 'day')}>Día</button>
-					<button type="button" aria-pressed={view === 'week'} onclick={() => (view = 'week')}>Semana</button>
+				<div class="views" role="group" aria-label={i18n.m.agenda.view}>
+					<button type="button" aria-pressed={view === 'day'} onclick={() => (view = 'day')}>{i18n.m.agenda.day}</button>
+					<button type="button" aria-pressed={view === 'week'} onclick={() => (view = 'week')}>{i18n.m.agenda.week}</button>
 				</div>
 			{/if}
 			{#if week}
-				<IconButton label="Semana anterior" icon="prev" onclick={() => weekOffset--} />
+				<IconButton label={i18n.m.agenda.prevWeek} icon="prev" onclick={() => weekOffset--} />
 				{#if weekOffset !== 0}
-					<button class="today" type="button" onclick={() => (weekOffset = 0)}>Hoy</button>
+					<button class="today" type="button" onclick={() => (weekOffset = 0)}>{i18n.m.common.today}</button>
 				{/if}
-				<IconButton label="Semana siguiente" icon="next" onclick={() => weekOffset++} />
+				<IconButton label={i18n.m.agenda.nextWeek} icon="next" onclick={() => weekOffset++} />
 			{:else}
-				<IconButton label="Día anterior" icon="prev" onclick={() => offset--} />
+				<IconButton label={i18n.m.agenda.prevDay} icon="prev" onclick={() => offset--} />
 				{#if !isToday}
-					<button class="today" type="button" onclick={() => (offset = 0)}>Hoy</button>
+					<button class="today" type="button" onclick={() => (offset = 0)}>{i18n.m.common.today}</button>
 				{/if}
-				<IconButton label="Día siguiente" icon="next" onclick={() => offset++} />
+				<IconButton label={i18n.m.agenda.nextDay} icon="next" onclick={() => offset++} />
 			{/if}
 		</div>
 	</header>
@@ -122,7 +128,7 @@
 	{:else}
 	<div class="blocks">
 		{#each dayEvents.allDay as event (event.id)}
-			<div class="all-day"><span class="all-day-label">Todo el día</span>{event.title}</div>
+			<div class="all-day"><span class="all-day-label">{i18n.m.common.allDay}</span>{event.title}</div>
 		{/each}
 		{#each rows as row (row.kind === 'task' ? row.item.tasks[0].id : row.event.id)}
 			{#if row.kind === 'task'}
@@ -130,7 +136,7 @@
 				<AgendaBlock
 					time={formatTime(item.start)}
 					title={item.tasks.map((t) => t.title).join(' · ')}
-					meta={`${QUADRANT_META[item.tasks[0].quadrant].name} · ${formatDuration(item.minutes)}`}
+					meta={`${i18n.m.quadrants[item.tasks[0].quadrant].name} · ${formatDuration(item.minutes)}`}
 					href={`/task/${item.tasks[0].id}`}
 					quadrant={item.tasks[0].quadrant}
 					focus={item.focus}
@@ -141,19 +147,19 @@
 				<AgendaBlock
 					time={formatTime(new Date(row.event.start))}
 					title={row.event.title}
-					meta={`Calendario · ${formatDuration(minutes)}`}
+					meta={i18n.m.agenda.calendarMeta(formatDuration(minutes))}
 					{minutes}
 				/>
 			{/if}
 		{:else}
-			<p class="empty">Nada en la agenda este día.</p>
+			<p class="empty">{i18n.m.agenda.empty}</p>
 		{/each}
 	</div>
 	{/if}
 
 	{#if waiting.length}
 		<section class="waiting" aria-labelledby="waiting-title">
-			<h2 id="waiting-title">Esperando a otros</h2>
+			<h2 id="waiting-title">{i18n.m.agenda.waiting}</h2>
 			{#each waiting as task (task.id)}
 				{@const name = personName(task.delegatedTo)}
 				<a href={`/task/${task.id}`}>
@@ -166,16 +172,16 @@
 	{/if}
 
 	<section class="pending" aria-labelledby="no-slot">
-		<h2 id="no-slot">Sin hueco todavía</h2>
+		<h2 id="no-slot">{i18n.m.agenda.noSlot}</h2>
 		{#if pending.length}
 			<ul>
 				{#each pending as task (task.id)}
-					<li><a href={`/task/${task.id}`}>{task.title}<span> · {QUADRANT_META[task.quadrant].name}</span></a></li>
+					<li><a href={`/task/${task.id}`}>{task.title}<span> · {i18n.m.quadrants[task.quadrant].name}</span></a></li>
 				{/each}
 			</ul>
-			<button class="find" type="button" onclick={findSlots} disabled={busy}>Buscarles hueco</button>
+			<button class="find" type="button" onclick={findSlots} disabled={busy}>{i18n.m.agenda.findSlots}</button>
 		{:else}
-			<p class="empty">Todas las tareas de Hacer y Programar tienen hora.</p>
+			<p class="empty">{i18n.m.agenda.allScheduled}</p>
 		{/if}
 		<p class="note" role="status">{message}</p>
 	</section>

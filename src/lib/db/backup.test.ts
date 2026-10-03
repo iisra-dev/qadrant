@@ -84,9 +84,20 @@ describe('importData', () => {
 	it('rejects other versions and damaged files', async () => {
 		await expect(importData({ version: 2 }, b)).rejects.toThrow(ImportError);
 		await expect(importData('nope', b)).rejects.toThrow(ImportError);
-		await expect(importData({ version: 1, tasks: [{}], goals: [], people: [], corrections: [] }, b)).rejects.toThrow(
-			'El fichero está dañado.'
-		);
+		await expect(importData({ version: 1, tasks: [{}], goals: [], people: [], corrections: [] }, b)).rejects.toMatchObject({
+			code: 'damaged'
+		});
 		expect(await b.tasks.count()).toBe(0);
+	});
+});
+
+describe('language', () => {
+	it('is device-local: never exported nor imported', async () => {
+		await ra.settings.update({ language: 'es' }, NOW);
+		const file = await exportData(a, LATER);
+		expect(file.settings).not.toHaveProperty('language');
+		await rb.settings.update({ language: 'en' }, NOW);
+		await importData({ ...file, settings: { ...file.settings, language: 'es', updatedAt: LATER.toISOString() } }, b);
+		expect((await rb.settings.get()).language).toBe('en');
 	});
 });

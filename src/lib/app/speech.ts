@@ -19,7 +19,8 @@ interface RecognitionConstructor {
 	available?: (options: { langs: string[]; processLocally: boolean }) => Promise<Availability>;
 }
 
-const LANG = 'es-ES';
+
+const LOCALES = { en: 'en-US', es: 'es-ES' } as const;
 
 function recognitionConstructor(): RecognitionConstructor | undefined {
 	const w = globalThis as unknown as Record<string, RecognitionConstructor | undefined>;
@@ -27,27 +28,27 @@ function recognitionConstructor(): RecognitionConstructor | undefined {
 }
 
 /** True only if the browser can recognise Spanish on the device right now. */
-export async function localSpeechAvailable(): Promise<boolean> {
+export async function localSpeechAvailable(lang: 'en' | 'es'): Promise<boolean> {
 	// Headless Chromium crashes inside available(); automated browsers never dictate.
 	if (globalThis.navigator?.webdriver) return false;
 	const Recognition = recognitionConstructor();
 	if (!Recognition?.available) return false;
 	try {
-		return (await Recognition.available({ langs: [LANG], processLocally: true })) === 'available';
+		return (await Recognition.available({ langs: [LOCALES[lang]], processLocally: true })) === 'available';
 	} catch {
 		return false;
 	}
 }
 
 /** Starts on-device dictation; returns a function that stops it. */
-export function dictate(onText: (text: string) => void, onEnd: () => void): () => void {
+export function dictate(lang: 'en' | 'es', onText: (text: string) => void, onEnd: () => void): () => void {
 	const Recognition = recognitionConstructor();
 	if (!Recognition) {
 		onEnd();
 		return () => {};
 	}
 	const recognition = new Recognition();
-	recognition.lang = LANG;
+	recognition.lang = LOCALES[lang];
 	recognition.interimResults = true;
 	recognition.processLocally = true;
 	recognition.onresult = (event) => {

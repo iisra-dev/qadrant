@@ -4,6 +4,7 @@
 	import { normaliseUrl, ServerError, serverApi } from '$lib/ownserver/client';
 	import { refreshCalendar } from '$lib/ownserver/calendar';
 	import { disablePush, enablePush } from '$lib/ownserver/push';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import { Button } from '$lib/ui';
 
 	let { server }: { server: Settings['server'] } = $props();
@@ -32,15 +33,15 @@
 		event.preventDefault();
 		if (!server) return;
 		busy = true;
-		calendarMessage = 'Leyendo el calendario…';
+		calendarMessage = m.readingCalendar;
 		try {
 			const state = await serverApi.connectCalendar(server, calendarUrl.trim());
 			calendarConnected = state.connected;
 			calendarUrl = '';
-			calendarMessage = `Conectado: ${state.events.length} eventos en los próximos 30 días.`;
+			calendarMessage = m.calendarConnected(state.events.length);
 			await refreshCalendar(server);
 		} catch (error) {
-			calendarMessage = error instanceof ServerError ? error.message : 'No se pudo conectar el calendario.';
+			calendarMessage = errorText(error, m.calendarError);
 		} finally {
 			busy = false;
 		}
@@ -52,39 +53,51 @@
 		try {
 			await serverApi.disconnectCalendar(server);
 			calendarConnected = false;
-			calendarMessage = 'Calendario quitado.';
+			calendarMessage = m.calendarRemoved;
 			await refreshCalendar(server);
 		} catch (error) {
-			calendarMessage = error instanceof ServerError ? error.message : 'No se pudo quitar el calendario.';
+			calendarMessage = errorText(error, m.calendarRemoveError);
 		} finally {
 			busy = false;
 		}
 	}
 
-	const PUSH_MESSAGES = {
-		enabled: 'Conectado. Recibirás avisos en este dispositivo.',
-		denied: 'Conectado, pero sin permiso para avisos. Puedes darlo en los ajustes del navegador.',
-		unsupported: 'Conectado. Este navegador no admite avisos; en iPhone, instala la app primero.',
-		failed: 'Conectado, pero no se pudieron activar los avisos en este navegador.'
-	} as const;
+	const m = $derived(i18n.m.server);
+
+	/** The message of a server error, in the interface language. */
+	function errorText(error: unknown, fallback: string): string {
+		if (!(error instanceof ServerError)) return fallback;
+		switch (error.code) {
+			case 'unreachable':
+				return m.cannotConnect;
+			case 'unauthorized':
+				return m.wrongKey;
+			case 'notQadrant':
+				return m.notQadrant;
+			case 'calendarUnreadable':
+				return m.calendarUnreadable;
+			default:
+				return m.serverError(error.status ?? 0);
+		}
+	}
 
 	async function connect(event: SubmitEvent) {
 		event.preventDefault();
 		const clean = normaliseUrl(url);
 		if (!clean) {
-			message = 'Escribe una dirección que empiece por https://';
+			message = m.httpsOnly;
 			return;
 		}
 		busy = true;
-		message = 'Conectando…';
+		message = m.connecting;
 		try {
 			const config = { url: clean, token: token.trim() };
 			await serverApi.ping(config);
 			await repos.settings.update({ server: config });
-			message = PUSH_MESSAGES[await enablePush(config)];
+			message = m[await enablePush(config)];
 			url = token = '';
 		} catch (error) {
-			message = error instanceof ServerError ? error.message : 'No se pudo conectar.';
+			message = errorText(error, m.genericError);
 		} finally {
 			busy = false;
 		}
@@ -97,7 +110,7 @@
 			await disablePush(server).catch(() => {});
 			await serverApi.putReminders(server, []).catch(() => {});
 			await repos.settings.update({ server: undefined });
-			message = 'Servidor quitado. Los avisos dejan de llegar a este dispositivo.';
+			message = m.removed;
 		} finally {
 			busy = false;
 		}
@@ -105,61 +118,55 @@
 </script>
 
 <section aria-labelledby="s-server">
-	<h2 id="s-server">Servidor propio (opcional)</h2>
+	<h2 id="s-server">{m.title}</h2>
 	<div class="card">
 		{#if server}
 			<div class="row">
 				<span class="url">{server.url}</span>
-				<Button variant="text" onclick={disconnect} disabled={busy}>Quitar</Button>
+				<Button variant="text" onclick={disconnect} disabled={busy}>{i18n.m.common.remove}</Button>
 			</div>
 		{:else}
 			<form onsubmit={connect}>
-				<label for="server-url">Dirección</label>
-				<input id="server-url" type="url" inputmode="url" autocomplete="off" placeholder="https://qadrant.tudominio.es" bind:value={url} required />
-				<label for="server-token">Clave de acceso</label>
+				<label for="server-url">{m.address}</label>
+				<input id="server-url" type="url" inputmode="url" autocomplete="off" placeholder="https://qadrant.example.com" bind:value={url} required />
+				<label for="server-token">{m.key}</label>
 				<input id="server-token" type="password" autocomplete="off" bind:value={token} required />
-				<Button type="submit" variant="secondary" disabled={busy}>Conectar</Button>
+				<Button type="submit" variant="secondary" disabled={busy}>{m.connect}</Button>
 			</form>
 		{/if}
 	</div>
 	<p class="note" role="status">{message}</p>
 
 	{#if server}
-		<h3 id="s-calendar">Calendario</h3>
+		<h3 id="s-calendar">{m.calendar}</h3>
 		<div class="card" aria-labelledby="s-calendar" role="group">
 			{#if calendarConnected}
 				<div class="row">
-					<span>Conectado</span>
-					<Button variant="text" onclick={disconnectCalendar} disabled={busy}>Quitar</Button>
+					<span>{m.connected}</span>
+					<Button variant="text" onclick={disconnectCalendar} disabled={busy}>{i18n.m.common.remove}</Button>
 				</div>
 			{:else if calendarConnected === false}
 				<form onsubmit={connectCalendar}>
-					<label for="calendar-url">Dirección secreta en formato iCal</label>
+					<label for="calendar-url">{m.calendarAddress}</label>
 					<input
 						id="calendar-url"
 						type="url"
 						inputmode="url"
 						autocomplete="off"
-						placeholder="https://… o webcal://…"
+						placeholder={m.calendarPlaceholder}
 						bind:value={calendarUrl}
 						required
 					/>
-					<Button type="submit" variant="secondary" disabled={busy}>Conectar calendario</Button>
+					<Button type="submit" variant="secondary" disabled={busy}>{m.connectCalendar}</Button>
 				</form>
 			{:else}
-				<p class="note">No se puede consultar el calendario ahora.</p>
+				<p class="note">{m.calendarUnavailable}</p>
 			{/if}
 		</div>
 		<p class="note" role="status">{calendarMessage}</p>
-		<p class="note">
-			Google, iCloud y Outlook ofrecen una dirección secreta de solo lectura. Se guarda en tu servidor, no en este dispositivo; la
-			agenda muestra tus eventos y no coloca tareas encima de los que tienen hora.
-		</p>
+		<p class="note">{m.calendarNote}</p>
 	{/if}
-	<p class="note">
-		Tus tareas no salen del dispositivo. El servidor solo recibe, para avisarte, el título y la fecha de las tareas con aviso; más adelante
-		servirá también para sincronizar y para clasificar cuando el asistente no esté en el dispositivo.
-	</p>
+	<p class="note">{m.privacy}</p>
 </section>
 
 <style>

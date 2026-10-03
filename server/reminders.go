@@ -87,16 +87,18 @@ func dueReminders(list []Reminder, now time.Time) []Reminder {
 
 // PushPayload is what the service worker receives in its push event.
 type PushPayload struct {
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-	TaskID string `json:"taskId"`
-	Kind   string `json:"kind"`
+	Title     string `json:"title"`
+	Body      string `json:"body"`
+	TaskID    string `json:"taskId"`
+	Kind      string `json:"kind"`
+	TaskTitle string `json:"taskTitle"`
 }
 
 func payloadFor(r Reminder) PushPayload {
-	body := "Vence: " + r.Title
+	// English fallback; the service worker rewords it in the app language from taskTitle and kind.
+	body := "Due: " + r.Title
 	if r.Kind == KindFollowUp {
-		body = "Revisar: " + r.Title
+		body = "Check: " + r.Title
 	}
-	return PushPayload{Title: "Qadrant", Body: body, TaskID: r.TaskID, Kind: r.Kind}
+	return PushPayload{Title: "Qadrant", Body: body, TaskID: r.TaskID, Kind: r.Kind, TaskTitle: r.Title}
 }

@@ -54,7 +54,8 @@ test('deleting all data needs two confirmations and returns to the welcome', asy
 	await dialog.getByLabel('Escribe BORRAR para confirmar.').fill('borrar');
 	await confirm.click();
 	await expect(page).toHaveURL(/\/welcome$/);
-	await expect(page.getByRole('textbox', { name: 'Objetivo 1' })).toHaveValue('');
+	// Settings are gone too, so the app is back to its default language.
+	await expect(page.getByRole('textbox', { name: 'Goal 1' })).toHaveValue('');
 });
 
 test('exports and imports tasks as JSON', async ({ page }) => {

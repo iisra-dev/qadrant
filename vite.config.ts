@@ -15,8 +15,8 @@ export default defineConfig({
 			manifest: {
 				name: 'Qadrant Calendar',
 				short_name: 'Qadrant',
-				description: 'Agenda basada en la matriz de Eisenhower que funciona en tu dispositivo.',
-				lang: 'es-ES',
+				description: 'An Eisenhower matrix agenda that runs on your device.',
+				lang: 'en-US',
 				display: 'standalone',
 				start_url: '/',
 				scope: '/',

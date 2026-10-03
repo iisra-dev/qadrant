@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { i18n } from '$lib/i18n/index.svelte';
 
 	// Undo for about 10 s; it does not close while it has the focus or the pointer (docs/01).
 	let { count, onundo, ondismiss }: { count: number; onundo: () => void; ondismiss: () => void } = $props();
@@ -44,8 +45,8 @@
 	onpointerenter={hold}
 	onpointerleave={release}
 >
-	<span>{count === 1 ? 'Tarea archivada' : `${count} tareas archivadas`}</span>
-	<button type="button" onclick={onundo}>Deshacer</button>
+	<span>{i18n.m.matrix.archived(count)}</span>
+	<button type="button" onclick={onundo}>{i18n.m.matrix.undo}</button>
 </div>
 
 <style>

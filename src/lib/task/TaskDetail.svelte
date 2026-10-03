@@ -8,7 +8,8 @@
 	import { live } from '$lib/stores/live';
 	import { activeGoals, people } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
-	import { AiDot, Button, Field, IconButton, QuadrantPicker, QUADRANT_META, Sheet } from '$lib/ui';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { AiDot, Button, Field, IconButton, QuadrantPicker, Sheet } from '$lib/ui';
 
 	let { id, onclose }: { id: string; onclose: () => void } = $props();
 	// undefined while loading, null when it does not exist.
@@ -78,7 +79,7 @@
 
 	const why = $derived(
 		$task
-			? whyText($task, { now: clock.now, settings: currentSettings(), goals: $activeGoals, people: $people })
+			? whyText($task, { now: clock.now, settings: currentSettings(), goals: $activeGoals, people: $people, lang: i18n.lang })
 			: ''
 	);
 	const durationValue = $derived(
@@ -88,16 +89,16 @@
 
 <div class="detail">
 	<header>
-		<IconButton label="Volver" icon="back" onclick={back} />
-		<Button variant="text" onclick={back}>Guardar</Button>
+		<IconButton label={i18n.m.common.back} icon="back" onclick={back} />
+		<Button variant="text" onclick={back}>{i18n.m.common.save}</Button>
 	</header>
 
 	{#if $task === null}
-		<p class="missing">Esta tarea ya no existe.</p>
+		<p class="missing">{i18n.m.detail.missing}</p>
 	{:else if $task}
 		<div class="body">
 			<div class="title">
-				<label for="task-title">Tarea</label>
+				<label for="task-title">{i18n.m.detail.task}</label>
 				<input id="task-title" type="text" value={$task.title} onchange={(e) => setTitle(e.currentTarget.value)} />
 			</div>
 
@@ -107,7 +108,7 @@
 			/>
 
 			<div class="card">
-				<Field id="task-due" label="Fecha límite">
+				<Field id="task-due" label={i18n.m.detail.dueDate}>
 					<input
 						id="task-due"
 						type="datetime-local"
@@ -115,19 +116,19 @@
 						onchange={(e) => taskActions.changeDueDate($task!, fromLocalInput(e.currentTarget.value), currentSettings())}
 					/>
 				</Field>
-				<Field id="task-duration" label="Duración">
+				<Field id="task-duration" label={i18n.m.detail.duration}>
 					<select id="task-duration" value={durationValue} onchange={(e) => setDuration(e.currentTarget.value)}>
-						<option value="">Sin duración</option>
+						<option value="">{i18n.m.detail.noDuration}</option>
 						<option value="15">15 min</option>
 						<option value="30">30 min</option>
 						<option value="45">45 min</option>
 						<option value="60">1 h</option>
 						<option value="120">2 h</option>
-						<option value="custom">Personalizada</option>
+						<option value="custom">{i18n.m.detail.custom}</option>
 					</select>
 				</Field>
 				{#if durationValue === 'custom'}
-					<Field id="task-duration-custom" label="Minutos">
+					<Field id="task-duration-custom" label={i18n.m.detail.minutes}>
 						<input
 							id="task-duration-custom"
 							type="number"
@@ -140,7 +141,7 @@
 						/>
 					</Field>
 				{/if}
-				<Field id="task-when" label="En la agenda">
+				<Field id="task-when" label={i18n.m.detail.scheduled}>
 					<input
 						id="task-when"
 						type="datetime-local"
@@ -149,7 +150,7 @@
 					/>
 				</Field>
 				{#if $task.quadrant === 'delegate'}
-					<Field id="task-follow-up" label="Revisar el">
+					<Field id="task-follow-up" label={i18n.m.detail.followUp}>
 						<input
 							id="task-follow-up"
 							type="date"
@@ -163,9 +164,9 @@
 						/>
 					</Field>
 				{/if}
-				<Field id="task-who" label="Delegar en">
+				<Field id="task-who" label={i18n.m.detail.delegateTo}>
 					<select id="task-who" value={$task.delegatedTo ?? ''} onchange={(e) => setAssignee(e.currentTarget.value)}>
-						<option value="">Nadie</option>
+						<option value="">{i18n.m.detail.nobody}</option>
 						{#each $people as person (person.id)}
 							<option value={person.id}>{person.name}</option>
 						{/each}
@@ -174,11 +175,11 @@
 			</div>
 
 			<div class="notes">
-				<label for="task-notes">Notas</label>
+				<label for="task-notes">{i18n.m.detail.notes}</label>
 				<textarea
 					id="task-notes"
 					rows="3"
-					placeholder="Añade detalles"
+					placeholder={i18n.m.detail.notesPlaceholder}
 					value={$task.notes ?? ''}
 					onchange={(e) => update({ notes: e.currentTarget.value || undefined })}
 				></textarea>
@@ -187,7 +188,7 @@
 			{#if why}
 				<div class="why">
 					<span class="label">
-						{#if $task.quadrantSource !== 'user'}<AiDot />{/if}POR QUÉ ESTÁ EN {QUADRANT_META[$task.quadrant].name.toUpperCase()}
+						{#if $task.quadrantSource !== 'user'}<AiDot />{/if}{i18n.m.detail.why(i18n.m.quadrants[$task.quadrant].name)}
 					</span>
 					<p>{why}</p>
 				</div>
@@ -196,18 +197,18 @@
 
 		<footer>
 			<Button size="lg" block onclick={toggleDone}>
-				{$task.status === 'done' ? 'Marcar como pendiente' : 'Marcar como hecha'}
+				{$task.status === 'done' ? i18n.m.detail.markOpen : i18n.m.detail.markDone}
 			</Button>
-			<IconButton label="Borrar tarea" icon="trash" variant="outlined" onclick={() => (confirmDelete = true)} />
+			<IconButton label={i18n.m.detail.delete} icon="trash" variant="outlined" onclick={() => (confirmDelete = true)} />
 		</footer>
 	{/if}
 </div>
 
-<Sheet open={confirmDelete} label="Borrar tarea" onclose={() => (confirmDelete = false)}>
-	<h2 class="confirm-title">¿Borrar «{$task?.title}»?</h2>
-	<p class="confirm-text">No se puede deshacer.</p>
-	<Button variant="danger" size="lg" block onclick={remove}>Borrar</Button>
-	<Button variant="secondary" size="lg" block onclick={() => (confirmDelete = false)}>Cancelar</Button>
+<Sheet open={confirmDelete} label={i18n.m.detail.delete} onclose={() => (confirmDelete = false)}>
+	<h2 class="confirm-title">{i18n.m.detail.deleteAsk($task?.title ?? '')}</h2>
+	<p class="confirm-text">{i18n.m.detail.deleteText}</p>
+	<Button variant="danger" size="lg" block onclick={remove}>{i18n.m.detail.deleteConfirm}</Button>
+	<Button variant="secondary" size="lg" block onclick={() => (confirmDelete = false)}>{i18n.m.common.cancel}</Button>
 </Sheet>
 
 <style>

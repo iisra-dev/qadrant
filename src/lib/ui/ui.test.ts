@@ -1,12 +1,15 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { i18n } from '$lib/i18n/index.svelte';
 import QuadrantCard from './QuadrantCard.svelte';
 import QuadrantPicker from './QuadrantPicker.svelte';
 import TabBar from './TabBar.svelte';
 import TaskRow from './TaskRow.svelte';
 
+// These cases check the Spanish texts; one case at the end checks English.
+beforeEach(() => i18n.set('es'));
 afterEach(cleanup);
 
 describe('QuadrantPicker', () => {
@@ -62,5 +65,17 @@ describe('TabBar', () => {
 		expect(links.map((l) => l.textContent?.trim())).toEqual(['Matriz', 'Agenda', 'Ajustes']);
 		expect(screen.getByRole('link', { name: 'Agenda' }).getAttribute('aria-current')).toBe('page');
 		expect(screen.getByRole('link', { name: 'Matriz' }).getAttribute('aria-current')).toBeNull();
+	});
+});
+
+describe('English', () => {
+	it('uses the English catalog', () => {
+		i18n.set('en');
+		render(TabBar, { current: '/' });
+		expect(screen.getAllByRole('link').map((l) => l.textContent?.trim())).toEqual(['Matrix', 'Agenda', 'Settings']);
+		cleanup();
+		render(QuadrantPicker, { value: 'do', onchange: () => {} });
+		expect(screen.getByRole('group', { name: 'Quadrant' })).toBeTruthy();
+		expect(screen.getAllByRole('button').map((b) => b.textContent?.trim())).toEqual(['Do', 'Schedule', 'Delegate', 'Eliminate']);
 	});
 });
