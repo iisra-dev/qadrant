@@ -10,6 +10,7 @@
 	import { applyTheme, type Theme } from '$lib/theme';
 	import { AiDot, Button } from '$lib/ui';
 	import DataSection from './DataSection.svelte';
+	import ServerSection from './ServerSection.svelte';
 
 	const s = $derived($settings);
 	const WEEKDAYS = [
@@ -264,6 +265,8 @@
 			</div>
 			<p class="note">Mientras no esté el asistente, la app clasifica con reglas y te pregunta cuando duda. Tus tareas no salen del dispositivo.</p>
 		</section>
+
+		<ServerSection server={s.server} />
 
 		<section aria-labelledby="s-theme">
 			<h2 id="s-theme">Apariencia</h2>

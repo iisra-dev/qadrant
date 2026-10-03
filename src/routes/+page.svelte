@@ -4,15 +4,16 @@
 	import { clock } from '$lib/app/clock.svelte';
 	import { media } from '$lib/app/media.svelte';
 	import { agendaForDay } from '$lib/domain/agenda';
+	import { nextToday } from '$lib/domain/scheduler';
 	import { formatDuration, formatTime } from '$lib/domain/format';
 	import TaskDetail from '$lib/task/TaskDetail.svelte';
 	import { capture } from '$lib/app/capture.svelte';
 	import { repos } from '$lib/db/repositories';
 	import { formatLongDate } from '$lib/domain/format';
-	import { groupByQuadrant, isOverdue } from '$lib/domain/matrix';
+	import { groupByQuadrant, isOverdue, staleEliminate } from '$lib/domain/matrix';
 	import { QUADRANTS, type Task } from '$lib/domain/types';
 	import { openTasks, people } from '$lib/stores';
-	import { AgendaBlock, Button, Drawer, Icon, QuadrantCard, QUADRANT_META, Sheet, TaskRow } from '$lib/ui';
+	import { AgendaBlock, AiDot, Button, Drawer, Icon, Pill, QuadrantCard, QUADRANT_META, Sheet, TaskRow } from '$lib/ui';
 	import ArchiveToast from './ArchiveToast.svelte';
 
 	const groups = $derived(groupByQuadrant($openTasks, clock.now));
@@ -23,6 +24,14 @@
 	}
 
 	const todayAgenda = $derived(agendaForDay($openTasks, clock.now));
+	const next = $derived(nextToday($openTasks, clock.now));
+	const stale = $derived(staleEliminate($openTasks, clock.now));
+
+	async function archiveStale() {
+		const ids = stale.map((task) => task.id);
+		await repos.tasks.archive(ids);
+		archived = ids;
+	}
 
 	// On web the detail opens as a side panel with shallow routing (docs/02).
 	function openDetail(event: MouseEvent, id: string) {
@@ -57,6 +66,11 @@
 	<header>
 		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
 		<h1>Hoy</h1>
+		{#if next}
+			<div class="next">
+				<Pill href="/agenda" ai>Siguiente: {next.task.title} · {formatTime(next.start)}</Pill>
+			</div>
+		{/if}
 	</header>
 
 	<div class="grid">
@@ -78,6 +92,14 @@
 					</div>
 				{/snippet}
 				{#snippet footer()}
+					{#if quadrant === 'eliminate' && stale.length > 0}
+						<div class="suggest">
+							<p><AiDot />{stale.length === 1 ? 'Una lleva' : `${stale.length} llevan`} 14 días sin tocarse.</p>
+							<button class="archive" type="button" onclick={archiveStale}>
+								{stale.length === 1 ? 'Archivarla' : 'Archivarlas'}
+							</button>
+						</div>
+					{/if}
 					{#if quadrant === 'eliminate' && groups.eliminate.length > 0}
 						<button class="archive" type="button" onclick={() => (confirmArchive = true)}>Archivar</button>
 					{/if}
@@ -183,6 +205,10 @@
 		flex-direction: column;
 		gap: 2px;
 	}
+	.next {
+		margin-top: var(--space-2);
+		display: flex;
+	}
 	.date {
 		font-size: 13px;
 		color: var(--text-muted);
@@ -200,6 +226,14 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-auto-rows: minmax(200px, auto);
 		gap: var(--space-2-5);
+	}
+	.suggest {
+		margin-top: var(--space-1);
+	}
+	.suggest p {
+		margin: 0;
+		font-size: 12px;
+		line-height: 1.4;
 	}
 	.archive {
 		align-self: flex-start;

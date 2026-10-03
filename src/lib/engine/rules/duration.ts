@@ -37,6 +37,9 @@ const PATTERNS: { pattern: RegExp; minutes: (m: RegExpExecArray) => number }[] =
 	{ pattern: new RegExp(`\\b${N} ?(?:min|minutos?)\\b`, 'i'), minutes: (m) => toNumber(m[1]) }
 ];
 
+const DURATION_INTRODUCER =
+	/(?:\b(?:durante|al\s+menos|(?:me\s+)?llevar[áa]|me\s+lleva|tardar[ée]|tardo)\s+)?(?:\b(?:unas?|como)\s+)?$/i;
+
 /** Step 3 of docs/03: duration in minutes, on the text left after removing the date. */
 export function extractDuration(text: string): DurationMatch | null {
 	for (const { pattern, minutes } of PATTERNS) {
@@ -45,9 +48,10 @@ export function extractDuration(text: string): DurationMatch | null {
 		const value = minutes(match);
 		if (!Number.isFinite(value) || value <= 0) continue;
 		let start = match.index;
-		// "durante dos horas": the introducer goes away too.
-		const before = /\bdurante\s+$/i.exec(text.slice(0, start));
-		if (before) start = before.index;
+		// "durante dos horas", "tardaré 2 h", "me llevará media hora", "al menos 1 hora", "unas 2 horas":
+		// the words that introduce the duration go away too.
+		const before = DURATION_INTRODUCER.exec(text.slice(0, start));
+		if (before && before[0].length) start = before.index;
 		return { minutes: Math.round(value), range: [start, match.index + match[0].length] };
 	}
 	return null;

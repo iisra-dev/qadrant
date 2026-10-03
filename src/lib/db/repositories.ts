@@ -1,5 +1,6 @@
 import type {
 	Base,
+	CalendarEvent,
 	Correction,
 	Goal,
 	Person,
@@ -183,14 +184,34 @@ export function createRepositories(db: CuadranteDB = defaultDb) {
 		}
 	};
 
+	const events = {
+		async list(): Promise<CalendarEvent[]> {
+			return db.events.orderBy('start').toArray();
+		},
+		/** The server sends the whole window each time: replace everything. */
+		async replace(list: CalendarEvent[]): Promise<void> {
+			await db.transaction('rw', db.events, async () => {
+				await db.events.clear();
+				if (list.length) await db.events.bulkPut(list);
+			});
+		}
+	};
+
 	/** "Borrar todos los datos" (docs/01): every table; the model lives in OPFS and stays. */
 	async function clearAll(): Promise<void> {
-		await db.transaction('rw', [db.tasks, db.goals, db.people, db.corrections, db.settings], async () => {
-			await Promise.all([db.tasks.clear(), db.goals.clear(), db.people.clear(), db.corrections.clear(), db.settings.clear()]);
+		await db.transaction('rw', [db.tasks, db.goals, db.people, db.corrections, db.settings, db.events], async () => {
+			await Promise.all([
+				db.tasks.clear(),
+				db.goals.clear(),
+				db.people.clear(),
+				db.corrections.clear(),
+				db.settings.clear(),
+				db.events.clear()
+			]);
 		});
 	}
 
-	return { tasks, goals, people, corrections, settings, clearAll };
+	return { tasks, goals, people, corrections, settings, events, clearAll };
 }
 
 function cleanAliases(aliases: string[]): string[] {

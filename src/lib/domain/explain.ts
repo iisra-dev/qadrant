@@ -1,4 +1,5 @@
-import { formatDuration, formatPercent, formatShortDateTime, relativeDay } from './format';
+import { addDays, sameDay } from './dates';
+import { formatDuration, formatPercent, formatShortDate, formatShortDateTime, formatTime, relativeDay } from './format';
 import type { Decision, Goal, Person, Quadrant, Settings, Task } from './types';
 
 export interface ExplainContext {
@@ -99,8 +100,18 @@ export function whyText(task: Partial<Explainable> & Pick<Task, 'quadrant' | 'qu
 	return parts.join(' ');
 }
 
-/** The three lines of the capture sheet: Urgente, Importante, Hueco. */
-export function captureLines(decision: Decision, ctx: ExplainContext): { urgent: string; important: string; slot: string } {
+/** "Hoy 12:00", "Mañana 09:00", "lun 5 oct 09:00". */
+export function slotLabel(start: Date, now: Date): string {
+	const day = sameDay(start, now) ? 'Hoy' : sameDay(start, addDays(now, 1)) ? 'Mañana' : formatShortDate(start);
+	return `${day} ${formatTime(start)}`;
+}
+
+/** The three lines of the capture sheet: Urgente, Importante, Hueco (slot proposed by the scheduler, if any). */
+export function captureLines(
+	decision: Decision,
+	ctx: ExplainContext,
+	slotStart?: Date
+): { urgent: string; important: string; slot: string } {
 	const { urgent } = decision;
 	let urgentLine: string;
 	if (!urgent.dueAt) urgentLine = 'No · sin fecha';
@@ -116,8 +127,10 @@ export function captureLines(decision: Decision, ctx: ExplainContext): { urgent:
 		importantLine = goal ? `${formatPercent(p)} · objetivo «${goal}»` : formatPercent(p);
 	}
 
-	// No scheduler until phase 3: the slot line only shows the duration.
-	const slot = decision.durationMin ? formatDuration(decision.durationMin) : 'Sin hora';
+	const duration = decision.durationMin ? formatDuration(decision.durationMin) : '';
+	const slot = slotStart
+		? [slotLabel(slotStart, ctx.now), duration || formatDuration(30)].join(' · ')
+		: duration || 'Sin hora';
 	return { urgent: urgentLine, important: importantLine, slot };
 }
 

@@ -38,3 +38,7 @@ static/models/
 
 # Deploy tooling
 .wrangler/
+
+# Own server (Go)
+server/pb_data/
+server/cuadrante-server

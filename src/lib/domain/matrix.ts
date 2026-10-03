@@ -24,3 +24,13 @@ export function groupByQuadrant(tasks: Task[], now: Date): Record<Quadrant, Task
 	for (const key of Object.keys(groups) as Quadrant[]) groups[key] = sortForMatrix(groups[key], now);
 	return groups;
 }
+
+export const ARCHIVE_SUGGESTION_DAYS = 14;
+
+/** Eliminar tasks untouched (updatedAt) for 14 days or more: the app suggests archiving them (docs/01). */
+export function staleEliminate(tasks: Task[], now: Date): Task[] {
+	const limit = now.getTime() - ARCHIVE_SUGGESTION_DAYS * 86_400_000;
+	return tasks.filter(
+		(t) => t.quadrant === 'eliminate' && t.status === 'open' && !t.deletedAt && new Date(t.updatedAt).getTime() <= limit
+	);
+}

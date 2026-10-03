@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings } from '$lib/db/defaults';
 import type { Settings } from './types';
-import { evaluateUrgency, isWorkingDay, urgencyDeadline } from './urgency';
+import { defaultFollowUp, evaluateUrgency, isWorkingDay, urgencyDeadline } from './urgency';
 
 function settings(overrides: Partial<Settings> = {}): Settings {
 	return { ...defaultSettings(), ...overrides };
@@ -77,5 +77,13 @@ describe('evaluateUrgency', () => {
 	it('due on a Saturday right after today is urgent', () => {
 		const dueAt = new Date(2026, 9, 3, 18, 0).toISOString();
 		expect(evaluateUrgency(dueAt, friday2Oct, settings()).value).toBe(true);
+	});
+});
+
+describe('defaultFollowUp', () => {
+	it('is the start of the 2nd working day after today', () => {
+		expect(defaultFollowUp(friday2Oct, settings())).toBe(new Date(2026, 9, 6, 9, 0).toISOString());
+		// Monday 12 is a holiday.
+		expect(defaultFollowUp(friday9Oct, settings())).toBe(new Date(2026, 9, 14, 9, 0).toISOString());
 	});
 });

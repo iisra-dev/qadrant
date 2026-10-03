@@ -79,6 +79,12 @@ describe('saveCapture', () => {
 		expect(task).toMatchObject({ quadrant: 'do', important: false });
 	});
 
+	it('a delegated task gets a follow-up 2 working days later', async () => {
+		const d = decision({ quadrant: 'delegate', delegable: { p: null, personId: 'p-ana' }, importance: { p: null }, engine: 'rules' });
+		const task = await actions.saveCapture({ rawInput: 'x', decision: d, choice: { kind: 'accepted' }, settings, now });
+		expect(task.followUpAt).toBe(new Date(2026, 9, 6, 9, 0).toISOString());
+	});
+
 	it('keeps the assignee of an assignment', async () => {
 		const d = decision({ quadrant: 'delegate', delegable: { p: null, personId: 'p-ana' }, importance: { p: null }, engine: 'rules' });
 		const task = await actions.saveCapture({ rawInput: 'Que Ana…', decision: d, choice: { kind: 'accepted' }, settings, now });
@@ -102,6 +108,15 @@ describe('changeQuadrant', () => {
 		expect(stored?.movedAt).toBeUndefined();
 		const [correction] = await repos.corrections.listForTask(task.id);
 		expect(correction).toMatchObject({ from: 'do', to: 'eliminate' });
+	});
+
+	it('sets the follow-up when moved to Delegar and clears it when moved out', async () => {
+		const task = await actions.saveCapture({ rawInput: 'x', decision: decision(), choice: { kind: 'accepted' }, settings, now });
+		await actions.changeQuadrant(task, 'delegate', settings, now);
+		const delegated = (await repos.tasks.get(task.id))!;
+		expect(delegated.followUpAt).toBe(new Date(2026, 9, 6, 9, 0).toISOString());
+		await actions.changeQuadrant(delegated, 'do', settings, now);
+		expect((await repos.tasks.get(task.id))?.followUpAt).toBeUndefined();
 	});
 });
 
