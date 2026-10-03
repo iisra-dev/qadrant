@@ -143,6 +143,12 @@ describe('captureLines', () => {
 		expect(captureLines(d, ctx)).toEqual({ urgent: 'No · sin fecha', important: 'Sin asistente', slot: 'Sin hora' });
 	});
 
+	it('with a slot from the scheduler', () => {
+		expect(captureLines(decision({ durationMin: 45 }), ctx, new Date(2026, 9, 2, 12, 0)).slot).toBe('Hoy 12:00 · 45 min');
+		expect(captureLines(decision(), ctx, new Date(2026, 9, 5, 9, 0)).slot).toBe('lun 5 oct 09:00 · 30 min');
+		expect(captureLines(decision(), ctx, new Date(2026, 9, 3, 9, 0)).slot).toBe('Mañana 09:00 · 30 min');
+	});
+
 	it('overdue', () => {
 		const d = decision({ urgent: { value: true, dueAt: new Date(2026, 9, 1, 18).toISOString(), reason: 'overdue' } });
 		expect(captureLines(d, ctx).urgent).toBe('Sí · venció jue 1 oct, 18:00');

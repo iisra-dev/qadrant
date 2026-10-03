@@ -12,7 +12,9 @@
 	import UpdateNotice from '$lib/pwa/UpdateNotice.svelte';
 	import { repos } from '$lib/db/repositories';
 	import { taskActions } from '$lib/tasks/actions';
-	import { settings } from '$lib/stores';
+	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
+	import { createReminderSync } from '$lib/ownserver/sync';
+	import { openTasks, settings } from '$lib/stores';
 	import { applyTheme } from '$lib/theme';
 	import { TabBar, WebHeader } from '$lib/ui';
 
@@ -31,6 +33,24 @@
 	$effect(() => {
 		void clock.today;
 		repos.settings.get().then(() => taskActions.reevaluateOpenTasks(currentSettings()));
+	});
+
+	// Own server (phase 3): keep its reminders in step with the tasks.
+	const reminderSync = createReminderSync();
+	$effect(() => {
+		reminderSync.update($openTasks, $settings?.server);
+	});
+
+	// Calendar copy (optional): on start, when the server changes and every 15 minutes.
+	// Only a change of server (not of other settings) restarts it.
+	const serverKey = $derived($settings ? JSON.stringify($settings.server ?? null) : undefined);
+	$effect(() => {
+		if (serverKey === undefined) return;
+		const server = JSON.parse(serverKey) as NonNullable<typeof $settings>['server'] | null ?? undefined;
+		void refreshCalendar(server);
+		if (!server) return;
+		const timer = setInterval(() => refreshCalendar(server), CALENDAR_REFRESH_MS);
+		return () => clearInterval(timer);
 	});
 
 	// Settings are the source of truth for the theme; localStorage only mirrors it for the first paint.

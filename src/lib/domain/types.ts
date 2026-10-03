@@ -93,6 +93,15 @@ export const DEVICE_LOCAL_SETTINGS = ['theme', 'model', 'server', 'onboardingDon
 export type DeviceLocalSettingsKey = (typeof DEVICE_LOCAL_SETTINGS)[number];
 export type SharedSettings = Omit<Settings, DeviceLocalSettingsKey>;
 
+/** Calendar occurrence from the own server (phase 3, optional). All-day ones use 'YYYY-MM-DD' dates, end exclusive. */
+export interface CalendarEvent {
+	id: string;
+	start: string;
+	end: string;
+	title: string;
+	allDay: boolean;
+}
+
 export interface ClassifyContext {
 	now: Date;
 	goals: Goal[]; // active goals only

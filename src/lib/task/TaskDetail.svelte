@@ -2,6 +2,7 @@
 	import { clock } from '$lib/app/clock.svelte';
 	import { currentSettings } from '$lib/app/context';
 	import { repos } from '$lib/db/repositories';
+	import { atTime, dateKey, fromDateKey } from '$lib/domain/dates';
 	import { whyText } from '$lib/domain/explain';
 	import type { Task } from '$lib/domain/types';
 	import { live } from '$lib/stores/live';
@@ -147,6 +148,21 @@
 						onchange={(e) => update({ scheduledAt: fromLocalInput(e.currentTarget.value) })}
 					/>
 				</Field>
+				{#if $task.quadrant === 'delegate'}
+					<Field id="task-follow-up" label="Revisar el">
+						<input
+							id="task-follow-up"
+							type="date"
+							value={$task.followUpAt ? dateKey(new Date($task.followUpAt)) : ''}
+							onchange={(e) =>
+								update({
+									followUpAt: e.currentTarget.value
+										? atTime(fromDateKey(e.currentTarget.value), currentSettings().workHours.start).toISOString()
+										: undefined
+								})}
+						/>
+					</Field>
+				{/if}
 				<Field id="task-who" label="Delegar en">
 					<select id="task-who" value={$task.delegatedTo ?? ''} onchange={(e) => setAssignee(e.currentTarget.value)}>
 						<option value="">Nadie</option>
