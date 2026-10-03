@@ -16,6 +16,22 @@ GATE_AGREEMENT = 0.80
 GATE_MAX_DOUBT = 0.30
 
 
+class FineTunedRouter:
+    """Router-like wrapper around a multilingual agent with fine-tuned weights (tools/laya-finetune)."""
+
+    def __init__(self, weights_dir):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("finetune", HERE.parent / "laya-finetune" / "finetune.py")
+        finetune = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(finetune)
+        self.agent = finetune.apply_weights(finetune.load_agent(), weights_dir)
+
+    def predict(self, state, questions, model=None):
+        if model not in (None, "multilingual"):
+            raise ValueError("fine-tuned weights exist only for the multilingual checkpoint (variant A)")
+        return self.agent.predict_batch([state], questions)[0]
+
+
 def load_router():
     # laya 0.3.25: the weights are pinned per repository in laya.PINNED_REVISIONS,
     # so pinning the package version (requirements.lock) pins the weights too.
@@ -145,6 +161,8 @@ def main():
     parser.add_argument("--variant", choices=["A", "B"])
     parser.add_argument("--strategy", choices=["combined", "per-goal"], default="combined")
     parser.add_argument("--format", choices=["text", "fields"], default="text", dest="fmt")
+    parser.add_argument("--weights", type=Path, help="fine-tuned weights from tools/laya-finetune (variant A only)")
+    parser.add_argument("--data", type=Path, default=HERE / "tasks.csv", help="tasks to measure (use rows not seen in training)")
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--low", type=float, default=0.35)
     parser.add_argument("--high", type=float, default=0.65)
@@ -156,12 +174,12 @@ def main():
         parser.error("--variant is required")
 
     goals = [g.strip() for g in (HERE / "goals.txt").read_text(encoding="utf-8").splitlines() if g.strip()]
-    tasks = pd.read_csv(HERE / "tasks.csv")
+    tasks = pd.read_csv(args.data)
     if len(tasks) < MIN_TASKS:
         print(f"Aviso: {len(tasks)} tareas; el criterio de salida pide al menos {MIN_TASKS}.")
     # The app sends the cleaned title (no date or duration phrases); use it when the CSV has it.
     text_col = "title" if "title" in tasks.columns else "text"
-    router = load_router()
+    router = FineTunedRouter(args.weights) if args.weights else load_router()
 
     if args.variant == "A":
         translate = None
@@ -201,7 +219,8 @@ def main():
     res["pred_delegable"] = (res["p_delegable"] >= args.threshold).astype(int)
     # Same bounds as the engine: p <= low and p >= high are decided, only (low, high) asks.
     res["doubt_zone"] = (res["p_important"] > args.low) & (res["p_important"] < args.high)
-    res.to_csv(HERE / f"results_{args.variant}_{args.strategy}_{args.fmt}.csv", index=False)
+    suffix = f"_{args.weights.name}" if args.weights else ""
+    res.to_csv(HERE / f"results_{args.variant}_{args.strategy}_{args.fmt}{suffix}.csv", index=False)
 
     acc_imp = accuracy_score(res["important"], res["pred_important"])
     acc_del = accuracy_score(res["delegable"], res["pred_delegable"])
@@ -213,7 +232,7 @@ def main():
     gate = acc_imp >= GATE_AGREEMENT and doubt_rate <= GATE_MAX_DOUBT
     es = lambda x: f"{x:.2f}".replace(".", ",")  # noqa: E731
     summary = (
-        f"\n## Variante {args.variant} · {args.strategy} · formato {args.fmt}\n\n"
+        f"\n## Variante {args.variant} · {args.strategy} · formato {args.fmt}{' · ajuste fino ' + args.weights.name if args.weights else ''}\n\n"
         f"- Tareas: {len(res)} (columna `{text_col}`)\n"
         f"- Versiones: {weights_revisions()}\n"
         f"- Acuerdo en importancia (umbral {es(args.threshold)}): {acc_imp:.1%}\n"

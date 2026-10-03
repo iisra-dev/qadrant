@@ -46,3 +46,6 @@ server/qadrant-server
 # Claude Code local files
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+
+# Fine-tuning outputs (weights are large; deployed separately)
+tools/laya-finetune/runs/
