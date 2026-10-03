@@ -47,7 +47,7 @@ pnpm dev
 ## Primer despliegue en Cloudflare Pages
 
 1. `pnpm exec wrangler login` (abre el navegador para entrar en tu cuenta de Cloudflare).
-2. `pnpm exec wrangler pages project create cuadrante --production-branch main` (solo la primera vez).
+2. `pnpm exec wrangler pages project create qadrant --production-branch main --force` (solo la primera vez). `--force` crea un proyecto de Pages clásico: sin él, wrangler 4.14x intenta crearlo como Worker y falla. Ya está creado: `https://qadrant-62h.pages.dev`.
 3. `pnpm deploy:pages` (compila y publica `build/`).
 4. Comprueba en la URL `*.pages.dev` que la consola del navegador dice `crossOriginIsolated === true` y que la app abre sin conexión tras la primera visita.
 
