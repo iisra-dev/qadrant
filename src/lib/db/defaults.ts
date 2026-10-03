@@ -15,6 +15,7 @@ export function defaultSettings(now: Date = new Date()): Settings {
 		holidays: { national: true, extra: [] },
 		thresholds: { low: 0.35, high: 0.65 },
 		theme: 'system',
+		language: 'en',
 		model: { state: 'absent', wifiOnly: true },
 		onboardingDone: false
 	};

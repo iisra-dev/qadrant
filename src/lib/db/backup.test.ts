@@ -90,3 +90,14 @@ describe('importData', () => {
 		expect(await b.tasks.count()).toBe(0);
 	});
 });
+
+describe('language', () => {
+	it('is device-local: never exported nor imported', async () => {
+		await ra.settings.update({ language: 'es' }, NOW);
+		const file = await exportData(a, LATER);
+		expect(file.settings).not.toHaveProperty('language');
+		await rb.settings.update({ language: 'en' }, NOW);
+		await importData({ ...file, settings: { ...file.settings, language: 'es', updatedAt: LATER.toISOString() } }, b);
+		expect((await rb.settings.get()).language).toBe('en');
+	});
+});
