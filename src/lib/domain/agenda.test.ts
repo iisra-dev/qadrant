@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agendaForDay, agendaItems, hourRange, weekDays, withoutSlot } from './agenda';
+import { agendaForDay, agendaItems, hourRange, waitingOnOthers, weekDays, withoutSlot } from './agenda';
 import type { Task } from './types';
 
 function task(id: string, scheduledAt?: Date, overrides: Partial<Task> = {}): Task {
@@ -72,5 +72,17 @@ describe('hourRange', () => {
 		const hours = { start: '09:00', end: '18:00' };
 		expect(hourRange([], hours)).toEqual({ from: 9, to: 18 });
 		expect(hourRange([task('a', new Date(2026, 9, 2, 7, 30)), task('b', new Date(2026, 9, 2, 19, 0))], hours)).toEqual({ from: 7, to: 20 });
+	});
+});
+
+describe('waitingOnOthers', () => {
+	it('lists open delegated tasks by follow-up, undated last', () => {
+		const tasks = [
+			task('none', undefined, { quadrant: 'delegate' }),
+			task('late', undefined, { quadrant: 'delegate', followUpAt: '2026-10-09T07:00:00.000Z' }),
+			task('soon', undefined, { quadrant: 'delegate', followUpAt: '2026-10-06T07:00:00.000Z' }),
+			task('other', undefined, { quadrant: 'do' })
+		];
+		expect(waitingOnOthers(tasks).map((t) => t.id)).toEqual(['soon', 'late', 'none']);
 	});
 });

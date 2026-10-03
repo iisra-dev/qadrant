@@ -1,4 +1,4 @@
-import { addDays, endOfDay, isoWeekday, startOfDay } from './dates';
+import { addDays, atTime, endOfDay, isoWeekday, startOfDay } from './dates';
 import { isHoliday } from './holidays';
 import type { Decision, Settings } from './types';
 
@@ -9,19 +9,30 @@ export function isWorkingDay(date: Date, settings: WorkCalendar): boolean {
 	return settings.workDays.includes(isoWeekday(date)) && !isHoliday(date, settings.holidays);
 }
 
+function nthWorkingDay(now: Date, n: number, settings: WorkCalendar): Date {
+	let day = startOfDay(now);
+	let counted = 0;
+	// Guard against a calendar without working days.
+	for (let i = 0; counted < n && i < 366; i++) {
+		day = addDays(day, 1);
+		if (isWorkingDay(day, settings)) counted++;
+	}
+	return day;
+}
+
+export const FOLLOW_UP_WORKING_DAYS = 2;
+
+/** Default follow-up of a delegated task: start of the 2nd working day after today (docs/01, Detalle). */
+export function defaultFollowUp(now: Date, settings: WorkCalendar & Pick<Settings, 'workHours'>): string {
+	return atTime(nthWorkingDay(now, FOLLOW_UP_WORKING_DAYS, settings), settings.workHours.start).toISOString();
+}
+
 /** End (23:59:59.999 local) of the N-th working day after today; today does not count. */
 export function urgencyDeadline(
 	now: Date,
 	settings: WorkCalendar & Pick<Settings, 'urgencyDays'>
 ): Date {
-	let day = startOfDay(now);
-	let counted = 0;
-	// Guard against a calendar without working days.
-	for (let i = 0; counted < settings.urgencyDays && i < 366; i++) {
-		day = addDays(day, 1);
-		if (isWorkingDay(day, settings)) counted++;
-	}
-	return endOfDay(day);
+	return endOfDay(nthWorkingDay(now, settings.urgencyDays, settings));
 }
 
 export function evaluateUrgency(

@@ -60,3 +60,10 @@ export function hourRange(tasks: Task[], workHours: { start: string; end: string
 	}
 	return { from, to: Math.min(24, to) };
 }
+
+/** Open delegated tasks, by follow-up date ("Esperando a otros"). */
+export function waitingOnOthers(tasks: Task[]): Task[] {
+	return tasks
+		.filter((t) => t.status === 'open' && !t.deletedAt && t.quadrant === 'delegate')
+		.sort((a, b) => (a.followUpAt ?? '\uffff').localeCompare(b.followUpAt ?? '\uffff'));
+}

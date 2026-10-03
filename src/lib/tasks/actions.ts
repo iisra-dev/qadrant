@@ -3,7 +3,7 @@ import { doubtOutcomes, importantOnSave } from '$lib/domain/quadrant';
 import { reevaluate, reevaluateAll } from '$lib/domain/reevaluate';
 import { schedule } from '$lib/domain/scheduler';
 import type { Decision, Quadrant, Settings, Task } from '$lib/domain/types';
-import { evaluateUrgency } from '$lib/domain/urgency';
+import { defaultFollowUp, evaluateUrgency } from '$lib/domain/urgency';
 
 /** How the user settled the capture. */
 export type CaptureChoice =
@@ -15,7 +15,7 @@ export interface SaveCaptureInput {
 	rawInput: string;
 	decision: Decision;
 	choice: CaptureChoice;
-	settings: Pick<Settings, 'thresholds'>;
+	settings: Settings;
 	now?: Date;
 	/** Slot proposed by the scheduler in the capture sheet (Hacer and Programar). */
 	scheduledAt?: string;
@@ -85,6 +85,7 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 				...(decision.durationMin && { durationMin: decision.durationMin }),
 				...(personId && { delegatedTo: personId }),
 				...(scheduledAt && (quadrant === 'do' || quadrant === 'schedule') && { scheduledAt }),
+				...(quadrant === 'delegate' && { followUpAt: defaultFollowUp(now, settings) }),
 				status: 'open',
 				decision
 			},
@@ -99,9 +100,11 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 		if (task.quadrant === to) return;
 		const urgent = evaluateUrgency(task.dueAt, now, settings).value;
 		const important = importantOnSave({ kind: 'manual', quadrant: to, urgent });
+		// The follow-up date exists only while delegated (docs/04).
+		const followUpAt = to === 'delegate' ? (task.followUpAt ?? defaultFollowUp(now, settings)) : undefined;
 		await repos.tasks.update(
 			task.id,
-			{ quadrant: to, quadrantSource: 'user', important, movedAt: undefined },
+			{ quadrant: to, quadrantSource: 'user', important, movedAt: undefined, followUpAt },
 			now
 		);
 		await log.record(task, task.quadrant, to, now);
@@ -113,7 +116,14 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 		const to = reevaluate(next, now, settings);
 		await repos.tasks.update(
 			task.id,
-			{ dueAt, ...(to && { quadrant: to, movedAt: now.toISOString() }) },
+			{
+				dueAt,
+				...(to && {
+					quadrant: to,
+					movedAt: now.toISOString(),
+					followUpAt: to === 'delegate' ? (task.followUpAt ?? defaultFollowUp(now, settings)) : undefined
+				})
+			},
 			now
 		);
 	}
@@ -123,7 +133,14 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 		const moves = reevaluateAll(await repos.tasks.listOpen(), now, settings);
 		if (moves.length) {
 			await repos.tasks.updateMany(
-				moves.map((move) => ({ id: move.id, changes: { quadrant: move.to, movedAt: now.toISOString() } })),
+				moves.map((move) => ({
+					id: move.id,
+					changes: {
+						quadrant: move.to,
+						movedAt: now.toISOString(),
+						followUpAt: move.to === 'delegate' ? defaultFollowUp(now, settings) : undefined
+					}
+				})),
 				now
 			);
 		}

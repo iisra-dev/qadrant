@@ -2,10 +2,10 @@
 	import { clock } from '$lib/app/clock.svelte';
 	import { media } from '$lib/app/media.svelte';
 	import { currentSettings } from '$lib/app/context';
-	import { agendaForDay, agendaItems, weekDays, withoutSlot } from '$lib/domain/agenda';
+	import { agendaForDay, agendaItems, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, sameDay, startOfDay } from '$lib/domain/dates';
 	import { formatDuration, formatLongDate, formatShortDate, formatTime } from '$lib/domain/format';
-	import { settings } from '$lib/stores';
+	import { people, settings } from '$lib/stores';
 	import WeekView from './WeekView.svelte';
 	import { openTasks } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
@@ -25,6 +25,24 @@
 	const day = $derived(addDays(startOfDay(clock.now), offset));
 	const items = $derived(agendaItems(agendaForDay($openTasks, day)));
 	const pending = $derived(withoutSlot($openTasks));
+	const waiting = $derived(waitingOnOthers($openTasks));
+	const SHORT_WEEKDAY = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+	function personName(id: string | undefined): string | undefined {
+		return id ? $people.find((p) => p.id === id)?.name : undefined;
+	}
+
+	/** "Revisar lun" within a week, "Revisar 20 oct" later, "Revisar hoy"/"Revisar ya" when due. */
+	function followUpLabel(iso: string | undefined): string {
+		if (!iso) return 'Sin fecha de revisión';
+		const date = new Date(iso);
+		const today = startOfDay(clock.now).getTime();
+		const days = Math.round((startOfDay(date).getTime() - today) / 86_400_000);
+		if (days < 0) return 'Revisar ya';
+		if (days === 0) return 'Revisar hoy';
+		if (days < 7) return `Revisar ${SHORT_WEEKDAY[date.getDay()]}`;
+		return `Revisar ${formatShortDate(date).slice(4)}`;
+	}
 	const label = $derived(formatLongDate(day));
 	const isToday = $derived(sameDay(day, clock.now));
 
@@ -103,6 +121,20 @@
 			<p class="empty">Nada en la agenda este día.</p>
 		{/each}
 	</div>
+	{/if}
+
+	{#if waiting.length}
+		<section class="waiting" aria-labelledby="waiting-title">
+			<h2 id="waiting-title">Esperando a otros</h2>
+			{#each waiting as task (task.id)}
+				{@const name = personName(task.delegatedTo)}
+				<a href={`/task/${task.id}`}>
+					<span class="initial" aria-hidden="true">{(name ?? '?').charAt(0).toUpperCase()}</span>
+					<span class="what">{name ? `${name} · ` : ''}{task.title}</span>
+					<span class="when">{followUpLabel(task.followUpAt)}</span>
+				</a>
+			{/each}
+		</section>
 	{/if}
 
 	<section class="pending" aria-labelledby="no-slot">
@@ -214,6 +246,46 @@
 	}
 	.empty {
 		margin: var(--space-2) var(--space-1);
+	}
+	.waiting {
+		margin: var(--space-2) var(--space-4) 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		--q-bg: var(--q-delegate-bg);
+		--q-ink: var(--q-delegate-ink);
+	}
+	.waiting a {
+		min-height: 52px;
+		display: flex;
+		align-items: center;
+		gap: var(--space-2-5);
+		padding: 0 var(--space-3);
+		border-radius: var(--radius-block);
+		background: var(--q-bg);
+		color: var(--q-ink);
+		text-decoration: none;
+	}
+	.initial {
+		width: 32px;
+		height: 32px;
+		flex-shrink: 0;
+		border-radius: 16px;
+		background: var(--q-ink);
+		color: var(--q-bg);
+		font-size: 12px;
+		font-weight: 600;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.what {
+		flex-grow: 1;
+		font-size: 13px;
+	}
+	.when {
+		font-size: 11px;
+		flex-shrink: 0;
 	}
 	.pending {
 		margin: var(--space-2) var(--space-4) var(--space-6);
