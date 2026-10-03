@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../app.css';
 	import { pwaInfo } from 'virtual:pwa-info';
 	import UpdateNotice from '$lib/pwa/UpdateNotice.svelte';
 
