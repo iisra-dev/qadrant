@@ -98,5 +98,5 @@ func payloadFor(r Reminder) PushPayload {
 	if r.Kind == KindFollowUp {
 		body = "Revisar: " + r.Title
 	}
-	return PushPayload{Title: "Cuadrante", Body: body, TaskID: r.TaskID, Kind: r.Kind}
+	return PushPayload{Title: "Qadrant", Body: body, TaskID: r.TaskID, Kind: r.Kind}
 }

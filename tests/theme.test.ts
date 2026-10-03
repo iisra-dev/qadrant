@@ -15,7 +15,7 @@ test('follows the system dark scheme', async ({ page }) => {
 
 test('applies the saved theme before the app starts', async ({ page }) => {
 	await page.emulateMedia({ colorScheme: 'light' });
-	await page.addInitScript(() => localStorage.setItem('cuadrante.theme', 'dark'));
+	await page.addInitScript(() => localStorage.setItem('qadrant.theme', 'dark'));
 	// Block the app bundle: only the inline script in app.html can set the theme.
 	await page.route('**/_app/**', (route) => route.abort());
 	await page.goto('/');
@@ -25,7 +25,7 @@ test('applies the saved theme before the app starts', async ({ page }) => {
 
 test('a saved theme overrides the system scheme', async ({ page }) => {
 	await page.emulateMedia({ colorScheme: 'dark' });
-	await page.addInitScript(() => localStorage.setItem('cuadrante.theme', 'light'));
+	await page.addInitScript(() => localStorage.setItem('qadrant.theme', 'light'));
 	await page.goto('/');
 	await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(250, 249, 246)');
 });

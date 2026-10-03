@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { startApp } from './helpers';
 
-const SERVER = 'https://cuadrante.test';
+const SERVER = 'https://qadrant.test';
 const KEY = 'clave-de-prueba';
 // A valid P-256 public key (VAPID format), only used to subscribe.
 const VAPID = 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM';

@@ -2,19 +2,19 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { exportData, exportFileName, ImportError, importData } from './backup';
 import { createRepositories, type Repositories } from './repositories';
-import { CuadranteDB } from './schema';
+import { QadrantDB } from './schema';
 
 const NOW = new Date('2026-10-02T08:00:00Z');
 const LATER = new Date('2026-10-03T08:00:00Z');
 
-let a: CuadranteDB;
-let b: CuadranteDB;
+let a: QadrantDB;
+let b: QadrantDB;
 let ra: Repositories;
 let rb: Repositories;
 
 beforeEach(async () => {
-	a = new CuadranteDB(`a-${crypto.randomUUID()}`);
-	b = new CuadranteDB(`b-${crypto.randomUUID()}`);
+	a = new QadrantDB(`a-${crypto.randomUUID()}`);
+	b = new QadrantDB(`b-${crypto.randomUUID()}`);
 	ra = createRepositories(a);
 	rb = createRepositories(b);
 });
@@ -46,7 +46,7 @@ describe('exportData', () => {
 	});
 
 	it('names the file by date', () => {
-		expect(exportFileName(new Date(2026, 9, 2))).toBe('cuadrante-2026-10-02.json');
+		expect(exportFileName(new Date(2026, 9, 2))).toBe('qadrant-2026-10-02.json');
 	});
 });
 

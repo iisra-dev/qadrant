@@ -36,7 +36,7 @@ export function normaliseUrl(input: string): string | null {
 async function call(config: ServerConfig, path: string, init: RequestInit = {}): Promise<Response> {
 	let response: Response;
 	try {
-		response = await fetch(`${config.url}/api/cuadrante${path}`, {
+		response = await fetch(`${config.url}/api/qadrant${path}`, {
 			...init,
 			headers: {
 				Authorization: `Bearer ${config.token}`,
@@ -55,7 +55,7 @@ async function call(config: ServerConfig, path: string, init: RequestInit = {}):
 export const serverApi = {
 	async ping(config: ServerConfig): Promise<void> {
 		const body = await (await call(config, '/ping')).json();
-		if (!body?.ok) throw new ServerError('Esa dirección no es un servidor de Cuadrante.');
+		if (!body?.ok) throw new ServerError('Esa dirección no es un servidor de Qadrant.');
 	},
 	async vapidKey(config: ServerConfig): Promise<string> {
 		return (await (await call(config, '/vapid')).json()).publicKey;

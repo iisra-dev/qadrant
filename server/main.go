@@ -1,4 +1,4 @@
-// Cuadrante's optional server: PocketBase used as a Go framework.
+// Qadrant's optional server: PocketBase used as a Go framework.
 // Phase 3: access key, VAPID keys, push subscriptions, reminders and a cron
 // that sends due and follow-up notices with webpush-go (docs/02, docs/06).
 // Optional: a read-only calendar from a secret iCal address, refreshed every 15 min.
@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	remindersCollection     = "cuadrante_reminders"
-	subscriptionsCollection = "cuadrante_subscriptions"
+	remindersCollection     = "qadrant_reminders"
+	subscriptionsCollection = "qadrant_subscriptions"
 )
 
 func main() {
@@ -38,7 +38,7 @@ func main() {
 		}
 		accessKey = key
 		if created {
-			log.Printf("Clave de acceso de Cuadrante (pégala en Ajustes): %s", key)
+			log.Printf("Clave de acceso de Qadrant (pégala en Ajustes): %s", key)
 		}
 		if vapid, err = loadOrCreateVAPID(app.DataDir()); err != nil {
 			return err
@@ -50,7 +50,7 @@ func main() {
 	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		api := se.Router.Group("/api/cuadrante")
+		api := se.Router.Group("/api/qadrant")
 		api.BindFunc(func(e *core.RequestEvent) error {
 			if !authorized(e.Request.Header.Get("Authorization"), accessKey) {
 				return e.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
@@ -121,13 +121,13 @@ func main() {
 		return se.Next()
 	})
 
-	app.Cron().MustAdd("cuadrante_calendar", "*/15 * * * *", func() {
+	app.Cron().MustAdd("qadrant_calendar", "*/15 * * * *", func() {
 		if err := refreshCalendar(app, time.Now()); err != nil {
 			app.Logger().Error("refreshing calendar", "error", err)
 		}
 	})
 
-	app.Cron().MustAdd("cuadrante_reminders", "* * * * *", func() {
+	app.Cron().MustAdd("qadrant_reminders", "* * * * *", func() {
 		if err := sendDue(app, vapid, time.Now()); err != nil {
 			app.Logger().Error("sending reminders", "error", err)
 		}
@@ -148,7 +148,7 @@ func ensureCollections(app core.App) error {
 			&core.TextField{Name: "title", Max: maxTitle * 4},
 			&core.BoolField{Name: "sent"},
 		)
-		c.AddIndex("idx_cuadrante_reminders_task", true, "taskId, kind", "")
+		c.AddIndex("idx_qadrant_reminders_task", true, "taskId, kind", "")
 		if err := app.Save(c); err != nil {
 			return err
 		}
@@ -160,12 +160,12 @@ func ensureCollections(app core.App) error {
 			&core.TextField{Name: "p256dh", Required: true},
 			&core.TextField{Name: "auth", Required: true},
 		)
-		c.AddIndex("idx_cuadrante_subscriptions_endpoint", true, "endpoint", "")
+		c.AddIndex("idx_qadrant_subscriptions_endpoint", true, "endpoint", "")
 		if err := app.Save(c); err != nil {
 			return err
 		}
 	}
-	// No API rules: the collections are reachable only through /api/cuadrante.
+	// No API rules: the collections are reachable only through /api/qadrant.
 	return nil
 }
 
@@ -309,7 +309,7 @@ func sendDue(app core.App, vapid vapidKeys, now time.Time) error {
 
 // subscriber is the VAPID contact; push services may use it to reach the owner.
 func subscriber() string {
-	if s := os.Getenv("CUADRANTE_VAPID_SUBJECT"); s != "" {
+	if s := os.Getenv("QADRANT_VAPID_SUBJECT"); s != "" {
 		return s
 	}
 	return "mailto:admin@localhost"

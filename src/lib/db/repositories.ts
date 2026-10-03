@@ -8,7 +8,7 @@ import type {
 	Settings,
 	Task
 } from '$lib/domain/types';
-import { db as defaultDb, type CuadranteDB } from './schema';
+import { db as defaultDb, type QadrantDB } from './schema';
 import { defaultSettings, GOAL_SUMMARY_MAX, MAX_GOALS } from './defaults';
 
 type NewRecord<T extends Base> = Omit<T, keyof Base>;
@@ -22,7 +22,7 @@ function alive<T extends Base>(record: T | undefined): T | undefined {
 	return record && !record.deletedAt ? record : undefined;
 }
 
-export function createRepositories(db: CuadranteDB = defaultDb) {
+export function createRepositories(db: QadrantDB = defaultDb) {
 	const tasks = {
 		async create(data: NewRecord<Task>, now = new Date()): Promise<Task> {
 			const task = stamp<Task>(data, now);

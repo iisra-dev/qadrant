@@ -78,7 +78,7 @@
 </script>
 
 <svelte:head>
-	<title>Agenda · Cuadrante</title>
+	<title>Agenda · Qadrant</title>
 </svelte:head>
 
 <div class="agenda" class:wide={week}>

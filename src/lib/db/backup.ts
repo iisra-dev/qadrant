@@ -1,7 +1,7 @@
 import type { Base, Correction, Goal, Person, Settings, SharedSettings, Task } from '$lib/domain/types';
 import { DEVICE_LOCAL_SETTINGS } from '$lib/domain/types';
 import { dateKey } from '$lib/domain/dates';
-import { db as defaultDb, type CuadranteDB } from './schema';
+import { db as defaultDb, type QadrantDB } from './schema';
 import { defaultSettings } from './defaults';
 
 export const EXPORT_VERSION = 1;
@@ -32,7 +32,7 @@ function sharedSettings(settings: Settings): SharedSettings {
 }
 
 /** Everything, deleted records included (they carry deletions to other devices), minus device-local settings. */
-export async function exportData(db: CuadranteDB = defaultDb, now = new Date()): Promise<ExportFile> {
+export async function exportData(db: QadrantDB = defaultDb, now = new Date()): Promise<ExportFile> {
 	const [tasks, goals, people, corrections, settings] = await Promise.all([
 		db.tasks.toArray(),
 		db.goals.toArray(),
@@ -52,7 +52,7 @@ export async function exportData(db: CuadranteDB = defaultDb, now = new Date()):
 }
 
 export function exportFileName(now = new Date()): string {
-	return `cuadrante-${dateKey(now)}.json`;
+	return `qadrant-${dateKey(now)}.json`;
 }
 
 function isRecord(value: unknown): value is Base {
@@ -62,7 +62,7 @@ function isRecord(value: unknown): value is Base {
 
 function validate(data: unknown): ExportFile {
 	const file = data as Partial<ExportFile> | null;
-	if (typeof file !== 'object' || file === null) throw new ImportError('No es un fichero de Cuadrante.');
+	if (typeof file !== 'object' || file === null) throw new ImportError('No es un fichero de Qadrant.');
 	if (file.version !== EXPORT_VERSION) throw new ImportError('Versión de fichero no compatible.');
 	for (const key of ['tasks', 'goals', 'people', 'corrections'] as const) {
 		const list = file[key];
@@ -72,7 +72,7 @@ function validate(data: unknown): ExportFile {
 }
 
 /** Merge by id keeping the newest updatedAt (docs/04). Device-local settings are never touched. */
-export async function importData(data: unknown, db: CuadranteDB = defaultDb): Promise<ImportResult> {
+export async function importData(data: unknown, db: QadrantDB = defaultDb): Promise<ImportResult> {
 	const file = validate(data);
 	const result: ImportResult = { added: 0, updated: 0, unchanged: 0, settingsUpdated: false };
 
@@ -84,7 +84,7 @@ export async function importData(data: unknown, db: CuadranteDB = defaultDb): Pr
 			[db.corrections, file.corrections]
 		] as const;
 		for (const [table, records] of tables) {
-			const existing = await (table as unknown as CuadranteDB['tasks']).bulkGet(records.map((r) => r.id));
+			const existing = await (table as unknown as QadrantDB['tasks']).bulkGet(records.map((r) => r.id));
 			const toPut: Base[] = [];
 			records.forEach((record, index) => {
 				const current = existing[index];
@@ -98,7 +98,7 @@ export async function importData(data: unknown, db: CuadranteDB = defaultDb): Pr
 					result.unchanged++;
 				}
 			});
-			if (toPut.length) await (table as unknown as CuadranteDB['tasks']).bulkPut(toPut as Task[]);
+			if (toPut.length) await (table as unknown as QadrantDB['tasks']).bulkPut(toPut as Task[]);
 		}
 
 		if (file.settings && typeof file.settings.updatedAt === 'string') {
