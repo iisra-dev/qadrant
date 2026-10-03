@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { Quadrant } from '$lib/domain/types';
-	import { QUADRANT_META, quadrantVars } from './quadrants';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { quadrantVars } from './quadrants';
 
 	type Item = { id: string };
 
@@ -14,13 +15,13 @@
 	}: {
 		quadrant: Quadrant;
 		items: Item[];
-		/** Rows shown before "+N más"; Infinity shows them all. */
+		/** Rows shown before "+N more"; Infinity shows them all. */
 		limit?: number;
 		row: Snippet<[Item]>;
 		footer?: Snippet;
 	} = $props();
 
-	const meta = $derived(QUADRANT_META[quadrant]);
+	const meta = $derived(i18n.m.quadrants[quadrant]);
 	let expanded = $state(false);
 	const visible = $derived(expanded ? items : items.slice(0, limit));
 	const hidden = $derived(items.length - Math.min(items.length, limit));
@@ -30,7 +31,7 @@
 <section class="card" style={quadrantVars(quadrant)} aria-labelledby={`quadrant-${quadrant}-title`}>
 	<div class="head">
 		<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
-		<span class="count" aria-label={`${items.length} tareas`}>{items.length}</span>
+		<span class="count" aria-label={i18n.m.common.tasksCount(items.length)}>{items.length}</span>
 	</div>
 	<span class="rule">{meta.rule}</span>
 	{#if items.length === 0}
@@ -43,7 +44,7 @@
 		</ul>
 		{#if hidden > 0}
 			<button class="more" type="button" aria-expanded={expanded} aria-controls={listId} onclick={() => (expanded = !expanded)}>
-				{expanded ? 'Ver menos' : `+${hidden} más`}
+				{expanded ? i18n.m.common.less : i18n.m.common.more(hidden)}
 			</button>
 		{/if}
 	{/if}

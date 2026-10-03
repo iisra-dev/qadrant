@@ -11,7 +11,8 @@
 	import { QUADRANTS, type Decision, type Quadrant } from '$lib/domain/types';
 	import { classify, latestClassifier } from '$lib/engine';
 	import { taskActions } from '$lib/tasks/actions';
-	import { AiDot, Button, IconButton, QuadrantPicker, QUADRANT_META, quadrantVars, Sheet } from '$lib/ui';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import { AiDot, Button, IconButton, QuadrantPicker, quadrantVars, Sheet } from '$lib/ui';
 	import { activeGoals, calendarEvents, openTasks, people } from '$lib/stores';
 
 	const DEBOUNCE_MS = 400;
@@ -32,7 +33,7 @@
 
 	const quadrant = $derived(chosen ?? decision?.quadrant ?? null);
 	const isDoubt = $derived(Boolean(decision && decision.quadrant === null && !chosen));
-	const explainCtx = $derived({ now: new Date(), settings: currentSettings(), goals: $activeGoals, people: $people });
+	const explainCtx = $derived({ now: new Date(), settings: currentSettings(), goals: $activeGoals, people: $people, lang: i18n.lang });
 	function slotFor(target: Quadrant | null): string | undefined {
 		if (!decision || !target) return undefined;
 		const slot = proposeSlot(
@@ -53,7 +54,7 @@
 		chosen = null;
 		showDate = showPicker = false;
 		dateValue = '';
-		localSpeechAvailable().then((available) => (canDictate = available));
+		localSpeechAvailable(i18n.lang).then((available) => (canDictate = available));
 		queueMicrotask(() => textarea?.focus());
 	});
 
@@ -167,17 +168,11 @@
 		}
 		const base = text ? `${text.trimEnd()} ` : '';
 		stopDictation = dictate(
+			i18n.lang,
 			(spoken) => (text = base + spoken),
 			() => (stopDictation = null)
 		);
 	}
-
-	const RESULT_TEXT: Record<Quadrant, string> = {
-		do: 'Urgente e importante',
-		schedule: 'Importante, sin prisa',
-		delegate: 'Lo puede hacer otra persona',
-		eliminate: 'Ni urgente ni importante'
-	};
 
 	const doubtP = $derived(
 		decision?.ask === 'delegable' ? decision.delegable.p : (decision?.importance.p ?? null)
@@ -189,27 +184,27 @@
 	);
 </script>
 
-<Sheet open={capture.open} label="Nueva tarea" onclose={close}>
+<Sheet open={capture.open} label={i18n.m.capture.title} onclose={close}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="capture" onkeydown={onSheetKeydown}>
 		<div class="head">
-			<h2>Nueva tarea</h2>
-			<IconButton label="Cerrar" icon="close" onclick={close} />
+			<h2>{i18n.m.capture.title}</h2>
+			<IconButton label={i18n.m.common.close} icon="close" onclick={close} />
 		</div>
 
 		<div class="input">
-			<label class="visually-hidden" for="capture-text">Tarea</label>
+			<label class="visually-hidden" for="capture-text">{i18n.m.capture.field}</label>
 			<textarea
 				id="capture-text"
 				rows="2"
 				bind:this={textarea}
 				bind:value={text}
 				onkeydown={onTextKeydown}
-				placeholder="¿Qué tienes en mente?"
+				placeholder={i18n.m.capture.placeholder}
 			></textarea>
 			{#if canDictate}
 				<IconButton
-					label={stopDictation ? 'Parar el dictado' : 'Dictar'}
+					label={stopDictation ? i18n.m.capture.stopDictation : i18n.m.capture.dictate}
 					icon="mic"
 					aria-pressed={Boolean(stopDictation)}
 					onclick={toggleDictation}
@@ -220,62 +215,62 @@
 		{#if decision && isDoubt && decision.ask && outcomes}
 			<div class="doubt">
 				<span class="label">
-					<AiDot />NO LO TENGO CLARO{#if doubtP !== null}&nbsp;· {formatPercent(doubtP)}{/if}
+					<AiDot />{i18n.m.capture.unsure}{#if doubtP !== null}&nbsp;· {formatPercent(doubtP, i18n.lang)}{/if}
 				</span>
 				<p class="question">
-					{decision.ask === 'importance' ? '¿Te acerca a alguno de tus objetivos?' : '¿Puede hacerlo otra persona?'}
+					{decision.ask === 'importance' ? i18n.m.capture.askImportance : i18n.m.capture.askDelegable}
 				</p>
 				<p class="context">{doubtText(decision, explainCtx)}</p>
 			</div>
 			<div class="answers">
 				<button type="button" class="answer" style={quadrantVars(outcomes.yes)} onclick={() => answer(true)} disabled={saving}>
-					{decision.ask === 'importance' ? 'Sí, es importante' : 'Sí, puede hacerlo otra persona'}
-					<span>va a {QUADRANT_META[outcomes.yes].name}</span>
+					{decision.ask === 'importance' ? i18n.m.capture.yesImportant : i18n.m.capture.yesDelegable}
+					<span>{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.yes].name)}</span>
 				</button>
 				<button type="button" class="answer" style={quadrantVars(outcomes.no)} onclick={() => answer(false)} disabled={saving}>
-					{decision.ask === 'importance' ? 'No, no lo es' : 'No, nadie más puede'}
-					<span>va a {QUADRANT_META[outcomes.no].name}</span>
+					{decision.ask === 'importance' ? i18n.m.capture.noImportant : i18n.m.capture.noDelegable}
+					<span>{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.no].name)}</span>
 				</button>
 			</div>
 			<div class="links">
-				<Button variant="text" aria-expanded={showDate} onclick={() => (showDate = !showDate)}>Añadir fecha</Button>
+				<Button variant="text" aria-expanded={showDate} onclick={() => (showDate = !showDate)}>{i18n.m.capture.addDate}</Button>
 				<Button variant="text" aria-expanded={showPicker} onclick={() => (showPicker = !showPicker)}>
-					Elegir cuadrante a mano
+					{i18n.m.capture.pickByHand}
 				</Button>
 			</div>
 			{#if showDate}
 				<div class="date">
-					<label for="capture-date">Fecha límite</label>
+					<label for="capture-date">{i18n.m.capture.dueDate}</label>
 					<input id="capture-date" type="date" bind:value={dateValue} onchange={applyDate} />
 				</div>
 			{/if}
 			{#if showPicker}
-				<QuadrantPicker value={chosen} label="Elegir cuadrante" onchange={(q) => (chosen = q)} />
+				<QuadrantPicker value={chosen} label={i18n.m.capture.choose} onchange={(q) => (chosen = q)} />
 			{/if}
 		{:else if decision && quadrant && lines}
 			<div class="result" style={quadrantVars(quadrant)}>
 				<div class="result-main">
 					<span class="label">
-						{#if !chosen}<AiDot />{/if}{chosen ? 'LO PONES EN' : 'VA A'}
+						{#if !chosen}<AiDot />{/if}{chosen ? i18n.m.capture.youPut : i18n.m.capture.goesTo}
 					</span>
-					<span class="result-name">{QUADRANT_META[quadrant].name}</span>
+					<span class="result-name">{i18n.m.quadrants[quadrant].name}</span>
 				</div>
-				<span class="result-rule">{RESULT_TEXT[quadrant]}</span>
+				<span class="result-rule">{i18n.m.quadrants[quadrant].result}</span>
 			</div>
 			<dl>
-				<div><dt>Urgente</dt><dd>{lines.urgent}</dd></div>
-				<div><dt>Importante</dt><dd>{lines.important}</dd></div>
-				<div><dt>Hueco</dt><dd>{lines.slot}</dd></div>
+				<div><dt>{i18n.m.capture.urgent}</dt><dd>{lines.urgent}</dd></div>
+				<div><dt>{i18n.m.capture.important}</dt><dd>{lines.important}</dd></div>
+				<div><dt>{i18n.m.capture.slot}</dt><dd>{lines.slot}</dd></div>
 			</dl>
-			<QuadrantPicker value={quadrant} label="Cambiar cuadrante" onchange={(q) => (chosen = q)} />
+			<QuadrantPicker value={quadrant} label={i18n.m.capture.change} onchange={(q) => (chosen = q)} />
 		{/if}
 
 		{#if !isDoubt}
 			<div class="actions">
-				<Button size="lg" block onclick={() => save()} disabled={saving || !text.trim()}>Guardar</Button>
+				<Button size="lg" block onclick={() => save()} disabled={saving || !text.trim()}>{i18n.m.capture.save}</Button>
 				<span class="web-only">
 					<Button variant="text" onclick={() => save({ details: true })} disabled={saving || !text.trim()}>
-						Más detalles
+						{i18n.m.capture.details}
 					</Button>
 				</span>
 			</div>

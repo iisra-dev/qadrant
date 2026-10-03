@@ -3,6 +3,8 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { messages } from './lib/i18n/catalog';
+import type { Lang } from './lib/i18n/lang';
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -25,6 +27,24 @@ interface PushPayload {
 	body: string;
 	taskId: string;
 	kind: 'due' | 'follow-up';
+	taskTitle?: string;
+}
+
+/** The interface language saved in the app's IndexedDB (settings.language); English if unknown. */
+function readLanguage(): Promise<Lang> {
+	return new Promise((resolve) => {
+		const open = indexedDB.open('qadrant');
+		open.onerror = () => resolve('en');
+		open.onsuccess = () => {
+			try {
+				const get = open.result.transaction('settings').objectStore('settings').get('settings');
+				get.onsuccess = () => resolve(get.result?.language === 'es' ? 'es' : 'en');
+				get.onerror = () => resolve('en');
+			} catch {
+				resolve('en');
+			}
+		};
+	});
 }
 
 self.addEventListener('push', (event) => {
@@ -35,15 +55,21 @@ self.addEventListener('push', (event) => {
 		payload = null;
 	}
 	if (!payload) return;
+	const data = payload;
 	event.waitUntil(
-		self.registration.showNotification(payload.title || 'Qadrant', {
-			body: payload.body,
-			tag: `${payload.taskId}:${payload.kind}`,
-			icon: '/pwa-192x192.png',
-			badge: '/pwa-64x64.png',
-			lang: 'es-ES',
-			data: { taskId: payload.taskId }
-		})
+		(async () => {
+			const lang = await readLanguage();
+			const notice = messages(lang).notice;
+			const body = data.taskTitle ? (data.kind === 'follow-up' ? notice.followUp : notice.due)(data.taskTitle) : data.body;
+			await self.registration.showNotification(data.title || 'Qadrant', {
+				body,
+				tag: `${data.taskId}:${data.kind}`,
+				icon: '/pwa-192x192.png',
+				badge: '/pwa-64x64.png',
+				lang,
+				data: { taskId: data.taskId }
+			});
+		})()
 	);
 });
 

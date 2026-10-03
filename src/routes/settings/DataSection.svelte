@@ -2,6 +2,7 @@
 	import { currentSettings } from '$lib/app/context';
 	import { exportData, exportFileName, ImportError, importData } from '$lib/db/backup';
 	import { repos } from '$lib/db/repositories';
+	import { i18n } from '$lib/i18n/index.svelte';
 	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme } from '$lib/theme';
 	import { Button, Sheet } from '$lib/ui';
@@ -24,7 +25,7 @@
 		link.download = exportFileName();
 		link.click();
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
-		message = `Exportadas ${data.tasks.length} tareas.`;
+		message = i18n.m.data.exported(data.tasks.length);
 	}
 
 	async function upload(file: File | undefined) {
@@ -32,10 +33,9 @@
 		try {
 			const result = await importData(JSON.parse(await file.text()));
 			await taskActions.reevaluateOpenTasks(currentSettings());
-			message = `Importado: ${result.added} nuevos, ${result.updated} actualizados, ${result.unchanged} sin cambios.`;
+			message = i18n.m.data.imported(result.added, result.updated, result.unchanged);
 		} catch (error) {
-			message =
-				error instanceof ImportError ? error.message : 'No se pudo leer el fichero. ¿Es una exportación de Qadrant?';
+			message = error instanceof ImportError ? i18n.m.data[error.code] : i18n.m.data.unreadable;
 		} finally {
 			if (fileInput) fileInput.value = '';
 		}
@@ -49,43 +49,41 @@
 </script>
 
 <section aria-labelledby="s-data">
-	<h2 id="s-data">Datos</h2>
+	<h2 id="s-data">{i18n.m.data.title}</h2>
 	<div class="actions">
-		<Button variant="secondary" onclick={download}>Exportar tareas</Button>
-		<Button variant="secondary" onclick={() => fileInput?.click()}>Importar tareas</Button>
+		<Button variant="secondary" onclick={download}>{i18n.m.data.export}</Button>
+		<Button variant="secondary" onclick={() => fileInput?.click()}>{i18n.m.data.import}</Button>
 		<input
 			class="visually-hidden"
 			type="file"
 			accept="application/json,.json"
-			aria-label="Fichero para importar"
+			aria-label={i18n.m.data.importFile}
 			tabindex="-1"
 			bind:this={fileInput}
 			onchange={(e) => upload(e.currentTarget.files?.[0])}
 		/>
-		<Button variant="danger" onclick={() => (step = 1)}>Borrar todos los datos</Button>
+		<Button variant="danger" onclick={() => (step = 1)}>{i18n.m.data.clear}</Button>
 	</div>
 	<p class="note" role="status">{message}</p>
 	{#if persisted === false}
-		<p class="note">
-			El navegador no garantiza que guarde tus tareas. Instala la app y exporta tus tareas de vez en cuando.
-		</p>
+		<p class="note">{i18n.m.data.notPersisted}</p>
 	{/if}
 </section>
 
-<Sheet open={step > 0} label="Borrar todos los datos" onclose={() => ((step = 0), (confirmation = ''))}>
+<Sheet open={step > 0} label={i18n.m.data.clear} onclose={() => ((step = 0), (confirmation = ''))}>
 	{#if step === 1}
-		<h2 class="title">¿Borrar todos los datos?</h2>
-		<p class="text">Se borran tareas, objetivos, personas, correcciones y ajustes de este dispositivo. El asistente descargado se conserva.</p>
-		<Button variant="danger" size="lg" block onclick={() => (step = 2)}>Continuar</Button>
-		<Button variant="secondary" size="lg" block onclick={() => (step = 0)}>Cancelar</Button>
+		<h2 class="title">{i18n.m.data.clearAsk}</h2>
+		<p class="text">{i18n.m.data.clearText}</p>
+		<Button variant="danger" size="lg" block onclick={() => (step = 2)}>{i18n.m.data.continue}</Button>
+		<Button variant="secondary" size="lg" block onclick={() => (step = 0)}>{i18n.m.common.cancel}</Button>
 	{:else if step === 2}
-		<h2 class="title">Última confirmación</h2>
-		<label class="text" for="confirm-delete">Escribe BORRAR para confirmar.</label>
+		<h2 class="title">{i18n.m.data.lastConfirm}</h2>
+		<label class="text" for="confirm-delete">{i18n.m.data.typeToConfirm(i18n.m.data.typeWord)}</label>
 		<input id="confirm-delete" type="text" autocomplete="off" bind:value={confirmation} />
-		<Button variant="danger" size="lg" block disabled={confirmation.trim().toUpperCase() !== 'BORRAR'} onclick={clearAll}>
-			Borrar todo
+		<Button variant="danger" size="lg" block disabled={confirmation.trim().toUpperCase() !== i18n.m.data.typeWord} onclick={clearAll}>
+			{i18n.m.data.clearAll}
 		</Button>
-		<Button variant="secondary" size="lg" block onclick={() => ((step = 0), (confirmation = ''))}>Cancelar</Button>
+		<Button variant="secondary" size="lg" block onclick={() => ((step = 0), (confirmation = ''))}>{i18n.m.common.cancel}</Button>
 	{/if}
 </Sheet>
 

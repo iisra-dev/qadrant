@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n/index.svelte';
 	let {
 		title,
 		href,
@@ -17,11 +18,11 @@
 
 <div class="row">
 	<label class="check">
-		<input type="checkbox" aria-label={`Completar: ${title}`} onchange={oncomplete} />
+		<input type="checkbox" aria-label={i18n.m.common.complete(title)} onchange={oncomplete} />
 	</label>
 	<a {href}>
 		{title}{#if detail}<span class="detail"> · {detail}</span>{/if}
-		{#if overdue}<span class="overdue">Vencida</span>{/if}
+		{#if overdue}<span class="overdue">{i18n.m.common.overdue}</span>{/if}
 	</a>
 </div>
 

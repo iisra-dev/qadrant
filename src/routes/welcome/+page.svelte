@@ -3,15 +3,20 @@
 	import { onMount } from 'svelte';
 	import { repos } from '$lib/db/repositories';
 	import { GOAL_SUMMARY_MAX } from '$lib/db/defaults';
+	import { i18n } from '$lib/i18n/index.svelte';
+	import type { Lang } from '$lib/i18n/lang';
 	import { AiDot, Button } from '$lib/ui';
 
 	let goals = $state(['', '', '']);
 	let wifiOnly = $state(true);
-	let error = $state('');
+	let missingGoal = $state(false);
 	let saving = $state(false);
-	let installHint = $state('');
+	let installHint = $state<'ios' | 'desktop' | 'android' | null>(null);
 
-	const placeholders = ['Ej.: cerrar las ventas del trimestre', 'Ej.: aprobar la oposición', 'Opcional'];
+	const m = $derived(i18n.m.welcome);
+	const hint = $derived(
+		installHint === 'ios' ? m.installIos : installHint === 'desktop' ? m.installDesktop : installHint === 'android' ? m.installAndroid : ''
+	);
 
 	onMount(() => {
 		const standalone =
@@ -20,21 +25,20 @@
 		if (standalone) return;
 		const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 		const mobile = /Android|Mobi/.test(navigator.userAgent);
-		if (ios) {
-			installHint =
-				'En iPhone, instálala para que iOS no borre tus tareas: Compartir y luego «Añadir a pantalla de inicio».';
-		} else if (!mobile) {
-			installHint = 'Puedes instalarla desde la barra de direcciones para usarla sin conexión.';
-		} else {
-			installHint = 'Instálala desde el menú del navegador para usarla sin conexión.';
-		}
+		installHint = ios ? 'ios' : mobile ? 'android' : 'desktop';
 	});
+
+	async function setLanguage(lang: Lang) {
+		i18n.set(lang);
+		await repos.settings.get();
+		await repos.settings.update({ language: lang });
+	}
 
 	async function start(event: SubmitEvent) {
 		event.preventDefault();
 		const titles = goals.map((goal) => goal.trim()).filter(Boolean);
 		if (!goals[0].trim()) {
-			error = 'Escribe al menos un objetivo.';
+			missingGoal = true;
 			document.getElementById('goal-0')?.focus();
 			return;
 		}
@@ -42,12 +46,16 @@
 		try {
 			for (const title of titles) await repos.goals.add(title);
 			const settings = await repos.settings.get();
-			await repos.settings.update({ onboardingDone: true, model: { ...settings.model, wifiOnly } });
+			await repos.settings.update({
+				onboardingDone: true,
+				language: i18n.lang,
+				model: { ...settings.model, wifiOnly }
+			});
 			// Ask the browser not to evict our data (docs/02, "Persistencia").
 			try {
 				await navigator.storage?.persist?.();
 			} catch {
-				// Settings > Datos tells the user if it was denied.
+				// Settings > Data tells the user if it was denied.
 			}
 			await goto('/', { replaceState: true });
 		} finally {
@@ -57,48 +65,59 @@
 </script>
 
 <svelte:head>
-	<title>Bienvenida · Qadrant</title>
+	<title>{i18n.m.common.pageTitle(m.title)}</title>
 </svelte:head>
 
 <form class="welcome" onsubmit={start} novalidate>
 	<div class="intro">
 		<img src="/logo.svg" alt="" width="48" height="48" />
-		<h1>Qadrant</h1>
-		<p>Dices lo que tienes pendiente y la app lo coloca: hacer, programar, delegar o eliminar.</p>
+		<h1>{i18n.m.common.appName}</h1>
+		<p>{m.intro}</p>
 	</div>
 
+	<fieldset class="languages">
+		<legend class="visually-hidden">{m.language}</legend>
+		<!-- Each language named in itself, so it can be found in either. -->
+		{#each [['en', 'English'], ['es', 'Español']] as [value, label] (value)}
+			<label lang={value}>
+				<input type="radio" name="language" {value} checked={i18n.lang === value} onchange={() => setLanguage(value as Lang)} />
+				<span>{label}</span>
+			</label>
+		{/each}
+	</fieldset>
+
 	<section aria-labelledby="welcome-goals" class="goals">
-		<h2 id="welcome-goals">¿Qué es importante para ti ahora?</h2>
+		<h2 id="welcome-goals">{m.goals}</h2>
 		{#each goals as _, index (index)}
 			<input
 				id={`goal-${index}`}
 				type="text"
-				aria-label={`Objetivo ${index + 1}`}
-				placeholder={placeholders[index]}
+				aria-label={m.goal(index + 1)}
+				placeholder={m.goalPlaceholders[index]}
 				maxlength={GOAL_SUMMARY_MAX}
 				required={index === 0}
-				aria-invalid={index === 0 && Boolean(error)}
-				aria-describedby={index === 0 && error ? 'goal-error' : undefined}
+				aria-invalid={index === 0 && missingGoal}
+				aria-describedby={index === 0 && missingGoal ? 'goal-error' : undefined}
 				bind:value={goals[index]}
-				oninput={() => (error = '')}
+				oninput={() => (missingGoal = false)}
 			/>
 		{/each}
-		{#if error}<p id="goal-error" class="error" role="alert">{error}</p>{/if}
+		{#if missingGoal}<p id="goal-error" class="error" role="alert">{m.goalRequired}</p>{/if}
 	</section>
 
 	<section aria-labelledby="welcome-ai" class="ai">
-		<h2 id="welcome-ai"><AiDot />Asistente en tu dispositivo</h2>
-		<p>Se descarga una vez y funciona sin conexión. Tus tareas no salen del dispositivo.</p>
+		<h2 id="welcome-ai"><AiDot />{m.assistant}</h2>
+		<p>{m.assistantText}</p>
 		<div class="check">
 			<input id="welcome-wifi" type="checkbox" bind:checked={wifiOnly} />
-			<label for="welcome-wifi">Descargar cuando haya wifi</label>
+			<label for="welcome-wifi">{m.wifi}</label>
 		</div>
 	</section>
 
-	{#if installHint}<p class="hint">{installHint}</p>{/if}
+	{#if hint}<p class="hint">{hint}</p>{/if}
 
 	<div class="submit">
-		<Button type="submit" size="lg" block disabled={saving}>Empezar</Button>
+		<Button type="submit" size="lg" block disabled={saving}>{m.start}</Button>
 	</div>
 </form>
 
@@ -136,6 +155,46 @@
 		font-family: var(--font-body);
 		font-size: 15px;
 		font-weight: 600;
+	}
+	.languages {
+		margin: 0;
+		padding: 0;
+		border: 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.languages label {
+		position: relative;
+		display: flex;
+	}
+	.languages input {
+		position: absolute;
+		inset: 0;
+		margin: 0;
+		opacity: 0;
+		cursor: pointer;
+	}
+	.languages span {
+		flex-grow: 1;
+		min-height: var(--touch);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid var(--border-control);
+		border-radius: var(--radius-control);
+		background: var(--surface);
+		font-size: 14px;
+	}
+	.languages input:checked + span {
+		background: var(--cta-bg);
+		color: var(--cta-text);
+		border-color: var(--cta-bg);
+		font-weight: 600;
+	}
+	.languages input:focus-visible + span {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
 	}
 	.goals {
 		display: flex;

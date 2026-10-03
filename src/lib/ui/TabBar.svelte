@@ -1,16 +1,17 @@
 <script lang="ts">
+	import { i18n } from '$lib/i18n/index.svelte';
 	import Icon, { type IconName } from './Icon.svelte';
 
 	let { current }: { current: string } = $props();
 
-	const tabs: { href: string; label: string; icon: IconName }[] = [
-		{ href: '/', label: 'Matriz', icon: 'matrix' },
-		{ href: '/agenda', label: 'Agenda', icon: 'agenda' },
-		{ href: '/settings', label: 'Ajustes', icon: 'settings' }
-	];
+	const tabs: { href: string; label: string; icon: IconName }[] = $derived([
+		{ href: '/', label: i18n.m.nav.matrix, icon: 'matrix' },
+		{ href: '/agenda', label: i18n.m.nav.agenda, icon: 'agenda' },
+		{ href: '/settings', label: i18n.m.nav.settings, icon: 'settings' }
+	]);
 </script>
 
-<nav aria-label="Navegación principal">
+<nav aria-label={i18n.m.nav.label}>
 	{#each tabs as tab (tab.href)}
 		<a href={tab.href} aria-current={current === tab.href ? 'page' : undefined}>
 			<Icon name={tab.icon} />

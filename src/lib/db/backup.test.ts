@@ -84,9 +84,9 @@ describe('importData', () => {
 	it('rejects other versions and damaged files', async () => {
 		await expect(importData({ version: 2 }, b)).rejects.toThrow(ImportError);
 		await expect(importData('nope', b)).rejects.toThrow(ImportError);
-		await expect(importData({ version: 1, tasks: [{}], goals: [], people: [], corrections: [] }, b)).rejects.toThrow(
-			'El fichero está dañado.'
-		);
+		await expect(importData({ version: 1, tasks: [{}], goals: [], people: [], corrections: [] }, b)).rejects.toMatchObject({
+			code: 'damaged'
+		});
 		expect(await b.tasks.count()).toBe(0);
 	});
 });
