@@ -1,11 +1,51 @@
-text,important,delegable
-El lunes a primera hora mandar la oferta a [CLIENTE],1,0
-Mirar cursos de inglés,0,0
-Que Ana reserve la sala para el martes,0,1
-Llamar al taller hoy por la avería,1,0
-Revisión médica anual,1,0
-Ordenar marcadores del navegador,0,0
-Estudiar el tema 4,1,0
-Pedir material de oficina,0,1
-Preparar el plan comercial del Q4,1,0
-Ver el webinar de la semana que viene,0,0
+text,title,important,delegable,urgent,expected_quadrant,case_type
+terminar la práctica de SO para el lunes,Terminar la práctica de SO,1,0,1,do,normal
+buscar ofertas de prácticas en InfoJobs,Buscar ofertas de prácticas en InfoJobs,1,0,0,schedule,normal
+limpiar el baño de los chicos hoy,Limpiar el baño de los chicos,0,1,1,delegate,normal
+comprar el pan,Comprar el pan,0,1,0,eliminate,normal
+renovar el DNI antes del martes,Renovar el DNI,1,0,1,do,normal
+preparar la clase de mates de Nacho de mañana (1h de preparación),Preparar la clase de mates de Nacho,1,0,1,do,normal
+comprar entradas para el cine del sábado,Comprar entradas para el cine,0,1,1,delegate,normal
+"leer el tema 2 de Redes esta tarde, tardaré 2 h",Leer el tema 2 de Redes,1,0,1,do,normal
+instalar el IDE nuevo,Instalar el IDE nuevo,1,0,0,schedule,normal
+pedir cita para el médico,Pedir cita para el médico,1,0,0,schedule,normal
+mandar a Dani los apuntes de Bases de Datos hoy,Mandar a Dani los apuntes de Bases de Datos,1,0,1,do,trampa
+el viernes pasado quedé en llamar a mi abuela,Quedé en llamar a mi abuela,0,0,0,eliminate,trampa
+renovar el carnet joven el 6 de octubre de 2027,Renovar el carnet joven,1,0,0,schedule,trampa
+aprender a tocar la guitarra media hora al día,Aprender a tocar la guitarra al día,0,0,0,eliminate,trampa
+subir a Wuolah los apuntes de Física que ya aprobé el año pasado,Subir a Wuolah los apuntes de Física que ya aprobé el año pasado,0,1,0,eliminate,trampa
+pagar el recibo de la luz (venció ayer),Pagar el recibo de la luz,1,0,1,do,trampa
+ir a firmar mi contrato de prácticas mañana,Ir a firmar mi contrato de prácticas,1,0,1,do,trampa
+pedirle a Lucía que me haga mi parte del TFG para el lunes,Pedirle a Lucía que me haga mi parte del TFG,1,0,1,do,trampa
+ir a la charla sobre IA en el salón de actos,Ir a la charla sobre IA en el salón de actos,1,0,0,schedule,ambigua
+arreglar el router del piso,Arreglar el router del piso,0,1,0,eliminate,ambigua
+responder al correo del coordinador de la universidad,Responder al correo del coordinador de la universidad,1,0,0,schedule,ambigua
+ayudar a mi hermano pequeño con su ordenador esta tarde,Ayudar a mi hermano pequeño con su ordenador,0,1,1,delegate,ambigua
+hacer el curso de 2 h de React por si lo uso en el TFG,Hacer el curso de React por si lo uso en el TFG,1,0,0,schedule,ambigua
+fregar los platos de la cena,Fregar los platos de la cena,0,1,0,eliminate,normal
+comprar folios para imprimir antes del martes,Comprar folios para imprimir,0,1,1,delegate,normal
+"revisar el código de Algoritmia, me llevará un rato largo","Revisar el código de Algoritmia, me llevará un rato largo",1,0,0,schedule,normal
+hacer la colada de color hoy,Hacer la colada de color,0,1,1,delegate,normal
+bajar al súper a por leche y huevos,Bajar al súper a por leche y huevos,0,1,0,eliminate,normal
+hacer el test de Redes para el miércoles,Hacer el test de Redes,1,0,0,schedule,normal
+mandar el borrador del TFG al tutor,Mandar el borrador del TFG al tutor,1,0,0,schedule,normal
+preparar el currículum,Preparar el currículum,1,0,0,schedule,normal
+mirar portátiles nuevos en Amazon,Mirar portátiles nuevos en Amazon,0,0,0,eliminate,normal
+jugar al nuevo Zelda,Jugar al nuevo Zelda,0,0,0,eliminate,normal
+llamar al banco para desbloquear la tarjeta (era para el miércoles),Llamar al banco para desbloquear la tarjeta,1,0,1,do,normal
+preparar el esquema de la base de datos para el lunes,Preparar el esquema de la base de datos,1,0,1,do,normal
+comprar un regalo para el cumpleaños de Marta del domingo,Comprar un regalo para el cumpleaños de Marta,0,1,1,delegate,normal
+recoger un paquete de Amazon en Correos,Recoger un paquete de Amazon en Correos,0,1,0,eliminate,normal
+pedir apuntes a Lucía,Pedir apuntes a Lucía,1,0,0,schedule,normal
+terminar los ejercicios de Algoritmia del jueves de la semana que viene,Terminar los ejercicios de Algoritmia,1,0,0,schedule,normal
+reservar pista de pádel para el sábado,Reservar pista de pádel,0,1,1,delegate,normal
+hacer la cama,Hacer la cama,0,0,0,eliminate,normal
+"ordenar el escritorio, me llevará media hora",Ordenar el escritorio,0,0,0,eliminate,normal
+sacar dinero del cajero hoy para el bote de cervezas,Sacar dinero del cajero para el bote de cervezas,0,0,1,do,normal
+actualizar el perfil de GitHub esta noche,Actualizar el perfil de GitHub,1,0,1,do,normal
+"limpiar la cocina a fondo, al menos 1 hora",Limpiar la cocina a fondo,0,1,0,eliminate,normal
+tirar los apuntes viejos,Tirar los apuntes viejos,0,1,0,eliminate,normal
+ir a la tutoría de Sistemas Operativos el martes a las 10:00,Ir a la tutoría de Sistemas Operativos,1,0,1,do,normal
+descargar las transparencias de Ingeniería del Software,Descargar las transparencias de Ingeniería del Software,1,0,0,schedule,normal
+comprar billetes de tren para Navidad,Comprar billetes de tren para Navidad,0,0,0,eliminate,normal
+buscar un tutorial de Docker de 15 minutos,Buscar un tutorial de Docker,1,0,0,schedule,normal
