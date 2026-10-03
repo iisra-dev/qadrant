@@ -4,7 +4,9 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { pwaInfo } from 'virtual:pwa-info';
+	import { capture } from '$lib/app/capture.svelte';
 	import { clock } from '$lib/app/clock.svelte';
+	import { media } from '$lib/app/media.svelte';
 	import { currentSettings } from '$lib/app/context';
 	import CaptureSheet from '$lib/capture/CaptureSheet.svelte';
 	import UpdateNotice from '$lib/pwa/UpdateNotice.svelte';
@@ -12,11 +14,18 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { settings } from '$lib/stores';
 	import { applyTheme } from '$lib/theme';
-	import { TabBar } from '$lib/ui';
+	import { TabBar, WebHeader } from '$lib/ui';
 
 	let { children } = $props();
 
-	onMount(() => clock.start());
+	onMount(() => {
+		const stopClock = clock.start();
+		const stopMedia = media.start();
+		return () => {
+			stopClock();
+			stopMedia();
+		};
+	});
 
 	// Passage of time (docs/03): on start and whenever the day changes.
 	$effect(() => {
@@ -48,10 +57,13 @@
 </svelte:head>
 
 <div class="app">
+	{#if showTabs && media.web}
+		<WebHeader current={section} oncapture={(text) => capture.show(text)} />
+	{/if}
 	<main>
 		{@render children()}
 	</main>
-	{#if showTabs}
+	{#if showTabs && !media.web}
 		<div class="tabs"><TabBar current={section} /></div>
 	{/if}
 </div>

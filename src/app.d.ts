@@ -6,7 +6,10 @@ declare global {
 		// interface Error {}
 		// interface Locals {}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			/** Task shown in the web side panel (shallow routing). */
+			taskId?: string;
+		}
 		// interface Platform {}
 	}
 }
