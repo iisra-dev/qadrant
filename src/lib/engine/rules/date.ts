@@ -20,9 +20,9 @@ const TIME_PHRASES: { pattern: RegExp; time: (hours: Hours) => string }[] = [
 
 const DAY_AFTER_TOMORROW = /\bpasado mañana\b/i;
 
-// Words that introduce a date and go away with it: "para el martes", "antes del jueves".
+// Words that introduce a date and go away with it: "para el martes", "antes del jueves", "venció ayer".
 const INTRODUCER =
-	/(?:^|\s)(?:para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|el|la|los)\s*$/i;
+	/(?:^|\s)(?:(?:vence|venci[oó])(?: el| la)?|para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|el|la|los)\s*$/i;
 
 function mask(text: string, start: number, end: number): string {
 	return text.slice(0, start) + ' '.repeat(end - start) + text.slice(end);

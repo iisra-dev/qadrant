@@ -61,6 +61,7 @@ describe('test cases of docs/03', () => {
 	it('Pagar recibo, venció ayer', () => {
 		const result = run('Pagar recibo, venció ayer');
 		expect(result.dueAt).toBe(local(2026, 10, 1, 18));
+		expect(result.title).toBe('Pagar recibo');
 		expect(result.urgent).toBe(true);
 	});
 
