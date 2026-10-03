@@ -1,0 +1,186 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Welcome.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 · Bienvenida",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Main.dc.html": {
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 · Matriz",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Capture.dc.html": {
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3 · Captura con propuesta",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Doubt.dc.html": {
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3b · Captura con duda",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Task.dc.html": {
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "4 · Detalle de tarea",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Agenda.dc.html": {
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "5 · Agenda",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Settings.dc.html": {
+      "x": 2820,
+      "y": 0,
+      "w": 390,
+      "h": 1180,
+      "title": "6 · Ajustes",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "Web.dc.html": {
+      "x": 0,
+      "y": 1600,
+      "w": 1440,
+      "h": 900,
+      "title": "W1 · Matriz y agenda de hoy",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WebCapture.dc.html": {
+      "x": 1520,
+      "y": 1600,
+      "w": 1440,
+      "h": 900,
+      "title": "W2 · Captura (modal)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WebTask.dc.html": {
+      "x": 3040,
+      "y": 1600,
+      "w": 1440,
+      "h": 900,
+      "title": "W3 · Detalle de tarea (panel)",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WebAgenda.dc.html": {
+      "x": 0,
+      "y": 2620,
+      "w": 1440,
+      "h": 900,
+      "title": "W4 · Agenda semanal",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WebSettings.dc.html": {
+      "x": 1520,
+      "y": 2620,
+      "w": 1440,
+      "h": 1000,
+      "title": "W5 · Ajustes",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "WebWelcome.dc.html": {
+      "x": 3040,
+      "y": 2620,
+      "w": 1440,
+      "h": 900,
+      "title": "W0 · Bienvenida",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "MainDark.dc.html": {
+      "x": 3290,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2 · Matriz (tema oscuro)",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "WebDark.dc.html": {
+      "x": 4560,
+      "y": 1600,
+      "w": 1440,
+      "h": 900,
+      "title": "W1 · Matriz (tema oscuro)",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-02T10:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "mobile": {
+      "kind": "title1",
+      "maxW": 3680,
+      "text": "App móvil",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "web": {
+      "kind": "title1",
+      "maxW": 6000,
+      "text": "Versión web",
+      "w": 240,
+      "x": 0,
+      "y": 1300
+    }
+  },
+  "order": [
+    "Welcome.dc.html",
+    "Main.dc.html",
+    "Capture.dc.html",
+    "Doubt.dc.html",
+    "Task.dc.html",
+    "Agenda.dc.html",
+    "Settings.dc.html",
+    "Web.dc.html",
+    "WebCapture.dc.html",
+    "WebTask.dc.html",
+    "WebAgenda.dc.html",
+    "WebSettings.dc.html",
+    "WebWelcome.dc.html",
+    "MainDark.dc.html",
+    "WebDark.dc.html"
+  ],
+  "pages": [],
+  "title": "Agenda Eisenhower IA"
+}

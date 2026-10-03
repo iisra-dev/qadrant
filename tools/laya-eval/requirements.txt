@@ -1,0 +1,9 @@
+laya
+transformers
+sentencepiece
+torch
+pandas
+scikit-learn
+# ONNX export and int8 quantization (last steps of phase 0)
+onnx
+onnxruntime
