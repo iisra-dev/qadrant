@@ -12,7 +12,8 @@
 	import UpdateNotice from '$lib/pwa/UpdateNotice.svelte';
 	import { repos } from '$lib/db/repositories';
 	import { taskActions } from '$lib/tasks/actions';
-	import { settings } from '$lib/stores';
+	import { createReminderSync } from '$lib/ownserver/sync';
+	import { openTasks, settings } from '$lib/stores';
 	import { applyTheme } from '$lib/theme';
 	import { TabBar, WebHeader } from '$lib/ui';
 
@@ -31,6 +32,12 @@
 	$effect(() => {
 		void clock.today;
 		repos.settings.get().then(() => taskActions.reevaluateOpenTasks(currentSettings()));
+	});
+
+	// Own server (phase 3): keep its reminders in step with the tasks.
+	const reminderSync = createReminderSync();
+	$effect(() => {
+		reminderSync.update($openTasks, $settings?.server);
 	});
 
 	// Settings are the source of truth for the theme; localStorage only mirrors it for the first paint.
