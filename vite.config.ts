@@ -13,8 +13,8 @@ export default defineConfig({
 			registerType: 'prompt',
 			injectRegister: false,
 			manifest: {
-				name: 'Cuadrante',
-				short_name: 'Cuadrante',
+				name: 'Qadrant Calendar',
+				short_name: 'Qadrant Calendar',
 				description: 'Agenda basada en la matriz de Eisenhower que funciona en tu dispositivo.',
 				lang: 'es-ES',
 				display: 'standalone',

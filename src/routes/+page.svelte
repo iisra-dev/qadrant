@@ -58,7 +58,7 @@
 </script>
 
 <svelte:head>
-	<title>Hoy · Cuadrante</title>
+	<title>Hoy · Qadrant</title>
 </svelte:head>
 
 <div class="page" class:wide={media.wide}>

@@ -59,7 +59,7 @@ func TestDueReminders(t *testing.T) {
 }
 
 func TestPayload(t *testing.T) {
-	if p := payloadFor(Reminder{TaskID: "a", Kind: KindDue, Title: "Pagar recibo"}); p.Body != "Vence: Pagar recibo" || p.Title != "Cuadrante" {
+	if p := payloadFor(Reminder{TaskID: "a", Kind: KindDue, Title: "Pagar recibo"}); p.Body != "Vence: Pagar recibo" || p.Title != "Qadrant" {
 		t.Fatalf("due payload: %+v", p)
 	}
 	if p := payloadFor(Reminder{TaskID: "a", Kind: KindFollowUp, Title: "Reservar sala"}); p.Body != "Revisar: Reservar sala" {

@@ -9,7 +9,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-const calendarCollection = "cuadrante_calendar"
+const calendarCollection = "qadrant_calendar"
 
 func ensureCalendarCollection(app core.App) error {
 	if _, err := app.FindCollectionByNameOrId(calendarCollection); err == nil {
@@ -53,7 +53,7 @@ func refreshCalendar(app core.App, now time.Time) error {
 	return app.Save(record)
 }
 
-// calendarHandlers are mounted under /api/cuadrante (behind the access key).
+// calendarHandlers are mounted under /api/qadrant (behind the access key).
 func calendarGet(app core.App) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		record := calendarRecord(app)

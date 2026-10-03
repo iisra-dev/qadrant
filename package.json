@@ -1,5 +1,5 @@
 {
-	"name": "cuadrante",
+	"name": "qadrant",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -14,7 +14,7 @@
 		"test:watch": "TZ=Europe/Madrid vitest",
 		"test:e2e": "playwright test",
 		"icons": "pwa-assets-generator",
-		"deploy:pages": "pnpm build && wrangler pages deploy build --project-name cuadrante"
+		"deploy:pages": "pnpm build && wrangler pages deploy build --project-name qadrant"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",

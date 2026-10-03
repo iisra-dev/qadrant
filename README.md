@@ -1,12 +1,14 @@
-# Cuadrante · kit de desarrollo
+# Qadrant
+
+Nombre completo: **Qadrant Calendar** (así aparece al instalarla; en el icono, «Qadrant»).
 
 Agenda PWA basada en la matriz de Eisenhower. Cada tarea se clasifica en el propio dispositivo: unas reglas calculan la urgencia a partir de la fecha y el modelo Laya decide la importancia y si es delegable.
 
-Este kit contiene todo lo necesario para empezar a desarrollarla con Claude Code.
+Este repositorio contiene la app, su especificación (`docs/`), el diseño (`design/`), las herramientas de la fase 0 (`tools/`) y el servidor opcional (`server/`).
 
 ## Cómo usarlo con Claude Code
 
-1. Descomprime el kit y entra en la carpeta: `cd cuadrante-kit`. Esta carpeta es la raíz del repositorio: el proyecto SvelteKit se crea aquí, junto a `docs/` y `design/`.
+1. Entra en la carpeta del repositorio: `cd ~/WSApps/Qadrant-App`. Es la raíz del proyecto SvelteKit, junto a `docs/`, `design/`, `tools/` y `server/`.
 2. Abre Claude Code ahí. Leerá `CLAUDE.md` automáticamente; contiene las reglas del proyecto.
 3. Empieza por la fase 0 (validar Laya) o, si quieres avanzar en paralelo, por la fase 1 (MVP sin IA). Ver `docs/06-hoja-de-ruta.md`.
 4. Pídele una fase cada vez, por ejemplo: «Implementa la fase 1 siguiendo docs/06-hoja-de-ruta.md. Al terminar, marca las casillas completadas». O deja que avance solo con `/loop`, siguiendo la sección «Trabajo por iteraciones» de `CLAUDE.md`: se para cuando lo que queda depende de ti (las casillas marcadas «(usuario)»).

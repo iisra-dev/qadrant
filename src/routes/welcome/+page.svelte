@@ -57,13 +57,13 @@
 </script>
 
 <svelte:head>
-	<title>Bienvenida · Cuadrante</title>
+	<title>Bienvenida · Qadrant</title>
 </svelte:head>
 
 <form class="welcome" onsubmit={start} novalidate>
 	<div class="intro">
 		<img src="/logo.svg" alt="" width="48" height="48" />
-		<h1>Cuadrante</h1>
+		<h1>Qadrant</h1>
 		<p>Dices lo que tienes pendiente y la app lo coloca: hacer, programar, delegar o eliminar.</p>
 	</div>
 

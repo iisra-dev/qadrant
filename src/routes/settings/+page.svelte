@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-	<title>Ajustes · Cuadrante</title>
+	<title>Ajustes · Qadrant</title>
 </svelte:head>
 
 <div class="settings">

@@ -35,7 +35,7 @@
 			message = `Importado: ${result.added} nuevos, ${result.updated} actualizados, ${result.unchanged} sin cambios.`;
 		} catch (error) {
 			message =
-				error instanceof ImportError ? error.message : 'No se pudo leer el fichero. ¿Es una exportación de Cuadrante?';
+				error instanceof ImportError ? error.message : 'No se pudo leer el fichero. ¿Es una exportación de Qadrant?';
 		} finally {
 			if (fileInput) fileInput.value = '';
 		}

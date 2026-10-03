@@ -12,15 +12,15 @@ import (
 	"github.com/SherClockHolmes/webpush-go"
 )
 
-const accessKeyEnv = "CUADRANTE_ACCESS_KEY"
+const accessKeyEnv = "QADRANT_ACCESS_KEY"
 
 // loadOrCreateAccessKey returns the key every call must carry. It comes from
-// CUADRANTE_ACCESS_KEY or is generated once and kept in the data directory.
+// QADRANT_ACCESS_KEY or is generated once and kept in the data directory.
 func loadOrCreateAccessKey(dataDir string) (key string, created bool, err error) {
 	if env := strings.TrimSpace(os.Getenv(accessKeyEnv)); env != "" {
 		return env, false, nil
 	}
-	path := filepath.Join(dataDir, "cuadrante_access_key")
+	path := filepath.Join(dataDir, "qadrant_access_key")
 	if b, err := os.ReadFile(path); err == nil && len(strings.TrimSpace(string(b))) > 0 {
 		return strings.TrimSpace(string(b)), false, nil
 	}
@@ -52,7 +52,7 @@ type vapidKeys struct {
 // loadOrCreateVAPID keeps the VAPID key pair in the data directory: changing
 // it would invalidate every push subscription.
 func loadOrCreateVAPID(dataDir string) (vapidKeys, error) {
-	path := filepath.Join(dataDir, "cuadrante_vapid.json")
+	path := filepath.Join(dataDir, "qadrant_vapid.json")
 	var keys vapidKeys
 	if b, err := os.ReadFile(path); err == nil {
 		if err := json.Unmarshal(b, &keys); err == nil && keys.Public != "" && keys.Private != "" {
