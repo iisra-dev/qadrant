@@ -38,3 +38,15 @@ export function tidyTitle(text: string): string {
 		.trim();
 	return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
+
+/**
+ * A date or duration said in an aside, "(venció ayer)", "(1h de preparación)":
+ * the whole parenthesis goes away with it.
+ */
+export function widenToParentheses(text: string, [start, end]: [number, number]): [number, number] {
+	const open = text.lastIndexOf('(', start);
+	if (open < 0 || text.slice(open, start).includes(')')) return [start, end];
+	const close = text.indexOf(')', Math.max(end - 1, open));
+	if (close < 0 || text.slice(end, close).includes('(')) return [start, end];
+	return [open, close + 1];
+}

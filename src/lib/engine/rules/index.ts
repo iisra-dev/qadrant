@@ -2,7 +2,7 @@ import type { Person, Settings } from '$lib/domain/types';
 import { extractDate } from './date';
 import { extractDuration } from './duration';
 import { extractAssignee } from './person';
-import { normalize, removeRanges, tidyTitle } from './text';
+import { normalize, removeRanges, tidyTitle, widenToParentheses } from './text';
 
 export interface Extraction {
 	title: string;
@@ -19,9 +19,9 @@ export function extract(
 ): Extraction {
 	const input = normalize(text);
 	const date = extractDate(input, ctx.now, ctx.settings.workHours);
-	const withoutDate = date ? removeRanges(input, date.ranges) : input;
+	const withoutDate = date ? removeRanges(input, date.ranges.map((r) => widenToParentheses(input, r))) : input;
 	const duration = extractDuration(withoutDate);
-	const rest = duration ? removeRanges(withoutDate, [duration.range]) : withoutDate;
+	const rest = duration ? removeRanges(withoutDate, [widenToParentheses(withoutDate, duration.range)]) : withoutDate;
 	const personId = extractAssignee(input, ctx.people);
 
 	return {

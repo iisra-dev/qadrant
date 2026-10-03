@@ -180,3 +180,30 @@ describe('extractAssignee', () => {
 		expect(extractAssignee(text, people)).toBeUndefined();
 	});
 });
+
+// Phrases from the real phase 0 data set that left debris in the title.
+describe('real phrases', () => {
+	it.each([
+		['preparar la clase de mates de Nacho de mañana (1h de preparación)', 'Preparar la clase de mates de Nacho', local(2026, 10, 3, 18), 60],
+		['comprar entradas para el cine del sábado', 'Comprar entradas para el cine', local(2026, 10, 3, 18), undefined],
+		['leer el tema 2 de Redes esta tarde, tardaré 2 h', 'Leer el tema 2 de Redes', local(2026, 10, 2, 18), 120],
+		['pagar el recibo de la luz (venció ayer)', 'Pagar el recibo de la luz', local(2026, 10, 1, 18), undefined],
+		['llamar al banco para desbloquear la tarjeta (era para el miércoles)', 'Llamar al banco para desbloquear la tarjeta', local(2026, 10, 7, 18), undefined],
+		['comprar un regalo para el cumpleaños de Marta del domingo', 'Comprar un regalo para el cumpleaños de Marta', local(2026, 10, 4, 18), undefined],
+		['ordenar el escritorio, me llevará media hora', 'Ordenar el escritorio', undefined, 30],
+		['limpiar la cocina a fondo, al menos 1 hora', 'Limpiar la cocina a fondo', undefined, 60],
+		['el viernes pasado quedé en llamar a mi abuela', 'Quedé en llamar a mi abuela', local(2026, 9, 25, 18), undefined],
+		['terminar los ejercicios de Algoritmia del jueves de la semana que viene', 'Terminar los ejercicios de Algoritmia', local(2026, 10, 8, 18), undefined],
+		['repasar el tema, unas 2 horas', 'Repasar el tema', undefined, 120]
+	])('%s', (text, title, dueAt, durationMin) => {
+		const result = run(text);
+		expect(result.title).toBe(title);
+		expect(result.dueAt).toBe(dueAt);
+		expect(result.durationMin).toBe(durationMin);
+	});
+
+	it('next week moves a weekday of this week to the next one', () => {
+		// Monday 5 Oct: "el jueves de la semana que viene" is 15 Oct, not 8.
+		expect(run('entregar la memoria el jueves de la semana que viene', new Date(2026, 9, 5, 10)).dueAt).toBe(local(2026, 10, 15, 18));
+	});
+});
