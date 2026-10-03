@@ -183,7 +183,14 @@ export function createRepositories(db: CuadranteDB = defaultDb) {
 		}
 	};
 
-	return { tasks, goals, people, corrections, settings };
+	/** "Borrar todos los datos" (docs/01): every table; the model lives in OPFS and stays. */
+	async function clearAll(): Promise<void> {
+		await db.transaction('rw', [db.tasks, db.goals, db.people, db.corrections, db.settings], async () => {
+			await Promise.all([db.tasks.clear(), db.goals.clear(), db.people.clear(), db.corrections.clear(), db.settings.clear()]);
+		});
+	}
+
+	return { tasks, goals, people, corrections, settings, clearAll };
 }
 
 function cleanAliases(aliases: string[]): string[] {
