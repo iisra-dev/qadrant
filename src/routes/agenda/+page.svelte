@@ -1,12 +1,25 @@
 <script lang="ts">
 	import { clock } from '$lib/app/clock.svelte';
+	import { media } from '$lib/app/media.svelte';
 	import { currentSettings } from '$lib/app/context';
-	import { agendaForDay, agendaItems, withoutSlot } from '$lib/domain/agenda';
+	import { agendaForDay, agendaItems, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, sameDay, startOfDay } from '$lib/domain/dates';
-	import { formatDuration, formatLongDate, formatTime } from '$lib/domain/format';
+	import { formatDuration, formatLongDate, formatShortDate, formatTime } from '$lib/domain/format';
+	import { settings } from '$lib/stores';
+	import WeekView from './WeekView.svelte';
 	import { openTasks } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
 	import { AgendaBlock, IconButton, QUADRANT_META } from '$lib/ui';
+
+	// Web: week view by default, working week (docs/01); mobile: day view only.
+	let view = $state<'day' | 'week'>('week');
+	const week = $derived(media.web && view === 'week');
+	let weekOffset = $state(0);
+	const days = $derived(weekDays(clock.now, weekOffset, ($settings ?? currentSettings()).workDays));
+	const weekLabel = $derived(
+		days.length ? `${formatShortDate(days[0]).slice(4)} – ${formatShortDate(days.at(-1)!).slice(4)}` : ''
+	);
+	const weekTitle = $derived(weekOffset === 0 ? 'Esta semana' : weekOffset === 1 ? 'La semana que viene' : weekOffset === -1 ? 'La semana pasada' : 'Semana');
 
 	let offset = $state(0);
 	const day = $derived(addDays(startOfDay(clock.now), offset));
@@ -36,21 +49,45 @@
 	<title>Agenda · Cuadrante</title>
 </svelte:head>
 
-<div class="agenda">
+<div class="agenda" class:wide={week}>
 	<header>
 		<div class="titles">
-			<span class="date" aria-live="polite">{label.charAt(0).toUpperCase() + label.slice(1)}</span>
-			<h1>Agenda</h1>
+			{#if week}
+				<span class="date" aria-live="polite">{weekLabel}</span>
+				<h1>{weekTitle}</h1>
+			{:else}
+				<span class="date" aria-live="polite">{label.charAt(0).toUpperCase() + label.slice(1)}</span>
+				<h1>Agenda</h1>
+			{/if}
 		</div>
 		<div class="nav">
-			<IconButton label="Día anterior" icon="prev" onclick={() => offset--} />
-			{#if !isToday}
-				<button class="today" type="button" onclick={() => (offset = 0)}>Hoy</button>
+			{#if media.web}
+				<div class="views" role="group" aria-label="Vista">
+					<button type="button" aria-pressed={view === 'day'} onclick={() => (view = 'day')}>Día</button>
+					<button type="button" aria-pressed={view === 'week'} onclick={() => (view = 'week')}>Semana</button>
+				</div>
 			{/if}
-			<IconButton label="Día siguiente" icon="next" onclick={() => offset++} />
+			{#if week}
+				<IconButton label="Semana anterior" icon="prev" onclick={() => weekOffset--} />
+				{#if weekOffset !== 0}
+					<button class="today" type="button" onclick={() => (weekOffset = 0)}>Hoy</button>
+				{/if}
+				<IconButton label="Semana siguiente" icon="next" onclick={() => weekOffset++} />
+			{:else}
+				<IconButton label="Día anterior" icon="prev" onclick={() => offset--} />
+				{#if !isToday}
+					<button class="today" type="button" onclick={() => (offset = 0)}>Hoy</button>
+				{/if}
+				<IconButton label="Día siguiente" icon="next" onclick={() => offset++} />
+			{/if}
 		</div>
 	</header>
 
+	{#if week}
+		<div class="week">
+			<WeekView {days} tasks={$openTasks} now={clock.now} workHours={($settings ?? currentSettings()).workHours} />
+		</div>
+	{:else}
 	<div class="blocks">
 		{#each items as item (item.tasks[0].id)}
 			<AgendaBlock
@@ -66,6 +103,7 @@
 			<p class="empty">Nada en la agenda este día.</p>
 		{/each}
 	</div>
+	{/if}
 
 	<section class="pending" aria-labelledby="no-slot">
 		<h2 id="no-slot">Sin hueco todavía</h2>
@@ -97,6 +135,35 @@
 		display: flex;
 		align-items: flex-end;
 		justify-content: space-between;
+	}
+	.agenda.wide {
+		max-width: 1280px;
+	}
+	.week {
+		padding: var(--space-1) var(--space-4) var(--space-3);
+	}
+	.views {
+		display: flex;
+		margin-right: var(--space-2);
+		border: 1px solid var(--border-control);
+		border-radius: 26px;
+		padding: 3px;
+		background: var(--surface);
+	}
+	.views button {
+		min-height: var(--touch);
+		padding: 0 14px;
+		border: 0;
+		border-radius: 22px;
+		background: transparent;
+		font: inherit;
+		font-size: 13px;
+		cursor: pointer;
+	}
+	.views button[aria-pressed='true'] {
+		background: var(--cta-bg);
+		color: var(--cta-text);
+		font-weight: 600;
 	}
 	.titles {
 		display: flex;

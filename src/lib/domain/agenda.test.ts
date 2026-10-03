@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agendaForDay, agendaItems, withoutSlot } from './agenda';
+import { agendaForDay, agendaItems, hourRange, weekDays, withoutSlot } from './agenda';
 import type { Task } from './types';
 
 function task(id: string, scheduledAt?: Date, overrides: Partial<Task> = {}): Task {
@@ -52,5 +52,25 @@ describe('withoutSlot', () => {
 	it('keeps open Hacer and Programar without time', () => {
 		const tasks = [task('a'), task('b', new Date()), task('c', undefined, { quadrant: 'delegate' }), task('d', undefined, { quadrant: 'schedule' })];
 		expect(withoutSlot(tasks).map((t) => t.id)).toEqual(['a', 'd']);
+	});
+});
+
+describe('weekDays', () => {
+	it('returns the working days of the week, Monday first', () => {
+		const friday = new Date(2026, 9, 2, 10);
+		expect(weekDays(friday, 0, [1, 2, 3, 4, 5]).map((d) => d.getDate())).toEqual([28, 29, 30, 1, 2]);
+		expect(weekDays(friday, 1, [1, 3, 6]).map((d) => d.getDate())).toEqual([5, 7, 10]);
+	});
+
+	it('works on Sunday', () => {
+		expect(weekDays(new Date(2026, 9, 4, 10), 0, [1])[0].getDate()).toBe(28);
+	});
+});
+
+describe('hourRange', () => {
+	it('uses working hours and widens to fit tasks', () => {
+		const hours = { start: '09:00', end: '18:00' };
+		expect(hourRange([], hours)).toEqual({ from: 9, to: 18 });
+		expect(hourRange([task('a', new Date(2026, 9, 2, 7, 30)), task('b', new Date(2026, 9, 2, 19, 0))], hours)).toEqual({ from: 7, to: 20 });
 	});
 });

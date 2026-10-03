@@ -44,3 +44,32 @@ test('"Buscarles hueco" schedules tasks without a time into a focus block', asyn
 	await expect(page.getByText('10:00')).toBeVisible();
 	await expect(pending.getByText('Todas las tareas de Hacer y Programar tienen hora.')).toBeVisible();
 });
+
+test.describe('web week view', () => {
+	test.use({ viewport: { width: 1280, height: 900 } });
+
+	test('shows the working week with today highlighted and the scheduled tasks', async ({ page }) => {
+		await startApp(page);
+		await page.getByRole('textbox', { name: 'Nueva tarea' }).fill('Llamar al taller hoy');
+		await page.getByRole('button', { name: 'Añadir' }).click();
+		const modal = page.getByRole('dialog', { name: 'Nueva tarea' });
+		await expect(modal.getByText('Hoy 10:00 · 30 min')).toBeVisible();
+		await modal.getByRole('textbox', { name: 'Tarea' }).press('Enter');
+
+		await page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('link', { name: 'Agenda' }).click();
+		await expect(page.getByRole('heading', { name: 'Esta semana', level: 1 })).toBeVisible();
+		await expect(page.getByText('5 oct – 9 oct')).toBeVisible();
+		await expect(page.getByRole('group', { name: 'Vista' }).getByRole('button', { name: 'Semana' })).toHaveAttribute('aria-pressed', 'true');
+		const monday = page.getByRole('list', { name: 'lunes 5' });
+		await expect(monday.getByRole('link', { name: /Llamar al taller/ })).toContainText('10:00 · Hacer · 30 min');
+		await expect(page.getByRole('list', { name: 'sábado 10' })).toHaveCount(0);
+
+		await page.getByRole('button', { name: 'Semana siguiente' }).click();
+		await expect(page.getByRole('heading', { name: 'La semana que viene', level: 1 })).toBeVisible();
+		// Monday 12 Oct is a holiday but still a weekday column.
+		await expect(page.getByText('12 oct – 16 oct')).toBeVisible();
+
+		await page.getByRole('button', { name: 'Día', exact: true }).click();
+		await expect(page.getByRole('heading', { name: 'Agenda', level: 1 })).toBeVisible();
+	});
+});

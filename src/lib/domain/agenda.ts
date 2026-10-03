@@ -1,5 +1,5 @@
 import { DEFAULT_DURATION_MIN } from './scheduler';
-import { sameDay } from './dates';
+import { addDays, isoWeekday, sameDay, startOfDay } from './dates';
 import type { Task } from './types';
 
 /** Open tasks scheduled on the given local day, by start time. */
@@ -40,4 +40,23 @@ export function withoutSlot(tasks: Task[]): Task[] {
 	return tasks.filter(
 		(t) => t.status === 'open' && !t.deletedAt && !t.scheduledAt && (t.quadrant === 'do' || t.quadrant === 'schedule')
 	);
+}
+
+/** Days of the week (Monday first) that are in workDays, `offset` weeks from the current one. */
+export function weekDays(now: Date, offset: number, workDays: number[]): Date[] {
+	const monday = addDays(startOfDay(now), 1 - isoWeekday(now) + offset * 7);
+	return Array.from({ length: 7 }, (_, i) => addDays(monday, i)).filter((day) => workDays.includes(isoWeekday(day)));
+}
+
+/** Hour rows for the week grid: working hours, widened to fit any task outside them. */
+export function hourRange(tasks: Task[], workHours: { start: string; end: string }): { from: number; to: number } {
+	let from = Number(workHours.start.split(':')[0]);
+	let to = Math.ceil(Number(workHours.end.split(':')[0]) + Number(workHours.end.split(':')[1]) / 60);
+	for (const task of tasks) {
+		const start = new Date(task.scheduledAt!);
+		const end = new Date(start.getTime() + (task.durationMin ?? DEFAULT_DURATION_MIN) * 60_000);
+		from = Math.min(from, start.getHours());
+		to = Math.max(to, end.getHours() + (end.getMinutes() ? 1 : 0) || 24);
+	}
+	return { from, to: Math.min(24, to) };
 }
