@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByQuadrant, isOverdue, sortForMatrix } from './matrix';
+import { groupByQuadrant, isOverdue, sortForMatrix, staleEliminate } from './matrix';
 import type { Task } from './types';
 
 const now = new Date(2026, 9, 2, 10, 0);
@@ -45,5 +45,16 @@ describe('groupByQuadrant', () => {
 		expect(groups.eliminate.map((t) => t.id)).toEqual(['a']);
 		expect(groups.do.map((t) => t.id)).toEqual(['b']);
 		expect(groups.schedule).toEqual([]);
+	});
+});
+
+describe('staleEliminate', () => {
+	it('suggests Eliminar tasks untouched for 14 days', () => {
+		const tasks = [
+			task('old', { quadrant: 'eliminate', updatedAt: new Date(2026, 8, 18, 10).toISOString() }),
+			task('recent', { quadrant: 'eliminate', updatedAt: new Date(2026, 8, 19, 10, 1).toISOString() }),
+			task('other', { quadrant: 'do', updatedAt: new Date(2026, 8, 1).toISOString() })
+		];
+		expect(staleEliminate(tasks, now).map((t) => t.id)).toEqual(['old']);
 	});
 });
