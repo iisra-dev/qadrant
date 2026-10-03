@@ -13,7 +13,8 @@
 		"test": "TZ=Europe/Madrid vitest run",
 		"test:watch": "TZ=Europe/Madrid vitest",
 		"test:e2e": "playwright test",
-		"icons": "pwa-assets-generator"
+		"icons": "pwa-assets-generator",
+		"deploy:pages": "pnpm build && wrangler pages deploy build --project-name cuadrante"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",
@@ -34,7 +35,8 @@
 		"workbox-core": "^7.4.1",
 		"workbox-precaching": "^7.4.1",
 		"workbox-routing": "^7.4.1",
-		"workbox-window": "^7.4.1"
+		"workbox-window": "^7.4.1",
+		"wrangler": "^4.147.0"
 	},
 	"packageManager": "pnpm@10.34.6",
 	"dependencies": {

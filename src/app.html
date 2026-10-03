@@ -9,19 +9,7 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" sizes="48x48" />
 		<link rel="icon" href="%sveltekit.assets%/logo.svg" type="image/svg+xml" />
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon-180x180.png" />
-		<script>
-			// Applies the saved theme before the first paint (see src/lib/theme.ts).
-			try {
-				var theme = localStorage.getItem('cuadrante.theme');
-				if (theme === 'light' || theme === 'dark') {
-					document.documentElement.setAttribute('data-theme', theme);
-					var color = theme === 'dark' ? '#090D16' : '#FAF9F6';
-					document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) {
-						meta.setAttribute('content', color);
-					});
-				}
-			} catch (e) {}
-		</script>
+		<script src="%sveltekit.assets%/theme.js"></script>
 		<title>Cuadrante</title>
 		%sveltekit.head%
 	</head>

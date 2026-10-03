@@ -31,3 +31,22 @@ Este kit contiene todo lo necesario para empezar a desarrollarla con Claude Code
 ## Prioridad si hay contradicciones
 
 `CLAUDE.md` > `docs/` > maquetas. Las maquetas muestran el aspecto; los documentos mandan sobre el comportamiento.
+
+## Desarrollo
+
+Requisitos: Node 22 y pnpm 10 (`npm install -g pnpm@10` si no lo tienes).
+
+```
+pnpm install
+pnpm exec playwright install chromium   # solo la primera vez, para pnpm test:e2e
+pnpm dev
+```
+
+## Primer despliegue en Cloudflare Pages
+
+1. `pnpm exec wrangler login` (abre el navegador para entrar en tu cuenta de Cloudflare).
+2. `pnpm exec wrangler pages project create cuadrante --production-branch main` (solo la primera vez).
+3. `pnpm deploy:pages` (compila y publica `build/`).
+4. Comprueba en la URL `*.pages.dev` que la consola del navegador dice `crossOriginIsolated === true` y que la app abre sin conexión tras la primera visita.
+
+Si prefieres otro nombre de proyecto, cámbialo en el script `deploy:pages` de `package.json`.
