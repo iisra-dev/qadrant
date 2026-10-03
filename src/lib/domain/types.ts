@@ -43,6 +43,7 @@ export interface Task extends Base {
 	status: TaskStatus;
 	doneAt?: string;
 	decision?: Decision; // original engine output; editing the task never overwrites it
+	movedAt?: string; // set when the passage of time moved it (docs/03); cleared when the user moves it
 }
 
 export interface Goal extends Base {
