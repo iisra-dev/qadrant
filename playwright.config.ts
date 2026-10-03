@@ -2,9 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
 	testDir: 'tests',
-	// Runs against the production build so the service worker behaves as deployed.
+	// Serves build/ as a static site, like Cloudflare Pages, so the service worker behaves as deployed.
 	webServer: {
-		command: 'pnpm build && pnpm preview --port 4173 --strictPort',
+		command: 'pnpm build && pnpm preview',
 		port: 4173,
 		reuseExistingServer: !process.env.CI
 	},

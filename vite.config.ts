@@ -1,18 +1,39 @@
 /// <reference types="vitest/config" />
-import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [
-		sveltekit({
-			compilerOptions: {
-				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
-				runes: ({ filename }) =>
-					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+		sveltekit(),
+		SvelteKitPWA({
+			strategies: 'injectManifest',
+			srcDir: 'src',
+			filename: 'service-worker.ts',
+			registerType: 'prompt',
+			injectRegister: false,
+			manifest: {
+				name: 'Cuadrante',
+				short_name: 'Cuadrante',
+				description: 'Agenda basada en la matriz de Eisenhower que funciona en tu dispositivo.',
+				lang: 'es-ES',
+				display: 'standalone',
+				start_url: '/',
+				scope: '/',
+				background_color: '#FAF9F6',
+				theme_color: '#FAF9F6',
+				icons: [
+					{ src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+					{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+					{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+					{ src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+				]
 			},
-			// SPA: every route falls back to index.html (docs/02-arquitectura.md).
-			adapter: adapter({ fallback: 'index.html' })
+			// Precaches the adapter-static fallback (index.html) so the SPA opens offline.
+			kit: { adapterFallback: 'index.html', spa: true },
+			injectManifest: {
+				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}']
+			}
 		})
 	],
 	test: {

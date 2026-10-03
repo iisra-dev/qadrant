@@ -6,29 +6,34 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
-		"preview": "vite preview",
+		"preview": "sirv build --single --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "TZ=Europe/Madrid vitest run",
 		"test:watch": "TZ=Europe/Madrid vitest",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"icons": "pwa-assets-generator"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",
-		"@sveltejs/adapter-static": "^4.0.0",
-		"@sveltejs/kit": "^3.0.0",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.70.3",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@types/node": "^26.6.4",
+		"@vite-pwa/assets-generator": "^2.0.0",
+		"@vite-pwa/sveltekit": "^1.1.0",
+		"sirv-cli": "^3.0.1",
 		"svelte": "^5.56.7",
 		"svelte-check": "^4.6.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.3.0",
-		"vitest": "^5.0.3"
-	},
-	"imports": {
-		"#lib": "./src/lib/index.js",
-		"#lib/*": "./src/lib/*"
+		"vite-plugin-pwa": "^2.0.0",
+		"vitest": "^5.0.3",
+		"workbox-core": "^7.4.1",
+		"workbox-precaching": "^7.4.1",
+		"workbox-routing": "^7.4.1",
+		"workbox-window": "^7.4.1"
 	},
 	"packageManager": "pnpm@10.34.6"
 }
