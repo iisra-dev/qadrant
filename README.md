@@ -9,7 +9,7 @@ Este kit contiene todo lo necesario para empezar a desarrollarla con Claude Code
 1. Descomprime el kit y entra en la carpeta: `cd cuadrante-kit`. Esta carpeta es la raíz del repositorio: el proyecto SvelteKit se crea aquí, junto a `docs/` y `design/`.
 2. Abre Claude Code ahí. Leerá `CLAUDE.md` automáticamente; contiene las reglas del proyecto.
 3. Empieza por la fase 0 (validar Laya) o, si quieres avanzar en paralelo, por la fase 1 (MVP sin IA). Ver `docs/06-hoja-de-ruta.md`.
-4. Pídele una fase cada vez, por ejemplo: «Implementa la fase 1 siguiendo docs/06-hoja-de-ruta.md. Al terminar, marca las casillas completadas».
+4. Pídele una fase cada vez, por ejemplo: «Implementa la fase 1 siguiendo docs/06-hoja-de-ruta.md. Al terminar, marca las casillas completadas». O deja que avance solo con `/loop`, siguiendo la sección «Trabajo por iteraciones» de `CLAUDE.md`: se para cuando lo que queda depende de ti (las casillas marcadas «(usuario)»).
 
 ## Contenido
 
