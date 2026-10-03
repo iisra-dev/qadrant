@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { startApp } from './helpers';
 
 async function openCapture(page: Page) {
-	await page.goto('/');
+	await startApp(page);
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	return page.getByRole('dialog', { name: 'Nueva tarea' });
 }

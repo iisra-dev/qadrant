@@ -148,6 +148,11 @@ describe('settings', () => {
 		expect(await db.settings.count()).toBe(1);
 	});
 
+	it('peek returns the defaults without writing', async () => {
+		expect((await repos.settings.peek(NOW)).onboardingDone).toBe(false);
+		expect(await db.settings.count()).toBe(0);
+	});
+
 	it('merges updates', async () => {
 		await repos.settings.get(NOW);
 		const next = await repos.settings.update({ urgencyDays: 3 }, LATER);

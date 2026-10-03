@@ -156,6 +156,10 @@ export function createRepositories(db: CuadranteDB = defaultDb) {
 	};
 
 	const settings = {
+		/** Read-only (usable inside liveQuery): the stored record, or the defaults if there is none yet. */
+		async peek(now = new Date()): Promise<Settings> {
+			return (await db.settings.get('settings')) ?? defaultSettings(now);
+		},
 		/** The single settings record, created with defaults on first use. */
 		async get(now = new Date()): Promise<Settings> {
 			return db.transaction('rw', db.settings, async () => {
