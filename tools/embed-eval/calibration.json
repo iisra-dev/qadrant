@@ -1,0 +1,13 @@
+{
+  "model": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+  "maxTokens": 128,
+  "importance": {
+    "a": 14.4653277175699,
+    "b": -3.784506404687903
+  },
+  "fittedOn": {
+    "tasks": 50,
+    "goals": 4
+  }
+}
