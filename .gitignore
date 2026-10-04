@@ -49,3 +49,6 @@ server/qadrant-server
 
 # Fine-tuning outputs (weights are large; deployed separately)
 tools/laya-finetune/runs/
+
+# Downloaded engine (large)
+tools/embed-eval/model/
