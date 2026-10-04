@@ -52,3 +52,7 @@ tools/laya-finetune/runs/
 
 # Downloaded engine (large)
 tools/embed-eval/model/
+
+# Model bench (generated)
+tools/model-bench/public/
+tools/model-bench/dist/
