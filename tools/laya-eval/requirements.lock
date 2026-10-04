@@ -50,3 +50,4 @@ tqdm==4.70.1
 transformers==5.18.0
 typer==0.27.2
 typing_extensions==4.16.0
+sentence-transformers==6.1.0
