@@ -18,7 +18,7 @@
 		"bench:prepare": "node tools/model-bench/prepare.mjs",
 		"bench:build": "pnpm bench:prepare && vite build --config tools/model-bench/vite.config.ts",
 		"bench:preview": "vite preview --config tools/model-bench/vite.config.ts",
-		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench"
+		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench --branch main"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",
