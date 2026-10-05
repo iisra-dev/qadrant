@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Captura con propuesta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAF9F6}
+a{color:#18181B}a:hover{color:#18181B}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #18181B;outline-offset:2px}
+summary{list-style:none}summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(90deg)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; background: #FAF9F6; color: #18181B; font-family: 'IBM Plex Sans', system-ui, sans-serif; overflow: hidden">
+<div aria-hidden="true" style="padding: 20px 20px 0; display: flex; flex-direction: column; gap: 14px">
+<span style="font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 32px; font-weight: 700">Hoy</span>
+<div style="height: 84px; border-radius: 20px; background: #FFFFFF"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="height: 64px; border-radius: 14px; background: #DCEBF7"></div><div style="height: 64px; border-radius: 14px; background: #E9E1F7"></div>
+<div style="height: 64px; border-radius: 14px; background: #DCEFE0"></div><div style="height: 64px; border-radius: 14px; background: #F6DCE6"></div>
+</div>
+</div>
+<div aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; background: rgba(9,9,11,0.5)"></div>
+<section role="dialog" aria-modal="true" aria-label="Nueva tarea" style="position: absolute; left: 0; bottom: 0; width: 390px; box-sizing: border-box; background: #FFFFFF; border-radius: 28px 28px 0 0; padding: 8px 20px 20px; display: flex; flex-direction: column; gap: 16px">
+<div aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #D4D4D8"></div>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 22px; font-weight: 700">Nueva tarea</h2>
+<a href="MfMain.dc.html" aria-label="Cerrar" style="width: 44px; height: 44px; margin-right: -10px; display: flex; align-items: center; justify-content: center; color: #18181B"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+<label for="cap-text" style="font-size: 13px; color: #6C6C75; margin-bottom: -10px">Lo que tienes pendiente</label>
+<textarea id="cap-text" rows="2" style="width: 100%; box-sizing: border-box; border: 1px solid #8B8B93; border-radius: 16px; padding: 12px 14px; font: inherit; font-size: 16px; line-height: 1.4; color: #18181B; background: #FAF9F6; resize: none">El lunes a primera hora mandar la oferta a [CLIENTE]</textarea>
+
+<div style="border-radius: 20px; background: #DCEBF7; color: #0B3A5E; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: #F97316; margin-right: 6px; vertical-align: 1px; flex-shrink: 0"></span>VA A</span><span style="font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 28px; font-weight: 700; line-height: 1">Hacer</span></div>
+<span style="font-size: 13px; text-align: right">Urgente e importante</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border-top: 1px solid rgba(11,58,94,0.16); padding-top: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><dt style="font-size: 12px">Urgente</dt><dd style="margin: 0; font-size: 14px; font-weight: 600">lun 5 oct, 09:00</dd></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><dt style="font-size: 12px">Importante</dt><dd style="margin: 0; font-size: 14px; font-weight: 600">87 % · Ventas Q4</dd></div>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><dt style="font-size: 12px">Duración</dt><dd style="margin: 0; font-size: 14px; font-weight: 600">45 min</dd></div>
+</dl>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span id="cap-pick" style="font-size: 13px; color: #6C6C75">¿No va ahí? Cámbialo con un toque</span>
+<div role="group" aria-label="Cambiar cuadrante" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<button aria-pressed="true" style="min-height: 48px; border-radius: 12px; border: 2px solid #0B3A5E; background: #DCEBF7; color: #0B3A5E; font: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Hacer</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #E9E1F7; color: #3D2770; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Programar</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #DCEFE0; color: #1E4D2B; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Delegar</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #F6DCE6; color: #6B1D3A; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Eliminar</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<a href="MfMain.dc.html" style="min-height: 56px; border-radius: 28px; background: #18181B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 600">Guardar en Hacer</a>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<a href="MfTask.dc.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 500">Más detalles</a>
+<span style="font-size: 12px; color: #6C6C75; text-align: right">Si sales, se queda como borrador</span>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

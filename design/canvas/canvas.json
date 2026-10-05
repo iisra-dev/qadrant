@@ -136,6 +136,105 @@
       "title": "W1 · Matriz (tema oscuro)",
       "expand": "fill",
       "is_interactive": true
+    },
+    "MfWelcome.dc.html": {
+      "x": 0,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M1 · Bienvenida",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfMain.dc.html": {
+      "x": 470,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M2 · Matriz",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfMainDark.dc.html": {
+      "x": 940,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M2 · Matriz (tema oscuro)",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfCapture.dc.html": {
+      "x": 1410,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M3 · Captura con propuesta",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfVoice.dc.html": {
+      "x": 1880,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M3a · Dictado",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfDoubt.dc.html": {
+      "x": 2350,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M3b · Captura con duda",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfTask.dc.html": {
+      "x": 2820,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M4 · Detalle de tarea",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfAgenda.dc.html": {
+      "x": 3290,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M5 · Agenda",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfSettings.dc.html": {
+      "x": 3760,
+      "y": 4200,
+      "w": 390,
+      "h": 844,
+      "title": "M6 · Ajustes",
+      "is_interactive": true,
+      "radius": 28
+    },
+    "MfTablet.dc.html": {
+      "x": 0,
+      "y": 5440,
+      "w": 834,
+      "h": 1112,
+      "title": "T1 · Matriz en tableta",
+      "is_interactive": true,
+      "radius": 24
+    },
+    "MfDesktop.dc.html": {
+      "x": 914,
+      "y": 5440,
+      "w": 1440,
+      "h": 900,
+      "title": "D1 · Matriz en escritorio (fluida)",
+      "expand": "fill",
+      "is_interactive": true
     }
   },
   "createdOnFiles": {
@@ -162,6 +261,22 @@
       "w": 240,
       "x": 0,
       "y": 1300
+    },
+    "mfphone": {
+      "kind": "title1",
+      "maxW": 4150,
+      "text": "Rediseño mobile-first · teléfono",
+      "w": 240,
+      "x": 0,
+      "y": 3900
+    },
+    "mfgrow": {
+      "kind": "title1",
+      "maxW": 2354,
+      "text": "Mejora progresiva · tableta y escritorio",
+      "w": 240,
+      "x": 0,
+      "y": 5150
     }
   },
   "order": [
@@ -179,7 +294,18 @@
     "WebSettings.dc.html",
     "WebWelcome.dc.html",
     "MainDark.dc.html",
-    "WebDark.dc.html"
+    "WebDark.dc.html",
+    "MfWelcome.dc.html",
+    "MfMain.dc.html",
+    "MfMainDark.dc.html",
+    "MfCapture.dc.html",
+    "MfVoice.dc.html",
+    "MfDoubt.dc.html",
+    "MfTask.dc.html",
+    "MfAgenda.dc.html",
+    "MfSettings.dc.html",
+    "MfTablet.dc.html",
+    "MfDesktop.dc.html"
   ],
   "pages": [],
   "title": "Agenda Eisenhower IA"
