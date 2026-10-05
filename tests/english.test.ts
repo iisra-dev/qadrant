@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { startApp } from './helpers';
+import { MAIN_GOAL, openGroup, startApp } from './helpers';
 
 test.beforeEach(async ({ page }) => {
 	await page.clock.setFixedTime(new Date('2026-10-05T10:00:00+02:00')); // Monday
@@ -9,7 +9,7 @@ test('first run is in English', async ({ page }) => {
 	await page.goto('/');
 	await expect(page).toHaveURL(/\/welcome$/);
 	await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-	await expect(page.getByRole('heading', { name: 'What matters to you right now?' })).toBeVisible();
+	await expect(page.getByRole('textbox', { name: MAIN_GOAL.en })).toBeVisible();
 	await page.getByRole('button', { name: 'Start' }).click();
 	await expect(page.getByRole('alert')).toHaveText('Write at least one goal.');
 });
@@ -52,6 +52,7 @@ test('main flows in English: capture, doubt, correct, complete', async ({ page }
 test('switching to Spanish in Settings applies at once and is kept', async ({ page }) => {
 	await startApp(page, 'Pass my exams', 'en');
 	await page.getByRole('link', { name: 'Settings' }).click();
+	await openGroup(page, 'Appearance');
 	await page.getByLabel('Español').check();
 	await expect(page.getByRole('heading', { name: 'Ajustes', level: 1 })).toBeVisible();
 	await expect(page.locator('html')).toHaveAttribute('lang', 'es');
@@ -60,6 +61,7 @@ test('switching to Spanish in Settings applies at once and is kept', async ({ pa
 	await page.reload();
 	await expect(page.getByRole('heading', { name: 'Hoy', level: 1 })).toBeVisible();
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Apariencia');
 	await page.getByLabel('English').check();
 	await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
 });

@@ -40,12 +40,12 @@ describe('TaskRow', () => {
 describe('QuadrantCard', () => {
 	const row = createRawSnippet((item: () => { id: string }) => ({ render: () => `<span>${item().id}</span>` }));
 
-	it('shows three rows and a "+N más" button with aria-expanded', async () => {
+	it('shows three rows and a "Ver N más" button with aria-expanded', async () => {
 		const items = ['a', 'b', 'c', 'd', 'e'].map((id) => ({ id }));
 		render(QuadrantCard, { quadrant: 'schedule', items, row });
 		expect(screen.getByRole('heading', { name: 'Programar' })).toBeTruthy();
 		expect(screen.getAllByRole('listitem')).toHaveLength(3);
-		const more = screen.getByRole('button', { name: '+2 más' });
+		const more = screen.getByRole('button', { name: 'Ver 2 más' });
 		expect(more.getAttribute('aria-expanded')).toBe('false');
 		await fireEvent.click(more);
 		expect(screen.getAllByRole('listitem')).toHaveLength(5);

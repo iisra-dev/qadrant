@@ -10,7 +10,7 @@
 	import { activeGoals, people, settings } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme, type Theme } from '$lib/theme';
-	import { AiDot, Button } from '$lib/ui';
+	import { AiDot, Button, Icon, SettingsGroup } from '$lib/ui';
 	import DataSection from './DataSection.svelte';
 	import ServerSection from './ServerSection.svelte';
 
@@ -68,6 +68,8 @@
 		newHoliday = '';
 	}
 
+	const themeLabel = $derived(s ? { light: m.light, dark: m.dark, system: m.system }[s.theme] : '');
+
 	async function setTheme(theme: Theme) {
 		applyTheme(theme);
 		await save({ theme });
@@ -89,8 +91,7 @@
 	<h1>{m.title}</h1>
 
 	{#if s}
-		<section aria-labelledby="s-goals">
-			<h2 id="s-goals">{m.goals}</h2>
+		<SettingsGroup title={m.goals} summary={m.goalsSummary($activeGoals.length)} open>
 			<ul class="card">
 				{#each $activeGoals as goal, index (goal.id)}
 					<li class="row">
@@ -114,10 +115,9 @@
 				{/if}
 			</ul>
 			<p class="note">{m.goalsNote(MAX_GOALS)}</p>
-		</section>
+		</SettingsGroup>
 
-		<section aria-labelledby="s-urgency">
-			<h2 id="s-urgency">{m.urgency}</h2>
+		<SettingsGroup title={m.urgency} summary={m.urgencySummary(m.daysLong(s.urgencyDays), s.workHours.start, s.workHours.end)}>
 			<div class="card">
 				<div class="row">
 					<span id="s-urgency-label">{m.urgentIf}</span>
@@ -207,10 +207,9 @@
 				</div>
 			</div>
 			<p class="note">{m.holidaysNote}</p>
-		</section>
+		</SettingsGroup>
 
-		<section aria-labelledby="s-people">
-			<h2 id="s-people">{m.people}</h2>
+		<SettingsGroup title={m.people} summary={m.peopleSummary($people.map((person) => person.name))}>
 			<ul class="card">
 				{#each $people as person (person.id)}
 					<li class="row person">
@@ -238,10 +237,9 @@
 				</li>
 			</ul>
 			<p class="note">{m.peopleNote}</p>
-		</section>
+		</SettingsGroup>
 
-		<section aria-labelledby="s-ai">
-			<h2 id="s-ai">{m.assistant}</h2>
+		<SettingsGroup title={m.assistant} summary={m.assistantSummary(m.notDownloaded, m.rules)}>
 			<div class="card">
 				<div class="row">
 					<span><AiDot />{m.state}</span>
@@ -263,12 +261,11 @@
 				</div>
 			</div>
 			<p class="note">{m.assistantNote}</p>
-		</section>
+		</SettingsGroup>
 
 		<ServerSection server={s.server} />
 
-		<section aria-labelledby="s-theme">
-			<h2 id="s-theme">{m.appearance}</h2>
+		<SettingsGroup title={m.appearance} summary={m.appearanceSummary(themeLabel, s.language === "es" ? "Español" : "English")}>
 			<fieldset class="segmented">
 				<legend class="visually-hidden">{m.theme}</legend>
 				{#each [['light', m.light], ['dark', m.dark], ['system', m.system]] as [value, label] (value)}
@@ -288,9 +285,11 @@
 					</label>
 				{/each}
 			</fieldset>
-		</section>
+		</SettingsGroup>
 
 		<DataSection {persisted} />
+
+		<p class="only-here"><Icon name="lock" size={16} />{i18n.m.common.onlyHere}</p>
 	{/if}
 </div>
 
@@ -300,34 +299,32 @@
 		width: 100%;
 		max-width: 720px;
 		margin: 0 auto;
-		padding: var(--space-6) var(--space-4) var(--space-6);
+		padding: var(--space-5) var(--space-4) var(--space-6);
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-6);
+		gap: var(--space-3);
+	}
+	.only-here {
+		margin: var(--space-2) var(--space-1) 0;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		color: var(--text-muted);
 	}
 	h1 {
-		margin: 0 var(--space-1);
+		margin: 0 var(--space-1) var(--space-1);
 		font-size: 32px;
 		font-weight: 700;
 		letter-spacing: -0.02em;
-	}
-	section {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-	h2 {
-		margin: 0 var(--space-1);
-		font-size: 18px;
-		font-weight: 700;
 	}
 	.card {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		background: var(--surface);
+		background: var(--bg);
 		border: 1px solid var(--border);
-		border-radius: 18px;
+		border-radius: var(--radius-block);
 		display: flex;
 		flex-direction: column;
 	}

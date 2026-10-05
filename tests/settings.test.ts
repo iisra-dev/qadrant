@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { startApp } from './helpers';
+import { MAIN_GOAL, openGroup, startApp } from './helpers';
 
 test('people added in settings turn assignments into Delegar', async ({ page }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes' }).click();
 	await expect(page.getByRole('textbox', { name: 'Objetivo 1' })).toHaveValue('Ventas Q4');
+	await openGroup(page, 'Personas para delegar');
 	await page.getByRole('textbox', { name: 'Nueva persona' }).fill('Ana');
 	await page.getByRole('button', { name: '+ Añadir persona' }).click();
 	await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Ana');
@@ -21,6 +22,7 @@ test('people added in settings turn assignments into Delegar', async ({ page }) 
 test('urgency stepper, holidays and theme', async ({ page }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Urgencia y horario');
 	await page.getByRole('button', { name: 'Un día más' }).click();
 	await expect(page.locator('output')).toContainText('3 días');
 
@@ -30,13 +32,16 @@ test('urgency stepper, holidays and theme', async ({ page }) => {
 	await page.getByRole('button', { name: 'Quitar jue 24 dic' }).click();
 	await expect(page.getByText('jue 24 dic 2026')).toBeHidden();
 
+	await openGroup(page, 'Apariencia');
 	await page.getByLabel('Oscuro').check();
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 	// Leaving and coming back reads the stored settings, so the write has landed.
 	await page.getByRole('link', { name: 'Matriz' }).click();
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Apariencia');
 	await expect(page.getByLabel('Oscuro')).toBeChecked();
 	await page.reload();
+	await openGroup(page, 'Apariencia');
 	await expect(page.getByLabel('Oscuro')).toBeChecked();
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 	await page.getByLabel('Sistema').check();
@@ -46,6 +51,7 @@ test('urgency stepper, holidays and theme', async ({ page }) => {
 test('deleting all data needs two confirmations and returns to the welcome', async ({ page }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Datos');
 	await page.getByRole('button', { name: 'Borrar todos los datos' }).click();
 	const dialog = page.getByRole('dialog', { name: 'Borrar todos los datos' });
 	await dialog.getByRole('button', { name: 'Continuar' }).click();
@@ -55,7 +61,7 @@ test('deleting all data needs two confirmations and returns to the welcome', asy
 	await confirm.click();
 	await expect(page).toHaveURL(/\/welcome$/);
 	// Settings are gone too, so the app is back to its default language.
-	await expect(page.getByRole('textbox', { name: 'Goal 1' })).toHaveValue('');
+	await expect(page.getByRole('textbox', { name: MAIN_GOAL.en })).toHaveValue('');
 });
 
 test('exports and imports tasks as JSON', async ({ page }) => {
@@ -67,6 +73,7 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Datos');
 	const downloadPromise = page.waitForEvent('download');
 	await page.getByRole('button', { name: 'Exportar tareas' }).click();
 	const download = await downloadPromise;

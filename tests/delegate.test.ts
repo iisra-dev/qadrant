@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { startApp } from './helpers';
+import { openGroup, startApp } from './helpers';
 
 test.beforeEach(async ({ page }) => {
 	await page.clock.setFixedTime(new Date('2026-10-02T10:00:00+02:00')); // Friday
@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('an assignment waits on others with a follow-up date', async ({ page }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Personas para delegar');
 	await page.getByRole('textbox', { name: 'Nueva persona' }).fill('Luis');
 	await page.getByRole('button', { name: '+ Añadir persona' }).click();
 	await expect(page.getByRole('textbox', { name: 'Nombre' })).toHaveValue('Luis');

@@ -16,7 +16,8 @@ test('web: header capture, shortcuts, side agenda and detail panel', async ({ pa
 	// 1-4 change the quadrant when the focus is not in the text field.
 	await modal.getByRole('button', { name: 'Cerrar' }).focus();
 	await page.keyboard.press('2');
-	await expect(modal.getByRole('button', { name: 'Programar' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(modal.getByRole('button', { name: 'Programar', exact: true })).toHaveAttribute('aria-pressed', 'true');
+	await expect(modal.getByRole('button', { name: 'Guardar en Programar' })).toBeVisible();
 	await modal.getByRole('textbox', { name: 'Tarea' }).press('Enter');
 	await expect(modal).toBeHidden();
 

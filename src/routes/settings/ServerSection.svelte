@@ -5,7 +5,7 @@
 	import { refreshCalendar } from '$lib/ownserver/calendar';
 	import { disablePush, enablePush } from '$lib/ownserver/push';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import { Button } from '$lib/ui';
+	import { Button, SettingsGroup } from '$lib/ui';
 
 	let { server }: { server: Settings['server'] } = $props();
 
@@ -117,8 +117,7 @@
 	}
 </script>
 
-<section aria-labelledby="s-server">
-	<h2 id="s-server">{m.title}</h2>
+<SettingsGroup title={m.title} summary={i18n.m.settings.serverSummary(Boolean(server))}>
 	<div class="card">
 		{#if server}
 			<div class="row">
@@ -167,19 +166,9 @@
 		<p class="note">{m.calendarNote}</p>
 	{/if}
 	<p class="note">{m.privacy}</p>
-</section>
+</SettingsGroup>
 
 <style>
-	section {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-	h2 {
-		margin: 0 var(--space-1);
-		font-size: 18px;
-		font-weight: 700;
-	}
 	.card {
 		background: var(--surface);
 		border: 1px solid var(--border);

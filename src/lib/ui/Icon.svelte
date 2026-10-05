@@ -9,7 +9,9 @@
 		| 'prev'
 		| 'next'
 		| 'trash'
-		| 'plus';
+		| 'plus'
+		| 'check'
+		| 'lock';
 
 	let { name, size = 22 }: { name: IconName; size?: number } = $props();
 </script>
@@ -50,5 +52,10 @@
 		<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
 	{:else if name === 'plus'}
 		<path d="M12 5v14M5 12h14" />
+	{:else if name === 'check'}
+		<path d="M5 12l5 5 9-10" />
+	{:else if name === 'lock'}
+		<rect x="5" y="11" width="14" height="10" rx="2" />
+		<path d="M8 11V8a4 4 0 0 1 8 0v3" />
 	{/if}
 </svg>

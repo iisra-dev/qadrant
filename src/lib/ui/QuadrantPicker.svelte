@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { QUADRANTS, type Quadrant } from '$lib/domain/types';
 	import { i18n } from '$lib/i18n/index.svelte';
+	import Icon from './Icon.svelte';
 	import { quadrantVars } from './quadrants';
 
 	let {
@@ -19,7 +20,7 @@
 			aria-pressed={value === quadrant}
 			onclick={() => onchange(quadrant)}
 		>
-			{i18n.m.quadrants[quadrant].name}
+			{#if value === quadrant}<Icon name="check" size={12} />{/if}{i18n.m.quadrants[quadrant].name}
 		</button>
 	{/each}
 </div>
@@ -31,15 +32,20 @@
 		gap: 6px;
 	}
 	button {
-		min-height: var(--touch);
+		min-height: 48px;
+		min-width: 0;
 		border-radius: var(--radius-control);
 		border: 2px solid transparent;
 		background: var(--q-bg);
 		color: var(--q-ink);
 		font: inherit;
-		font-size: 12px;
+		font-size: 13px;
 		cursor: pointer;
 		padding: 0 2px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
 	}
 	button[aria-pressed='true'] {
 		border-color: var(--q-ink);

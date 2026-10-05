@@ -9,7 +9,7 @@
 	import { activeGoals, people } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import { AiDot, Button, Field, IconButton, QuadrantPicker, Sheet } from '$lib/ui';
+	import { AiDot, Button, Field, Icon, QuadrantPicker, Sheet } from '$lib/ui';
 
 	let { id, onclose }: { id: string; onclose: () => void } = $props();
 	// undefined while loading, null when it does not exist.
@@ -89,8 +89,11 @@
 
 <div class="detail">
 	<header>
-		<IconButton label={i18n.m.common.back} icon="back" onclick={back} />
-		<Button variant="text" onclick={back}>{i18n.m.common.save}</Button>
+		<button class="back" type="button" onclick={back}><Icon name="back" />{i18n.m.common.back}</button>
+		{#if $task}
+			<!-- Every change is stored as it is made; there is no save button (docs/01). -->
+			<span class="saved"><Icon name="check" size={16} />{i18n.m.common.saved}</span>
+		{/if}
 	</header>
 
 	{#if $task === null}
@@ -99,13 +102,34 @@
 		<div class="body">
 			<div class="title">
 				<label for="task-title">{i18n.m.detail.task}</label>
-				<input id="task-title" type="text" value={$task.title} onchange={(e) => setTitle(e.currentTarget.value)} />
+				<textarea
+					id="task-title"
+					rows="2"
+					value={$task.title}
+					onchange={(e) => setTitle(e.currentTarget.value)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							e.currentTarget.blur();
+						}
+					}}
+				></textarea>
 			</div>
 
-			<QuadrantPicker
-				value={$task.quadrant}
-				onchange={(q) => taskActions.changeQuadrant($task!, q, currentSettings())}
-			/>
+			<div class="quadrant">
+				<QuadrantPicker
+					value={$task.quadrant}
+					onchange={(q) => taskActions.changeQuadrant($task!, q, currentSettings())}
+				/>
+				{#if why}
+					<div class="why">
+						<span class="label">
+							{#if $task.quadrantSource !== 'user'}<AiDot />{/if}{i18n.m.detail.why(i18n.m.quadrants[$task.quadrant].name)}
+						</span>
+						<p>{why}</p>
+					</div>
+				{/if}
+			</div>
 
 			<div class="card">
 				<Field id="task-due" label={i18n.m.detail.dueDate}>
@@ -185,21 +209,20 @@
 				></textarea>
 			</div>
 
-			{#if why}
-				<div class="why">
-					<span class="label">
-						{#if $task.quadrantSource !== 'user'}<AiDot />{/if}{i18n.m.detail.why(i18n.m.quadrants[$task.quadrant].name)}
-					</span>
-					<p>{why}</p>
-				</div>
-			{/if}
+			<!-- Destructive, so apart from the main action and confirmed (docs/01). -->
+			<div class="danger-zone">
+				<button class="delete" type="button" onclick={() => (confirmDelete = true)}>
+					<Icon name="trash" size={18} />{i18n.m.detail.delete}
+				</button>
+				<p>{i18n.m.detail.deleteNote}</p>
+			</div>
 		</div>
 
 		<footer>
 			<Button size="lg" block onclick={toggleDone}>
+				{#if $task.status !== 'done'}<Icon name="check" size={18} />{/if}
 				{$task.status === 'done' ? i18n.m.detail.markOpen : i18n.m.detail.markDone}
 			</Button>
-			<IconButton label={i18n.m.detail.delete} icon="trash" variant="outlined" onclick={() => (confirmDelete = true)} />
 		</footer>
 	{/if}
 </div>
@@ -221,10 +244,31 @@
 		margin: 0 auto;
 	}
 	header {
-		padding: var(--space-3) var(--space-3) var(--space-1);
+		padding: var(--space-2) var(--space-4) var(--space-1) var(--space-1);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+	}
+	.back {
+		min-height: var(--touch);
+		padding: 0 var(--space-3) 0 6px;
+		border: 0;
+		border-radius: var(--radius-pill);
+		background: transparent;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		font: inherit;
+		font-size: 15px;
+		font-weight: 500;
+		cursor: pointer;
+	}
+	.saved {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		color: var(--text-muted);
 	}
 	.missing {
 		padding: var(--space-5);
@@ -232,7 +276,7 @@
 	}
 	.body {
 		flex-grow: 1;
-		padding: var(--space-1) var(--space-5) var(--space-4);
+		padding: var(--space-1) var(--space-4) var(--space-5);
 		display: flex;
 		flex-direction: column;
 		gap: 18px;
@@ -243,20 +287,34 @@
 		flex-direction: column;
 		gap: 6px;
 	}
+	.title,
+	.notes {
+		padding: 0 var(--space-1);
+	}
 	.title label,
 	.notes label {
-		font-size: 12px;
+		font-size: 13px;
 		color: var(--text-muted);
 	}
-	.title input {
+	/* A textarea, so long titles wrap instead of hiding (docs/05, "Responsive"). */
+	.title textarea {
 		min-height: var(--touch);
 		border: 0;
 		border-bottom: 1px solid var(--border-control);
+		border-radius: 0;
 		background: transparent;
-		padding: var(--space-1) 0 var(--space-2-5);
+		padding: 2px 0 var(--space-2);
 		font-family: var(--font-display);
-		font-size: 26px;
+		font-size: 24px;
 		font-weight: 700;
+		line-height: 1.2;
+		resize: none;
+		field-sizing: content;
+	}
+	.quadrant {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2-5);
 	}
 	.card {
 		background: var(--surface);
@@ -265,11 +323,11 @@
 		display: flex;
 		flex-direction: column;
 	}
-	textarea {
+	.notes textarea {
 		border: 1px solid var(--border-control);
 		border-radius: 16px;
 		padding: var(--space-3) 14px;
-		font-size: 14px;
+		font-size: 15px;
 		background: var(--surface);
 		resize: vertical;
 	}
@@ -290,15 +348,42 @@
 	}
 	.why p {
 		margin: 0;
-		font-size: 13px;
+		font-size: 14px;
 		line-height: 1.45;
+	}
+	.danger-zone {
+		margin-top: var(--space-2);
+		padding: var(--space-3) var(--space-1) 0;
+		border-top: 1px solid var(--border);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+	.danger-zone p {
+		margin: 0;
+		font-size: 12px;
+		color: var(--text-muted);
+	}
+	.delete {
+		min-height: var(--touch);
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--danger);
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		font: inherit;
+		font-size: 15px;
+		font-weight: 600;
+		cursor: pointer;
 	}
 	footer {
 		position: sticky;
 		bottom: 0;
-		padding: var(--space-3) var(--space-5) calc(var(--space-6) + env(safe-area-inset-bottom));
+		padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
 		display: flex;
-		gap: var(--space-2);
 		border-top: 1px solid var(--border);
 		background: var(--surface);
 	}

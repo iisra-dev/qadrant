@@ -12,7 +12,7 @@
 
 <style>
 	.field {
-		min-height: 52px;
+		min-height: 56px;
 		padding: 0 var(--space-4);
 		display: flex;
 		align-items: center;
@@ -24,7 +24,7 @@
 		border-bottom: 0;
 	}
 	label {
-		font-size: 14px;
+		font-size: 15px;
 	}
 	.field :global(input),
 	.field :global(select) {
@@ -32,7 +32,7 @@
 		border: 0;
 		background: transparent;
 		font: inherit;
-		font-size: 14px;
+		font-size: 15px;
 		color: var(--text);
 		text-align: right;
 	}

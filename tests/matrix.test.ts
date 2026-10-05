@@ -18,8 +18,8 @@ test('captures a task, shows the proposal and saves it in Hacer', async ({ page 
 	await expect(sheet.getByText('VA A')).toBeVisible();
 	await expect(sheet.getByText('Sí · vence')).toBeVisible();
 	await expect(sheet.getByText('30 min')).toBeVisible();
-	await expect(sheet.getByRole('button', { name: 'Hacer' })).toHaveAttribute('aria-pressed', 'true');
-	await sheet.getByRole('button', { name: 'Guardar' }).click();
+	await expect(sheet.getByRole('button', { name: 'Hacer', exact: true })).toHaveAttribute('aria-pressed', 'true');
+	await sheet.getByRole('button', { name: 'Guardar en Hacer' }).click();
 	await expect(sheet).toBeHidden();
 	await expect(quadrant(page, 'Hacer').getByRole('link', { name: 'Llamar al taller' })).toBeVisible();
 });
@@ -83,6 +83,34 @@ test('completes a task from the matrix', async ({ page }) => {
 	await hacer.getByRole('checkbox', { name: 'Completar: Pagar recibo' }).check();
 	await expect(hacer.getByRole('link', { name: /Pagar recibo/ })).toBeHidden();
 	await expect(hacer.getByText('Nada urgente. Buen momento para Programar.')).toBeVisible();
+	// Completing can be undone for a few seconds.
+	await expect(page.getByRole('status').filter({ hasText: 'Completada: Pagar recibo' })).toBeVisible();
+	await page.getByRole('button', { name: 'Deshacer' }).click();
+	await expect(hacer.getByRole('link', { name: /Pagar recibo/ })).toBeVisible();
+});
+
+test('closing the capture keeps the text as a draft', async ({ page }) => {
+	const sheet = await openCapture(page);
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
+	await sheet.getByRole('button', { name: 'Cerrar' }).click();
+	await expect(sheet).toBeHidden();
+	await page.reload();
+	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
+	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('Llamar al taller hoy');
+	await expect(sheet.getByText('VA A')).toBeVisible();
+	await sheet.getByRole('button', { name: 'Guardar' }).click();
+	// Once saved, the next capture starts empty.
+	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
+	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('');
+});
+
+test('the overview jumps to each quadrant', async ({ page }) => {
+	await startApp(page);
+	const overview = page.getByRole('navigation', { name: 'Cuadrantes' });
+	await expect(overview.getByRole('link')).toHaveCount(4);
+	await overview.getByRole('link', { name: /^Eliminar 0/ }).click();
+	await expect(page).toHaveURL(/#quadrant-eliminate$/);
+	await expect(quadrant(page, 'Eliminar')).toBeInViewport();
 });
 
 test('archives Eliminar with confirmation and undo', async ({ page }) => {
@@ -97,4 +125,23 @@ test('archives Eliminar with confirmation and undo', async ({ page }) => {
 	await expect(eliminar.getByRole('link', { name: 'Ver webinar sin agenda' })).toBeHidden();
 	await page.getByRole('button', { name: 'Deshacer' }).click();
 	await expect(eliminar.getByRole('link', { name: 'Ver webinar sin agenda' })).toBeVisible();
+});
+
+test('swiping a row left reveals "Hecha" as a shortcut', async ({ page }) => {
+	const sheet = await openCapture(page);
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
+	await expect(sheet.getByText('VA A')).toBeVisible();
+	await sheet.getByRole('button', { name: 'Guardar' }).click();
+	const hacer = quadrant(page, 'Hacer');
+	const link = hacer.getByRole('link', { name: /Llamar al taller/ });
+	const box = (await link.boundingBox())!;
+	const y = box.y + box.height / 2;
+	const touch = { pointerType: 'touch', pointerId: 7, isPrimary: true, bubbles: true };
+	await link.dispatchEvent('pointerdown', { ...touch, clientX: box.x + 200, clientY: y });
+	await link.dispatchEvent('pointermove', { ...touch, clientX: box.x + 150, clientY: y });
+	await link.dispatchEvent('pointermove', { ...touch, clientX: box.x + 60, clientY: y });
+	await link.dispatchEvent('pointerup', { ...touch, clientX: box.x + 60, clientY: y });
+	await hacer.getByRole('button', { name: 'Hecha' }).click();
+	await expect(link).toBeHidden();
+	await expect(page.getByRole('status').filter({ hasText: 'Completada: Llamar al taller' })).toBeVisible();
 });

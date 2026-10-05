@@ -3,7 +3,7 @@
 	import { i18n } from '$lib/i18n/index.svelte';
 
 	// Undo for about 10 s; it does not close while it has the focus or the pointer (docs/01).
-	let { count, onundo, ondismiss }: { count: number; onundo: () => void; ondismiss: () => void } = $props();
+	let { message, onundo, ondismiss }: { message: string; onundo: () => void; ondismiss: () => void } = $props();
 
 	const DURATION_MS = 10_000;
 	let held = $state(false);
@@ -45,7 +45,7 @@
 	onpointerenter={hold}
 	onpointerleave={release}
 >
-	<span>{i18n.m.matrix.archived(count)}</span>
+	<span>{message}</span>
 	<button type="button" onclick={onundo}>{i18n.m.matrix.undo}</button>
 </div>
 
@@ -54,7 +54,8 @@
 		position: fixed;
 		left: var(--space-4);
 		right: var(--space-4);
-		bottom: calc(150px + env(safe-area-inset-bottom));
+		bottom: calc(160px + env(safe-area-inset-bottom));
+		z-index: 2;
 		max-width: 480px;
 		margin: 0 auto;
 		display: flex;
@@ -66,6 +67,15 @@
 		background: var(--cta-bg);
 		color: var(--cta-text);
 		font-size: 14px;
+	}
+	span {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+	@media (min-width: 768px) {
+		.toast {
+			bottom: var(--space-6);
+		}
 	}
 	button {
 		min-height: var(--touch);
