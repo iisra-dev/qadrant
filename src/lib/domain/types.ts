@@ -4,7 +4,7 @@ export type Quadrant = 'do' | 'schedule' | 'delegate' | 'eliminate';
 
 export const QUADRANTS: readonly Quadrant[] = ['do', 'schedule', 'delegate', 'eliminate'];
 
-export type Engine = 'laya-webgpu' | 'laya-wasm' | 'laya-server' | 'rules';
+export type Engine = 'model-webgpu' | 'model-wasm' | 'rules';
 
 export interface Decision {
 	quadrant: Quadrant | null; // null = ask the user

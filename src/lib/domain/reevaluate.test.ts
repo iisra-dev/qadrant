@@ -15,7 +15,7 @@ function decision(overrides: Partial<Decision> = {}): Decision {
 		urgent: { value: false, dueAt: due, reason: 'due-later' },
 		importance: { p: 0.8 },
 		delegable: { p: null },
-		engine: 'laya-wasm',
+		engine: 'model-wasm',
 		...overrides
 	};
 }

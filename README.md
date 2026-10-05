@@ -2,7 +2,7 @@
 
 Nombre completo: **Qadrant Calendar** (así aparece al instalarla; en el icono, «Qadrant»).
 
-Agenda PWA basada en la matriz de Eisenhower. Cada tarea se clasifica en el propio dispositivo: unas reglas calculan la urgencia a partir de la fecha y el modelo Laya decide la importancia y si es delegable.
+Agenda PWA basada en la matriz de Eisenhower. Cada tarea se clasifica en el propio dispositivo: unas reglas calculan la urgencia a partir de la fecha y un modelo pequeño de embeddings multilingüe decide la importancia comparando la tarea con tus objetivos.
 
 Este repositorio contiene la app, su especificación (`docs/`), el diseño (`design/`), las herramientas de la fase 0 (`tools/`) y el servidor opcional (`server/`).
 
@@ -10,7 +10,7 @@ Este repositorio contiene la app, su especificación (`docs/`), el diseño (`des
 
 1. Entra en la carpeta del repositorio: `cd ~/WSApps/Qadrant-App`. Es la raíz del proyecto SvelteKit, junto a `docs/`, `design/`, `tools/` y `server/`.
 2. Abre Claude Code ahí. Leerá `CLAUDE.md` automáticamente; contiene las reglas del proyecto.
-3. Empieza por la fase 0 (validar Laya) o, si quieres avanzar en paralelo, por la fase 1 (MVP sin IA). Ver `docs/06-hoja-de-ruta.md`.
+3. Empieza por la fase 0 (validar el motor) o, si quieres avanzar en paralelo, por la fase 1 (MVP sin IA). Ver `docs/06-hoja-de-ruta.md`.
 4. Pídele una fase cada vez, por ejemplo: «Implementa la fase 1 siguiendo docs/06-hoja-de-ruta.md. Al terminar, marca las casillas completadas». O deja que avance solo con `/loop`, siguiendo la sección «Trabajo por iteraciones» de `CLAUDE.md`: se para cuando lo que queda depende de ti (las casillas marcadas «(usuario)»).
 
 ## Contenido
@@ -20,7 +20,7 @@ Este repositorio contiene la app, su especificación (`docs/`), el diseño (`des
 | `CLAUDE.md` | Instrucciones para Claude Code: stack, convenciones, reglas que no se negocian |
 | `docs/01-producto.md` | Visión, principios, pantallas, flujos y comportamiento detallado |
 | `docs/02-arquitectura.md` | Capas, stack, estructura de carpetas y requisitos PWA |
-| `docs/03-motor-de-decision.md` | Cómo se clasifica una tarea: reglas, Laya, umbrales y respaldo |
+| `docs/03-motor-de-decision.md` | Cómo se clasifica una tarea: reglas, modelo, umbrales y respaldo |
 | `docs/04-modelo-de-datos.md` | Tipos TypeScript y esquema de IndexedDB |
 | `docs/05-sistema-de-diseno.md` | Colores (claro y oscuro), tipografía, espaciado y componentes |
 | `docs/06-hoja-de-ruta.md` | Plan de acción por fases con tareas y criterios de salida |
@@ -28,7 +28,9 @@ Este repositorio contiene la app, su especificación (`docs/`), el diseño (`des
 | `design/tokens.css`, `design/tokens.json` | Tokens de diseño listos para usar |
 | `design/screens/` | Maquetas estáticas en HTML; abre `index.html` en el navegador |
 | `design/canvas/` | Fuentes originales del lienzo de diseño (`.dc.html` + `canvas.json`) |
-| `tools/laya-eval/` | Script de la fase 0 para medir Laya con tareas reales |
+| `tools/laya-eval/` | Fase 0: medición de Laya con tareas reales (aparcado) y datos (`tasks.csv`, `goals.txt`) |
+| `tools/embed-eval/` | Fase 0: medición del motor elegido (embeddings multilingües) |
+| `tools/laya-finetune/` | Ajuste fino de Laya, para el futuro |
 
 ## Prioridad si hay contradicciones
 

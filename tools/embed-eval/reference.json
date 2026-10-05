@@ -1,0 +1,560 @@
+{
+  "goals": [
+    "Aprobar todas las asignaturas de 3.º y avanzar a buen ritmo con el TFG.",
+    "Conseguir unas prácticas en empresa como programador para este verano.",
+    "Mantener mis horas de clases particulares para sacar un dinero extra.",
+    "Llevar al día el papeleo oficial, trámites del banco y recados familiares."
+  ],
+  "tasks": [
+    {
+      "title": "Terminar la práctica de SO",
+      "similarities": [
+        0.377636,
+        0.230002,
+        0.259514,
+        0.271522
+      ],
+      "score": 0.377636,
+      "p": 0.842655
+    },
+    {
+      "title": "Buscar ofertas de prácticas en InfoJobs",
+      "similarities": [
+        0.238157,
+        0.518487,
+        0.174038,
+        0.236714
+      ],
+      "score": 0.518487,
+      "p": 0.976237
+    },
+    {
+      "title": "Limpiar el baño de los chicos",
+      "similarities": [
+        0.09765,
+        0.050782,
+        0.11987,
+        0.093977
+      ],
+      "score": 0.11987,
+      "p": 0.113997
+    },
+    {
+      "title": "Comprar el pan",
+      "similarities": [
+        0.038458,
+        0.038309,
+        0.163458,
+        0.202146
+      ],
+      "score": 0.202146,
+      "p": 0.297257
+    },
+    {
+      "title": "Renovar el DNI",
+      "similarities": [
+        0.242518,
+        0.012332,
+        0.105868,
+        0.236488
+      ],
+      "score": 0.242518,
+      "p": 0.431336
+    },
+    {
+      "title": "Preparar la clase de mates de Nacho",
+      "similarities": [
+        0.27559,
+        0.193957,
+        0.090325,
+        0.058419
+      ],
+      "score": 0.27559,
+      "p": 0.550329
+    },
+    {
+      "title": "Comprar entradas para el cine",
+      "similarities": [
+        0.045698,
+        0.059316,
+        0.184482,
+        0.111129
+      ],
+      "score": 0.184482,
+      "p": 0.24677
+    },
+    {
+      "title": "Leer el tema 2 de Redes",
+      "similarities": [
+        0.29458,
+        0.230488,
+        0.184529,
+        0.173441
+      ],
+      "score": 0.29458,
+      "p": 0.616967
+    },
+    {
+      "title": "Instalar el IDE nuevo",
+      "similarities": [
+        0.151645,
+        0.160562,
+        0.06217,
+        0.10201
+      ],
+      "score": 0.160562,
+      "p": 0.188173
+    },
+    {
+      "title": "Pedir cita para el médico",
+      "similarities": [
+        0.149088,
+        0.144955,
+        0.066033,
+        0.307769
+      ],
+      "score": 0.307769,
+      "p": 0.660937
+    },
+    {
+      "title": "Mandar a Dani los apuntes de Bases de Datos",
+      "similarities": [
+        0.228635,
+        0.150286,
+        0.096046,
+        0.299642
+      ],
+      "score": 0.299642,
+      "p": 0.634117
+    },
+    {
+      "title": "Quedé en llamar a mi abuela",
+      "similarities": [
+        -0.037127,
+        -0.029316,
+        0.110223,
+        0.128683
+      ],
+      "score": 0.128683,
+      "p": 0.127521
+    },
+    {
+      "title": "Renovar el carnet joven",
+      "similarities": [
+        0.117954,
+        -0.045889,
+        0.07854,
+        0.111124
+      ],
+      "score": 0.117954,
+      "p": 0.111228
+    },
+    {
+      "title": "Aprender a tocar la guitarra al día",
+      "similarities": [
+        0.204973,
+        0.229202,
+        0.213525,
+        0.091654
+      ],
+      "score": 0.229202,
+      "p": 0.384847
+    },
+    {
+      "title": "Subir a Wuolah los apuntes de Física que ya aprobé el año pasado",
+      "similarities": [
+        0.3419,
+        0.124796,
+        0.077125,
+        0.149452
+      ],
+      "score": 0.3419,
+      "p": 0.761549
+    },
+    {
+      "title": "Pagar el recibo de la luz",
+      "similarities": [
+        0.07177,
+        0.095575,
+        0.220109,
+        0.306354
+      ],
+      "score": 0.306354,
+      "p": 0.656335
+    },
+    {
+      "title": "Ir a firmar mi contrato de prácticas",
+      "similarities": [
+        0.335751,
+        0.342791,
+        0.330008,
+        0.351786
+      ],
+      "score": 0.351786,
+      "p": 0.786541
+    },
+    {
+      "title": "Pedirle a Lucía que me haga mi parte del TFG",
+      "similarities": [
+        0.361191,
+        0.091512,
+        0.203941,
+        0.076895
+      ],
+      "score": 0.361191,
+      "p": 0.808493
+    },
+    {
+      "title": "Ir a la charla sobre IA en el salón de actos",
+      "similarities": [
+        0.300799,
+        0.236953,
+        0.184525,
+        0.127179
+      ],
+      "score": 0.300799,
+      "p": 0.63799
+    },
+    {
+      "title": "Arreglar el router del piso",
+      "similarities": [
+        0.067564,
+        -0.008344,
+        -0.013539,
+        0.044465
+      ],
+      "score": 0.067564,
+      "p": 0.056938
+    },
+    {
+      "title": "Responder al correo del coordinador de la universidad",
+      "similarities": [
+        0.257187,
+        0.31376,
+        0.194256,
+        0.261185
+      ],
+      "score": 0.31376,
+      "p": 0.68008
+    },
+    {
+      "title": "Ayudar a mi hermano pequeño con su ordenador",
+      "similarities": [
+        0.145375,
+        0.290471,
+        0.063462,
+        0.192829
+      ],
+      "score": 0.290471,
+      "p": 0.602825
+    },
+    {
+      "title": "Hacer el curso de React por si lo uso en el TFG",
+      "similarities": [
+        0.569801,
+        0.146643,
+        0.043349,
+        0.050605
+      ],
+      "score": 0.569801,
+      "p": 0.988545
+    },
+    {
+      "title": "Fregar los platos de la cena",
+      "similarities": [
+        0.185763,
+        0.063489,
+        0.058563,
+        0.199232
+      ],
+      "score": 0.199232,
+      "p": 0.288527
+    },
+    {
+      "title": "Comprar folios para imprimir",
+      "similarities": [
+        0.174194,
+        0.18894,
+        0.125499,
+        0.394815
+      ],
+      "score": 0.394815,
+      "p": 0.872875
+    },
+    {
+      "title": "Revisar el código de Algoritmia, me llevará un rato largo",
+      "similarities": [
+        0.197827,
+        0.305826,
+        0.170566,
+        0.13438
+      ],
+      "score": 0.305826,
+      "p": 0.654609
+    },
+    {
+      "title": "Hacer la colada de color",
+      "similarities": [
+        0.237731,
+        0.211652,
+        0.049695,
+        0.016741
+      ],
+      "score": 0.237731,
+      "p": 0.414438
+    },
+    {
+      "title": "Bajar al súper a por leche y huevos",
+      "similarities": [
+        0.214219,
+        0.144243,
+        0.191573,
+        0.244805
+      ],
+      "score": 0.244805,
+      "p": 0.439467
+    },
+    {
+      "title": "Hacer el test de Redes",
+      "similarities": [
+        0.307522,
+        0.265918,
+        0.143161,
+        0.18779
+      ],
+      "score": 0.307522,
+      "p": 0.660137
+    },
+    {
+      "title": "Mandar el borrador del TFG al tutor",
+      "similarities": [
+        0.555344,
+        0.286708,
+        0.29028,
+        0.169551
+      ],
+      "score": 0.555344,
+      "p": 0.985919
+    },
+    {
+      "title": "Preparar el currículum",
+      "similarities": [
+        0.411371,
+        0.342806,
+        0.194572,
+        0.295608
+      ],
+      "score": 0.411371,
+      "p": 0.897165
+    },
+    {
+      "title": "Mirar portátiles nuevos en Amazon",
+      "similarities": [
+        0.041063,
+        0.123935,
+        0.021692,
+        0.043506
+      ],
+      "score": 0.123935,
+      "p": 0.120072
+    },
+    {
+      "title": "Jugar al nuevo Zelda",
+      "similarities": [
+        0.131433,
+        0.057796,
+        -0.016839,
+        -0.015949
+      ],
+      "score": 0.131433,
+      "p": 0.132012
+    },
+    {
+      "title": "Llamar al banco para desbloquear la tarjeta",
+      "similarities": [
+        0.086588,
+        0.111952,
+        0.150228,
+        0.477803
+      ],
+      "score": 0.477803,
+      "p": 0.957996
+    },
+    {
+      "title": "Preparar el esquema de la base de datos",
+      "similarities": [
+        0.318379,
+        0.310529,
+        0.043654,
+        0.320361
+      ],
+      "score": 0.320361,
+      "p": 0.700489
+    },
+    {
+      "title": "Comprar un regalo para el cumpleaños de Marta",
+      "similarities": [
+        0.007942,
+        -0.039077,
+        0.129036,
+        0.263823
+      ],
+      "score": 0.263823,
+      "p": 0.507943
+    },
+    {
+      "title": "Recoger un paquete de Amazon en Correos",
+      "similarities": [
+        0.046028,
+        0.047364,
+        0.054023,
+        0.179295
+      ],
+      "score": 0.179295,
+      "p": 0.23309
+    },
+    {
+      "title": "Pedir apuntes a Lucía",
+      "similarities": [
+        0.166059,
+        0.087997,
+        0.163103,
+        0.24808
+      ],
+      "score": 0.24808,
+      "p": 0.45117
+    },
+    {
+      "title": "Terminar los ejercicios de Algoritmia",
+      "similarities": [
+        0.38036,
+        0.319736,
+        0.183474,
+        0.114478
+      ],
+      "score": 0.38036,
+      "p": 0.84781
+    },
+    {
+      "title": "Reservar pista de pádel",
+      "similarities": [
+        0.279575,
+        0.143698,
+        0.171324,
+        0.164822
+      ],
+      "score": 0.279575,
+      "p": 0.564546
+    },
+    {
+      "title": "Hacer la cama",
+      "similarities": [
+        0.192674,
+        0.185098,
+        0.175965,
+        0.159937
+      ],
+      "score": 0.192674,
+      "p": 0.26945
+    },
+    {
+      "title": "Ordenar el escritorio",
+      "similarities": [
+        0.254795,
+        0.245177,
+        0.136346,
+        0.29229
+      ],
+      "score": 0.29229,
+      "p": 0.609107
+    },
+    {
+      "title": "Sacar dinero del cajero para el bote de cervezas",
+      "similarities": [
+        -0.029432,
+        0.057093,
+        0.165682,
+        0.226103
+      ],
+      "score": 0.226103,
+      "p": 0.374292
+    },
+    {
+      "title": "Actualizar el perfil de GitHub",
+      "similarities": [
+        0.161742,
+        0.049991,
+        -0.019964,
+        0.054291
+      ],
+      "score": 0.161742,
+      "p": 0.190794
+    },
+    {
+      "title": "Limpiar la cocina a fondo",
+      "similarities": [
+        0.162782,
+        0.122044,
+        0.052953,
+        0.149204
+      ],
+      "score": 0.162782,
+      "p": 0.193128
+    },
+    {
+      "title": "Tirar los apuntes viejos",
+      "similarities": [
+        0.223753,
+        -0.012288,
+        0.148828,
+        0.285834
+      ],
+      "score": 0.285834,
+      "p": 0.586661
+    },
+    {
+      "title": "Ir a la tutoría de Sistemas Operativos",
+      "similarities": [
+        0.361609,
+        0.545709,
+        0.250417,
+        0.224415
+      ],
+      "score": 0.545709,
+      "p": 0.983847
+    },
+    {
+      "title": "Descargar las transparencias de Ingeniería del Software",
+      "similarities": [
+        0.19426,
+        0.343551,
+        0.080246,
+        0.075793
+      ],
+      "score": 0.343551,
+      "p": 0.765858
+    },
+    {
+      "title": "Comprar billetes de tren para Navidad",
+      "similarities": [
+        -0.013481,
+        0.011768,
+        0.18786,
+        0.166935
+      ],
+      "score": 0.18786,
+      "p": 0.255964
+    },
+    {
+      "title": "Buscar un tutorial de Docker",
+      "similarities": [
+        0.273546,
+        0.398644,
+        0.096086,
+        0.109527
+      ],
+      "score": 0.398644,
+      "p": 0.878895
+    }
+  ]
+}

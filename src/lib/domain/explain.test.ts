@@ -25,7 +25,7 @@ function decision(overrides: Partial<Decision> = {}): Decision {
 		urgent: { value: true, dueAt: monday9, reason: 'due-soon' },
 		importance: { p: 0.87, matchedGoalId: 'g1' },
 		delegable: { p: null },
-		engine: 'laya-webgpu',
+		engine: 'model-webgpu',
 		...overrides
 	};
 }

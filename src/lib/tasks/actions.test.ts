@@ -16,7 +16,7 @@ function decision(overrides: Partial<Decision> = {}): Decision {
 		urgent: { value: true, dueAt: new Date(2026, 9, 2, 18).toISOString(), reason: 'due-soon' },
 		importance: { p: 0.8 },
 		delegable: { p: null },
-		engine: 'laya-wasm',
+		engine: 'model-wasm',
 		...overrides
 	};
 }
@@ -55,7 +55,7 @@ describe('saveCapture', () => {
 		expect(task).toMatchObject({ quadrant: 'delegate', quadrantSource: 'user' });
 		expect(task.important).toBeUndefined();
 		const [correction] = await repos.corrections.listForTask(task.id);
-		expect(correction).toMatchObject({ from: 'do', to: 'delegate', pImportance: 0.8, pDelegable: 0.3, engine: 'laya-wasm' });
+		expect(correction).toMatchObject({ from: 'do', to: 'delegate', pImportance: 0.8, pDelegable: 0.3, engine: 'model-wasm' });
 	});
 
 	it('answering the doubt records a correction from null', async () => {
