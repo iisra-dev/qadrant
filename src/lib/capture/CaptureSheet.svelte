@@ -12,7 +12,7 @@
 	import { classify, latestClassifier } from '$lib/engine';
 	import { taskActions } from '$lib/tasks/actions';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import { AiDot, Button, IconButton, QuadrantPicker, quadrantVars, Sheet } from '$lib/ui';
+	import { AiDot, Button, Icon, IconButton, QuadrantPicker, quadrantVars, Sheet } from '$lib/ui';
 	import { activeGoals, calendarEvents, openTasks, people } from '$lib/stores';
 
 	const DEBOUNCE_MS = 400;
@@ -54,7 +54,11 @@
 		chosen = null;
 		showDate = showPicker = false;
 		dateValue = '';
-		localSpeechAvailable(i18n.lang).then((available) => (canDictate = available));
+		const startDictating = capture.dictate;
+		localSpeechAvailable(i18n.lang).then((available) => {
+			canDictate = available;
+			if (available && startDictating && !stopDictation) toggleDictation();
+		});
 		queueMicrotask(() => textarea?.focus());
 	});
 
@@ -90,9 +94,13 @@
 		return result;
 	}
 
-	function close() {
+	/** Closing without saving keeps the text as a draft (docs/01, "Captura"). */
+	function close(saved = false) {
+		// The dialog's own close event comes after a save; the draft is already settled.
+		if (!capture.open) return;
 		stopDictation?.();
-		capture.hide();
+		stopDictation = null;
+		capture.hide(saved ? '' : text);
 	}
 
 	async function save(options: { details?: boolean } = {}) {
@@ -109,7 +117,7 @@
 				settings: currentSettings(),
 				scheduledAt: slotFor(chosen ?? result.quadrant)
 			});
-			close();
+			close(true);
 			if (options.details) await goto(`/task/${task.id}`);
 		} finally {
 			saving = false;
@@ -127,7 +135,7 @@
 				settings: currentSettings(),
 				scheduledAt: outcomes ? slotFor(yes ? outcomes.yes : outcomes.no) : undefined
 			});
-			close();
+			close(true);
 		} finally {
 			saving = false;
 		}
@@ -184,12 +192,12 @@
 	);
 </script>
 
-<Sheet open={capture.open} label={i18n.m.capture.title} onclose={close}>
+<Sheet open={capture.open} label={i18n.m.capture.title} onclose={() => close()}>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="capture" onkeydown={onSheetKeydown}>
 		<div class="head">
 			<h2>{i18n.m.capture.title}</h2>
-			<IconButton label={i18n.m.common.close} icon="close" onclick={close} />
+			<IconButton label={i18n.m.common.close} icon="close" onclick={() => close()} />
 		</div>
 
 		<div class="input">
@@ -211,6 +219,17 @@
 				/>
 			{/if}
 		</div>
+
+		{#if stopDictation}
+			<div class="listening">
+				<span class="pulse" aria-hidden="true"></span>
+				<div class="listening-text">
+					<p class="listening-status" role="status">{i18n.m.capture.listening}</p>
+					<p class="listening-note"><Icon name="lock" size={16} />{i18n.m.capture.voicePrivacy}</p>
+				</div>
+				<Button variant="secondary" onclick={toggleDictation}>{i18n.m.capture.finishDictation}</Button>
+			</div>
+		{/if}
 
 		{#if decision && isDoubt && decision.ask && outcomes}
 			<div class="doubt">
@@ -249,30 +268,38 @@
 			{/if}
 		{:else if decision && quadrant && lines}
 			<div class="result" style={quadrantVars(quadrant)}>
-				<div class="result-main">
-					<span class="label">
-						{#if !chosen}<AiDot />{/if}{chosen ? i18n.m.capture.youPut : i18n.m.capture.goesTo}
-					</span>
-					<span class="result-name">{i18n.m.quadrants[quadrant].name}</span>
+				<div class="result-head">
+					<div class="result-main">
+						<span class="label">
+							{#if !chosen}<AiDot />{/if}{chosen ? i18n.m.capture.youPut : i18n.m.capture.goesTo}
+						</span>
+						<span class="result-name">{i18n.m.quadrants[quadrant].name}</span>
+					</div>
+					<span class="result-rule">{i18n.m.quadrants[quadrant].result}</span>
 				</div>
-				<span class="result-rule">{i18n.m.quadrants[quadrant].result}</span>
+				<dl>
+					<div><dt>{i18n.m.capture.urgent}</dt><dd>{lines.urgent}</dd></div>
+					<div><dt>{i18n.m.capture.important}</dt><dd>{lines.important}</dd></div>
+					<div><dt>{i18n.m.capture.slot}</dt><dd>{lines.slot}</dd></div>
+				</dl>
 			</div>
-			<dl>
-				<div><dt>{i18n.m.capture.urgent}</dt><dd>{lines.urgent}</dd></div>
-				<div><dt>{i18n.m.capture.important}</dt><dd>{lines.important}</dd></div>
-				<div><dt>{i18n.m.capture.slot}</dt><dd>{lines.slot}</dd></div>
-			</dl>
-			<QuadrantPicker value={quadrant} label={i18n.m.capture.change} onchange={(q) => (chosen = q)} />
+			<div class="change">
+				<span class="hint">{i18n.m.capture.changeHint}</span>
+				<QuadrantPicker value={quadrant} label={i18n.m.capture.change} onchange={(q) => (chosen = q)} />
+			</div>
 		{/if}
 
 		{#if !isDoubt}
 			<div class="actions">
-				<Button size="lg" block onclick={() => save()} disabled={saving || !text.trim()}>{i18n.m.capture.save}</Button>
-				<span class="web-only">
+				<Button size="lg" block onclick={() => save()} disabled={saving || !text.trim()}>
+					{quadrant ? i18n.m.capture.saveIn(i18n.m.quadrants[quadrant].name) : i18n.m.capture.save}
+				</Button>
+				<div class="secondary">
 					<Button variant="text" onclick={() => save({ details: true })} disabled={saving || !text.trim()}>
 						{i18n.m.capture.details}
 					</Button>
-				</span>
+					<span class="draft-note">{i18n.m.capture.draftNote}</span>
+				</div>
 			</div>
 		{/if}
 	</div>
@@ -304,10 +331,56 @@
 		border: 1px solid var(--border-control);
 		border-radius: 16px;
 		padding: var(--space-3) 14px;
-		font-size: 15px;
+		font-size: 16px;
 		line-height: 1.4;
 		background: var(--bg);
 		resize: none;
+	}
+	.listening {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		border-radius: 16px;
+		background: var(--surface-muted);
+	}
+	.pulse {
+		width: 14px;
+		height: 14px;
+		flex-shrink: 0;
+		border-radius: 7px;
+		background: var(--text);
+		animation: pulse 1.2s ease-in-out infinite;
+	}
+	@keyframes pulse {
+		50% {
+			opacity: 0.3;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.pulse {
+			animation: none;
+		}
+	}
+	.listening-text {
+		flex: 1 1 180px;
+		min-width: 0;
+	}
+	.listening-text p {
+		margin: 0;
+	}
+	.listening-status {
+		font-family: var(--font-display);
+		font-size: 18px;
+		font-weight: 700;
+	}
+	.listening-note {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		color: var(--text-muted);
 	}
 	.label {
 		font-family: var(--font-mono);
@@ -317,13 +390,18 @@
 	}
 	.result {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		flex-direction: column;
 		gap: var(--space-3);
 		background: var(--q-bg);
 		color: var(--q-ink);
-		border-radius: 16px;
+		border-radius: var(--radius-card);
 		padding: 14px var(--space-4);
+	}
+	.result-head {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-3);
 	}
 	.result-main {
 		display: flex;
@@ -332,32 +410,47 @@
 	}
 	.result-name {
 		font-family: var(--font-display);
-		font-size: 24px;
+		font-size: 28px;
 		font-weight: 700;
+		line-height: 1.1;
 	}
 	.result-rule {
-		font-size: 12px;
+		font-size: 13px;
 		text-align: right;
 		max-width: 10em;
 	}
+	/* The three reasons side by side on a phone; they wrap when the text grows. */
 	dl {
 		margin: 0;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2-5);
-		font-size: 14px;
+		padding-top: var(--space-2-5);
+		border-top: 1px solid color-mix(in srgb, var(--q-ink) 16%, transparent);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+		gap: var(--space-2);
 	}
 	dl div {
 		display: flex;
-		justify-content: space-between;
-		gap: var(--space-3);
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
 	}
 	dt {
-		color: var(--text-muted);
+		font-size: 12px;
 	}
 	dd {
 		margin: 0;
-		text-align: right;
+		font-size: 14px;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
+	.change {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+	.hint {
+		font-size: 13px;
+		color: var(--text-muted);
 	}
 	.doubt {
 		display: flex;
@@ -370,23 +463,23 @@
 	.question {
 		margin: 0;
 		font-family: var(--font-display);
-		font-size: 22px;
+		font-size: 24px;
 		font-weight: 700;
 		line-height: 1.25;
 	}
 	.context {
 		margin: 0;
-		font-size: 13px;
+		font-size: 14px;
 		color: var(--text-muted);
 		line-height: 1.45;
 	}
 	.answers {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: var(--space-2-5);
 	}
 	.answer {
-		min-height: 56px;
+		min-height: 60px;
 		border: 0;
 		border-radius: 16px;
 		background: var(--q-bg);
@@ -395,15 +488,15 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--space-3);
-		padding: 0 18px;
+		padding: var(--space-2) 18px;
 		font: inherit;
-		font-size: 15px;
+		font-size: 16px;
 		font-weight: 600;
 		text-align: left;
 		cursor: pointer;
 	}
 	.answer span {
-		font-size: 12px;
+		font-size: 13px;
 		font-weight: 400;
 		flex-shrink: 0;
 	}
@@ -411,6 +504,8 @@
 		display: flex;
 		justify-content: space-between;
 		flex-wrap: wrap;
+		border-top: 1px solid var(--border);
+		padding-top: var(--space-1);
 	}
 	.date {
 		display: flex;
@@ -429,15 +524,17 @@
 	.actions {
 		display: flex;
 		flex-direction: column;
+		gap: var(--space-1);
+	}
+	.secondary {
+		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		justify-content: space-between;
+		flex-wrap: wrap;
+		column-gap: var(--space-3);
 	}
-	.web-only {
-		display: none;
-	}
-	@media (min-width: 768px) {
-		.web-only {
-			display: contents;
-		}
+	.draft-note {
+		font-size: 12px;
+		color: var(--text-muted);
 	}
 </style>

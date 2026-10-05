@@ -86,10 +86,11 @@
 		letter-spacing: 0.08em;
 	}
 	.title {
-		font-size: 14px;
+		font-size: 15px;
 		font-weight: 600;
+		overflow-wrap: anywhere;
 	}
 	.meta {
-		font-size: 11px;
+		font-size: 12px;
 	}
 </style>

@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { repos } from '$lib/db/repositories';
 	import { GOAL_SUMMARY_MAX } from '$lib/db/defaults';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import type { Lang } from '$lib/i18n/lang';
-	import { AiDot, Button } from '$lib/ui';
+	import { AiDot, Button, Icon } from '$lib/ui';
 
 	let goals = $state(['', '', '']);
+	// One goal is asked for; up to two more appear on request (progressive disclosure).
+	let shown = $state(1);
 	let wifiOnly = $state(true);
 	let missingGoal = $state(false);
 	let saving = $state(false);
@@ -27,6 +29,12 @@
 		const mobile = /Android|Mobi/.test(navigator.userAgent);
 		installHint = ios ? 'ios' : mobile ? 'android' : 'desktop';
 	});
+
+	async function addGoal() {
+		shown += 1;
+		await tick();
+		document.getElementById(`goal-${shown - 1}`)?.focus();
+	}
 
 	async function setLanguage(lang: Lang) {
 		i18n.set(lang);
@@ -69,12 +77,7 @@
 </svelte:head>
 
 <form class="welcome" onsubmit={start} novalidate>
-	<div class="intro">
-		<img src="/logo.svg" alt="" width="48" height="48" />
-		<h1>{i18n.m.common.appName}</h1>
-		<p>{m.intro}</p>
-	</div>
-
+	<!-- Changing language is rare: top corner, out of the thumb's way. -->
 	<fieldset class="languages">
 		<legend class="visually-hidden">{m.language}</legend>
 		<!-- Each language named in itself, so it can be found in either. -->
@@ -86,37 +89,52 @@
 		{/each}
 	</fieldset>
 
-	<section aria-labelledby="welcome-goals" class="goals">
-		<h2 id="welcome-goals">{m.goals}</h2>
-		{#each goals as _, index (index)}
+	<div class="intro">
+		<img src="/logo.svg" alt="" width="48" height="48" />
+		<h1>{i18n.m.common.appName}</h1>
+		<p>{m.intro}</p>
+	</div>
+
+	<div class="goals">
+		<label class="main-goal" for="goal-0">{m.mainGoal}</label>
+		<input
+			id="goal-0"
+			type="text"
+			placeholder={m.goalPlaceholders[0]}
+			maxlength={GOAL_SUMMARY_MAX}
+			required
+			aria-invalid={missingGoal}
+			aria-describedby={missingGoal ? 'goal-error goal-help' : 'goal-help'}
+			bind:value={goals[0]}
+			oninput={() => (missingGoal = false)}
+		/>
+		{#if missingGoal}<p id="goal-error" class="error" role="alert">{m.goalRequired}</p>{/if}
+		<p id="goal-help" class="help">{m.goalHelp}</p>
+		{#each goals.slice(1, shown) as _, index (index)}
 			<input
-				id={`goal-${index}`}
+				id={`goal-${index + 1}`}
 				type="text"
-				aria-label={m.goal(index + 1)}
-				placeholder={m.goalPlaceholders[index]}
+				aria-label={m.goal(index + 2)}
+				placeholder={m.goalPlaceholders[index + 1]}
 				maxlength={GOAL_SUMMARY_MAX}
-				required={index === 0}
-				aria-invalid={index === 0 && missingGoal}
-				aria-describedby={index === 0 && missingGoal ? 'goal-error' : undefined}
-				bind:value={goals[index]}
-				oninput={() => (missingGoal = false)}
+				bind:value={goals[index + 1]}
 			/>
 		{/each}
-		{#if missingGoal}<p id="goal-error" class="error" role="alert">{m.goalRequired}</p>{/if}
-	</section>
+		{#if shown < goals.length}
+			<button class="add" type="button" onclick={addGoal}><Icon name="plus" size={20} />{m.addGoal}</button>
+		{/if}
+	</div>
 
-	<section aria-labelledby="welcome-ai" class="ai">
-		<h2 id="welcome-ai"><AiDot />{m.assistant}</h2>
-		<p>{m.assistantText}</p>
-		<div class="check">
-			<input id="welcome-wifi" type="checkbox" bind:checked={wifiOnly} />
-			<label for="welcome-wifi">{m.wifi}</label>
+	<div class="ai">
+		<span class="check"><input id="welcome-wifi" type="checkbox" aria-describedby="welcome-ai" bind:checked={wifiOnly} /></span>
+		<div class="ai-text">
+			<label for="welcome-wifi"><AiDot />{m.wifi}</label>
+			<p id="welcome-ai">{m.assistant}. {m.assistantText}</p>
 		</div>
-	</section>
-
-	{#if hint}<p class="hint">{hint}</p>{/if}
+	</div>
 
 	<div class="submit">
+		{#if hint}<p class="hint">{hint}</p>{/if}
 		<Button type="submit" size="lg" block disabled={saving}>{m.start}</Button>
 	</div>
 </form>
@@ -129,40 +147,16 @@
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
-		padding: 40px var(--space-5) var(--space-6);
+		padding: var(--space-3) var(--space-5) var(--space-5);
 		gap: var(--space-6);
 	}
-	.intro {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-	}
-	h1 {
-		margin: 0;
-		font-size: 36px;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-	}
-	.intro p,
-	.ai p {
-		margin: 0;
-		font-size: 15px;
-		line-height: 1.5;
-		color: var(--text-muted);
-	}
-	h2 {
-		margin: 0;
-		font-family: var(--font-body);
-		font-size: 15px;
-		font-weight: 600;
-	}
 	.languages {
+		align-self: flex-end;
 		margin: 0;
-		padding: 0;
-		border: 0;
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 6px;
+		padding: 2px;
+		border: 1px solid var(--border-control);
+		border-radius: var(--radius-pill);
+		display: flex;
 	}
 	.languages label {
 		position: relative;
@@ -176,79 +170,132 @@
 		cursor: pointer;
 	}
 	.languages span {
-		flex-grow: 1;
 		min-height: var(--touch);
+		padding: 0 14px;
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		border: 1px solid var(--border-control);
-		border-radius: var(--radius-control);
-		background: var(--surface);
+		border-radius: var(--radius-pill);
 		font-size: 14px;
 	}
 	.languages input:checked + span {
 		background: var(--cta-bg);
 		color: var(--cta-text);
-		border-color: var(--cta-bg);
 		font-weight: 600;
 	}
 	.languages input:focus-visible + span {
 		outline: 2px solid var(--focus-ring);
 		outline-offset: 2px;
 	}
+	.intro {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+	h1 {
+		margin: 0;
+		font-size: 36px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+	.intro p {
+		margin: 0;
+		font-size: 16px;
+		line-height: 1.5;
+		color: var(--text-muted);
+	}
 	.goals {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
 	}
+	.main-goal {
+		font-size: 16px;
+		font-weight: 600;
+	}
 	.goals input {
-		min-height: 48px;
+		min-height: 52px;
 		border: 1px solid var(--border-control);
 		border-radius: var(--radius-block);
 		padding: 0 14px;
-		font-size: 14px;
+		font-size: 16px;
 		background: var(--surface);
+	}
+	.help {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: var(--text-muted);
 	}
 	.error {
 		margin: 0;
-		font-size: 13px;
+		font-size: 14px;
 		color: var(--text);
 		font-weight: 600;
 	}
+	.add {
+		align-self: flex-start;
+		min-height: var(--touch);
+		padding: 0;
+		border: 0;
+		background: transparent;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font: inherit;
+		font-size: 15px;
+		font-weight: 500;
+		cursor: pointer;
+	}
 	.ai {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-1);
+		padding: 6px var(--space-4) 6px var(--space-1);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: 18px;
-		padding: var(--space-4);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2-5);
-	}
-	.ai p {
-		font-size: 13px;
 	}
 	.check {
+		width: var(--touch);
+		height: var(--touch);
+		flex-shrink: 0;
 		display: flex;
 		align-items: center;
-		gap: var(--space-2-5);
-		min-height: var(--touch);
+		justify-content: center;
 	}
 	.check input {
-		width: 18px;
-		height: 18px;
+		width: 20px;
+		height: 20px;
 		margin: 0;
 		accent-color: var(--cta-bg);
 	}
-	.check label {
-		font-size: 14px;
+	.ai-text {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		padding: var(--space-2-5) 0;
+	}
+	.ai-text label {
+		font-size: 15px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.ai-text p {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: var(--text-muted);
 	}
 	.hint {
 		margin: 0;
-		font-size: 12px;
+		font-size: 13px;
 		line-height: 1.45;
 		color: var(--text-muted);
 	}
 	.submit {
 		margin-top: auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2-5);
 	}
 </style>

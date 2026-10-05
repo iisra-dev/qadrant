@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bienvenida</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAF9F6}
+a{color:#18181B}a:hover{color:#18181B}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #18181B;outline-offset:2px}
+summary{list-style:none}summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(90deg)}
+</style>
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FAF9F6; color: #18181B; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; padding: 12px 20px 20px; gap: 24px; overflow: hidden">
+
+<div role="group" aria-label="Idioma" style="align-self: flex-end; display: flex; border: 1px solid #8B8B93; border-radius: 999px; padding: 2px">
+<button aria-pressed="false" lang="en" style="min-height: 40px; min-width: 52px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-size: 13px; color: #18181B; cursor: pointer">EN</button>
+<button aria-pressed="true" style="min-height: 40px; min-width: 52px; border: 0; border-radius: 999px; background: #18181B; font: inherit; font-size: 13px; font-weight: 600; color: #FFFFFF; cursor: pointer">ES</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div aria-hidden="true" style="width: 48px; height: 48px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+<span style="border-radius: 6px; background: #0B3A5E"></span><span style="border-radius: 6px; background: #8A6FC4"></span><span style="border-radius: 6px; background: #7DBF8E"></span><span style="border-radius: 6px; background: #F2B8CD"></span>
+</div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 36px; font-weight: 700; letter-spacing: -0.02em">Qadrant</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.5; color: #6C6C75">Dices lo que tienes pendiente y la app lo coloca: hacer, programar, delegar o eliminar.</p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="w-goal" style="font-size: 16px; font-weight: 600">¿Qué es lo más importante para ti ahora?</label>
+<input id="w-goal" type="text" required="required" aria-describedby="w-goal-help" placeholder="Ej.: cerrar las ventas del trimestre" style="min-height: 52px; border: 1px solid #8B8B93; border-radius: 14px; padding: 0 14px; font: inherit; font-size: 16px; background: #FFFFFF; color: #18181B">
+<span id="w-goal-help" style="font-size: 13px; color: #6C6C75">Con esto decide qué es importante. Lo puedes cambiar en Ajustes.</span>
+<button style="align-self: flex-start; min-height: 44px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: #18181B; display: flex; align-items: center; gap: 6px; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Añadir otro objetivo</button>
+</div>
+
+<div style="display: flex; align-items: flex-start; gap: 4px; background: #FFFFFF; border: 1px solid #E4E4E7; border-radius: 18px; padding: 6px 14px 6px 4px">
+<label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center"><input id="w-dl" type="checkbox" checked="checked" aria-describedby="w-dl-help" style="width: 20px; height: 20px; margin: 0; accent-color: #18181B"></label>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 0"><label for="w-dl" style="font-size: 15px; font-weight: 600"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: #F97316; margin-right: 6px; vertical-align: 1px; flex-shrink: 0"></span>Descargar el asistente con wifi</label><span id="w-dl-help" style="font-size: 13px; line-height: 1.45; color: #6C6C75">Una vez, 118 MB. Funciona sin conexión y tus tareas no salen del teléfono.</span></div>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #6C6C75">En iPhone, instálala para que iOS no borre tus tareas: Compartir y luego «Añadir a pantalla de inicio».</p>
+<a href="MfMain.html" style="min-height: 56px; border-radius: 28px; background: #18181B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 600">Empezar</a>
+</div>
+
+</div>
+
+</body>
+</html>

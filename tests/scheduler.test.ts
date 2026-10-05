@@ -13,9 +13,9 @@ test('the capture proposes a slot, saves it and the Matrix shows "Siguiente"', a
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy, 45 min');
 	await expect(sheet.getByText('Hoy 10:00 · 45 min')).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
-	const pill = page.getByRole('link', { name: 'Siguiente: Llamar al taller · 10:00' });
-	await expect(pill).toBeVisible();
-	await pill.click();
+	const next = page.getByRole('link', { name: /^10:00 45 min SIGUIENTE\s*Llamar al taller/ });
+	await expect(next).toBeVisible();
+	await next.click();
 	await expect(page).toHaveURL(/\/agenda$/);
 	await expect(page.getByRole('link', { name: /Llamar al taller/ })).toContainText('Hacer · 45 min');
 });
@@ -29,7 +29,7 @@ test('"Buscarles hueco" schedules tasks without a time into a focus block', asyn
 	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
 	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
-	await page.getByRole('link', { name: 'Estudiar el tema 4' }).click();
+	await page.getByRole('region', { name: 'Eliminar' }).getByRole('link', { name: 'Estudiar el tema 4' }).click();
 	await page.getByRole('group', { name: 'Cuadrante' }).getByRole('button', { name: 'Programar' }).click();
 	await page.getByRole('button', { name: 'Volver' }).click();
 
@@ -41,7 +41,8 @@ test('"Buscarles hueco" schedules tasks without a time into a focus block', asyn
 	const block = page.getByRole('link', { name: /BLOQUE DE FOCO/ });
 	await expect(block).toContainText('Estudiar el tema 4');
 	await expect(block).toContainText('Programar · 1 h');
-	await expect(page.getByText('10:00')).toBeVisible();
+	// The block's time; the "Now" line shows the same hour at 10:00.
+	await expect(page.getByText('10:00').first()).toBeVisible();
 	await expect(pending.getByText('Todas las tareas de Hacer y Programar tienen hora.')).toBeVisible();
 });
 

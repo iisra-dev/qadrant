@@ -8,7 +8,7 @@ test('a task with a manual time appears in the day agenda', async ({ page }) => 
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy, media hora');
 	await expect(sheet.getByText('VA A')).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
-	await page.getByRole('link', { name: 'Llamar al taller' }).click();
+	await page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: 'Llamar al taller' }).click();
 	const tomorrow = new Date(Date.now() + 86_400_000);
 	const pad = (n: number) => String(n).padStart(2, '0');
 	await page

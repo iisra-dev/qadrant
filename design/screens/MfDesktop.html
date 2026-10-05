@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Matriz en escritorio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAF9F6}
+a{color:#18181B}a:hover{color:#18181B}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #18181B;outline-offset:2px}
+summary{list-style:none}summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(90deg)}
+</style>
+
+<div style="min-height: 100vh; box-sizing: border-box; background: #FAF9F6; color: #18181B; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+
+<header style="border-bottom: 1px solid #E4E4E7; background: #FFFFFF">
+<div style="max-width: 1360px; margin: 0 auto; padding: 12px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span aria-hidden="true" style="width: 28px; height: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px"><span style="border-radius: 4px; background: #0B3A5E"></span><span style="border-radius: 4px; background: #8A6FC4"></span><span style="border-radius: 4px; background: #7DBF8E"></span><span style="border-radius: 4px; background: #F2B8CD"></span></span>
+<span style="font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Qadrant</span>
+</div>
+<nav aria-label="Navegación principal" style="display: flex; gap: 4px">
+<a href="MfDesktop.html" aria-current="page" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; text-decoration: none; font-size: 15px; background: #F4F4F5; font-weight: 600; color: #18181B">Matriz</a><a href="MfAgenda.html" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; text-decoration: none; font-size: 15px; color: #6C6C75">Agenda</a><a href="MfSettings.html" style="min-height: 44px; padding: 0 14px; border-radius: 999px; display: flex; align-items: center; text-decoration: none; font-size: 15px; color: #6C6C75">Ajustes</a>
+</nav>
+<form style="flex: 1 1 360px; min-width: 0; display: flex; gap: 8px; margin: 0">
+<label for="d-cap" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Nueva tarea</label>
+<input id="d-cap" type="text" placeholder="¿Qué tienes en mente? Pulsa Intro para añadir" style="flex-grow: 1; min-width: 0; min-height: 48px; border: 1px solid #8B8B93; border-radius: 24px; padding: 0 18px; font: inherit; font-size: 15px; color: #18181B; background: #FAF9F6">
+<button type="button" aria-label="Dictar una tarea" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 24px; border: 1px solid #8B8B93; background: #FFFFFF; color: #18181B; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button>
+<a href="MfCapture.html" style="min-height: 48px; padding: 0 20px; border-radius: 24px; background: #18181B; color: #FFFFFF; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 600">Añadir</a>
+</form>
+</div>
+</header>
+
+<main style="max-width: 1360px; margin: 0 auto; padding: 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; color: #6C6C75">Viernes, 2 de octubre</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 36px; font-weight: 700; letter-spacing: -0.02em">Hoy</h1>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; align-items: start">
+<section id="q-do" aria-labelledby="h-do" style="background: #DCEBF7; color: #0B3A5E; border-radius: 20px; padding: 14px 0 6px; display: flex; flex-direction: column">
+<div style="padding: 0 16px 6px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="h-do" style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Hacer</h2><span style="font-size: 12px">Urgente · Importante</span></div>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px">3</span>
+</div>
+<div style="padding-left: 4px; display: flex; flex-direction: column">
+<div style="min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #0B3A5E"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Pagar recibo vencido" data-title="Pagar recibo vencido" style="width: 20px; height: 20px; margin: 0; accent-color: #0B3A5E"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #0B3A5E; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Pagar recibo vencido</a><span style="flex-shrink: 0; border: 1px solid #0B3A5E; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600">Vencida</span></div>
+<div style="border-top: 1px solid rgba(11,58,94,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #0B3A5E"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Enviar la oferta revisada a [CLIENTE] con las condiciones del trimestre" data-title="Enviar la oferta revisada a [CLIENTE] con las condiciones del trimestre" style="width: 20px; height: 20px; margin: 0; accent-color: #0B3A5E"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #0B3A5E; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Enviar la oferta revisada a [CLIENTE] con las condiciones del trimestre</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">12:00</span></div>
+<div style="border-top: 1px solid rgba(11,58,94,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #0B3A5E"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Llamar al taller" data-title="Llamar al taller" style="width: 20px; height: 20px; margin: 0; accent-color: #0B3A5E"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #0B3A5E; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Llamar al taller</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">09:00</span></div>
+</div>
+
+</section>
+<section id="q-schedule" aria-labelledby="h-schedule" style="background: #E9E1F7; color: #3D2770; border-radius: 20px; padding: 14px 0 6px; display: flex; flex-direction: column">
+<div style="padding: 0 16px 6px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="h-schedule" style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Programar</h2><span style="font-size: 12px">No urgente · Importante</span></div>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px">6</span>
+</div>
+<div style="padding-left: 4px; display: flex; flex-direction: column">
+<div style="min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #3D2770"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Estudiar tema 4" data-title="Estudiar tema 4" style="width: 20px; height: 20px; margin: 0; accent-color: #3D2770"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #3D2770; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Estudiar tema 4</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">16:00</span></div>
+<div style="border-top: 1px solid rgba(61,39,112,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #3D2770"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Plan comercial Q4" data-title="Plan comercial Q4" style="width: 20px; height: 20px; margin: 0; accent-color: #3D2770"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #3D2770; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Plan comercial Q4</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">16:00</span></div>
+<div style="border-top: 1px solid rgba(61,39,112,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #3D2770"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Preparar la presentación de resultados" data-title="Preparar la presentación de resultados" style="width: 20px; height: 20px; margin: 0; accent-color: #3D2770"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #3D2770; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Preparar la presentación de resultados</a></div>
+<div style="border-top: 1px solid rgba(61,39,112,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #3D2770"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Revisar el contrato de alquiler" data-title="Revisar el contrato de alquiler" style="width: 20px; height: 20px; margin: 0; accent-color: #3D2770"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #3D2770; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Revisar el contrato de alquiler</a></div>
+</div>
+<button aria-expanded="false" style="min-height: 44px; margin: 0 12px 4px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: #3D2770; text-align: left; cursor: pointer">Ver 2 más</button>
+</section>
+<section id="q-delegate" aria-labelledby="h-delegate" style="background: #DCEFE0; color: #1E4D2B; border-radius: 20px; padding: 14px 0 6px; display: flex; flex-direction: column">
+<div style="padding: 0 16px 6px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="h-delegate" style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Delegar</h2><span style="font-size: 12px">Urgente · No importante</span></div>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px">2</span>
+</div>
+<div style="padding-left: 4px; display: flex; flex-direction: column">
+<div style="min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #1E4D2B"><span aria-hidden="true" style="width: 32px; height: 32px; margin: 0 6px; border-radius: 16px; background: #1E4D2B; color: #DCEFE0; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0">A</span><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #1E4D2B; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Ana · Reservar sala</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">lun</span></div>
+<div style="border-top: 1px solid rgba(30,77,43,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #1E4D2B"><span aria-hidden="true" style="width: 32px; height: 32px; margin: 0 6px; border-radius: 16px; background: #1E4D2B; color: #DCEFE0; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0">L</span><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #1E4D2B; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Luis · Material de oficina</a><span style="flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">mar</span></div>
+</div>
+
+</section>
+<section id="q-eliminate" aria-labelledby="h-eliminate" style="background: #F6DCE6; color: #6B1D3A; border-radius: 20px; padding: 14px 0 6px; display: flex; flex-direction: column">
+<div style="padding: 0 16px 6px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px"><h2 id="h-eliminate" style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Eliminar</h2><span style="font-size: 12px">No urgente · No importante</span></div>
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px">2</span>
+</div>
+<div style="padding-left: 4px; display: flex; flex-direction: column">
+<div style="min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #6B1D3A"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Ordenar marcadores" data-title="Ordenar marcadores" style="width: 20px; height: 20px; margin: 0; accent-color: #6B1D3A"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #6B1D3A; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Ordenar marcadores</a></div>
+<div style="border-top: 1px solid rgba(107,29,58,0.16); min-height: 52px; display: flex; align-items: center; gap: 8px; padding-right: 12px; color: #6B1D3A"><label style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer"><input type="checkbox" aria-label="Completar: Webinar sin agenda" data-title="Webinar sin agenda" style="width: 20px; height: 20px; margin: 0; accent-color: #6B1D3A"></label><a href="MfTask.html" style="flex-grow: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; color: #6B1D3A; text-decoration: none; font-size: 15px; line-height: 1.35; padding: 8px 0">Webinar sin agenda</a></div>
+</div>
+<button style="align-self: flex-start; min-height: 44px; margin: 0 16px 6px; padding: 0 14px; border-radius: 999px; border: 1px solid #6B1D3A; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: #6B1D3A; cursor: pointer">Archivar las 2</button>
+</section>
+</div>
+</div>
+
+<aside aria-labelledby="h-today" style="flex: 1 1 320px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E4E7; border-radius: 20px; padding: 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between"><h2 id="h-today" style="margin: 0; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 20px; font-weight: 700">Agenda de hoy</h2><a href="MfAgenda.html" style="min-height: 44px; display: flex; align-items: center; font-size: 14px">Ver semana</a></div>
+<div style="display: flex; gap: 10px"><span style="width: 44px; flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #6C6C75; padding-top: 10px">09:00</span><a href="MfTask.html" style="flex-grow: 1; min-height: 52px; box-sizing: border-box; border-radius: 12px; background: #DCEBF7; color: #0B3A5E; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; text-decoration: none"><span style="font-size: 14px; font-weight: 600">Llamar al taller</span><span style="font-size: 12px">Hacer · 30 min</span></a></div>
+<div style="display: flex; gap: 10px"><span style="width: 44px; flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #6C6C75; padding-top: 10px">10:00</span><div style="flex-grow: 1; min-height: 52px; box-sizing: border-box; border-radius: 12px; border: 1px solid #D4D4D8; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center"><span style="font-size: 14px; font-weight: 600">Reunión de equipo</span><span style="font-size: 12px; color: #6C6C75">Calendario · 1 h</span></div></div>
+<div style="display: flex; gap: 10px"><span style="width: 44px; flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #6C6C75; padding-top: 10px">12:00</span><a href="MfTask.html" style="flex-grow: 1; min-height: 52px; box-sizing: border-box; border-radius: 12px; background: #DCEBF7; color: #0B3A5E; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; text-decoration: none"><span style="font-size: 14px; font-weight: 600">Enviar la oferta revisada a [CLIENTE]</span><span style="font-size: 12px">Hacer · 45 min</span></a></div>
+<div style="display: flex; gap: 10px"><span style="width: 44px; flex-shrink: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #6C6C75; padding-top: 10px">16:00</span><a href="MfTask.html" style="flex-grow: 1; min-height: 72px; box-sizing: border-box; border-radius: 12px; background: #E9E1F7; color: #3D2770; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 2px; text-decoration: none"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: #F97316; margin-right: 6px; vertical-align: 1px; flex-shrink: 0"></span>BLOQUE DE FOCO</span><span style="font-size: 14px; font-weight: 600">Estudiar tema 4 · Plan comercial Q4</span></a></div>
+<h3 style="margin: 8px 0 0; font-size: 15px; font-weight: 600">Esperando a otros</h3>
+<span style="font-size: 14px; color: #6C6C75">Ana · Reservar sala · revisar lun</span>
+<span style="font-size: 14px; color: #6C6C75">Luis · Material de oficina · revisar mar</span>
+</aside>
+
+</main>
+</div>
+
+</body>
+</html>

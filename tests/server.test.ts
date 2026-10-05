@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { startApp } from './helpers';
+import { openGroup, startApp } from './helpers';
 
 const SERVER = 'https://qadrant.test';
 const KEY = 'clave-de-prueba';
@@ -36,6 +36,7 @@ test('connects to the own server and keeps its reminders in step', async ({ page
 	await startApp(page);
 
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Servidor propio');
 	await page.getByLabel('Dirección').fill(SERVER);
 	await page.getByLabel('Clave de acceso').fill('mala');
 	await page.getByRole('button', { name: 'Conectar' }).click();

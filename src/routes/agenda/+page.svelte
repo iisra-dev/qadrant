@@ -3,7 +3,7 @@
 	import { media } from '$lib/app/media.svelte';
 	import { currentSettings } from '$lib/app/context';
 	import { agendaForDay, agendaItems, eventsForDay, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
-	import { addDays, sameDay, startOfDay } from '$lib/domain/dates';
+	import { addDays, isoWeekday, sameDay, startOfDay } from '$lib/domain/dates';
 	import { formatDayMonth, formatDuration, formatLongDate, formatTime, weekdayShort } from '$lib/domain/format';
 	import { calendarEvents, people, settings } from '$lib/stores';
 	import WeekView from './WeekView.svelte';
@@ -68,6 +68,15 @@
 	const label = $derived(formatLongDate(day, i18n.lang));
 	const isToday = $derived(sameDay(day, clock.now));
 
+	// Day view: the week of the selected day as a strip in thumb reach (docs/01, "Agenda").
+	const strip = $derived(weekDays(day, 0, [1, 2, 3, 4, 5, 6, 7]));
+	const workDays = $derived(($settings ?? currentSettings()).workDays);
+	function pick(date: Date) {
+		offset = Math.round((startOfDay(date).getTime() - startOfDay(clock.now).getTime()) / 86_400_000);
+	}
+	// Where the "Now" line goes among today's blocks: before the first one that starts later.
+	const nowIndex = $derived(isToday ? rows.findIndex((row) => rowStart(row) > clock.now.getTime()) : -2);
+
 	let message = $state('');
 	let busy = $state(false);
 
@@ -126,11 +135,27 @@
 			<WeekView {days} tasks={$openTasks} events={$calendarEvents} now={clock.now} workHours={($settings ?? currentSettings()).workHours} />
 		</div>
 	{:else}
+	<div class="strip" role="group" aria-label={i18n.m.agenda.days}>
+		{#each strip as date (date.getTime())}
+			<button
+				type="button"
+				aria-pressed={sameDay(date, day)}
+				aria-current={sameDay(date, clock.now) ? 'date' : undefined}
+				aria-label={formatLongDate(date, i18n.lang)}
+				class:off={!workDays.includes(isoWeekday(date))}
+				onclick={() => pick(date)}
+			>
+				<span class="strip-day">{weekdayShort(date, i18n.lang)}</span>
+				<span class="strip-date">{date.getDate()}</span>
+			</button>
+		{/each}
+	</div>
 	<div class="blocks">
 		{#each dayEvents.allDay as event (event.id)}
 			<div class="all-day"><span class="all-day-label">{i18n.m.common.allDay}</span>{event.title}</div>
 		{/each}
-		{#each rows as row (row.kind === 'task' ? row.item.tasks[0].id : row.event.id)}
+		{#each rows as row, index (row.kind === 'task' ? row.item.tasks[0].id : row.event.id)}
+			{#if index === nowIndex}{@render nowLine()}{/if}
 			{#if row.kind === 'task'}
 				{@const item = row.item}
 				<AgendaBlock
@@ -154,8 +179,17 @@
 		{:else}
 			<p class="empty">{i18n.m.agenda.empty}</p>
 		{/each}
+		{#if nowIndex === -1 && rows.length}{@render nowLine()}{/if}
 	</div>
 	{/if}
+
+{#snippet nowLine()}
+	<div class="now">
+		<span class="now-time">{formatTime(clock.now)}</span>
+		<span class="now-line" aria-hidden="true"></span>
+		<span class="now-label">{i18n.m.agenda.now}</span>
+	</div>
+{/snippet}
 
 	{#if waiting.length}
 		<section class="waiting" aria-labelledby="waiting-title">
@@ -197,7 +231,7 @@
 		flex-direction: column;
 	}
 	header {
-		padding: var(--space-6) var(--space-3) var(--space-3) var(--space-5);
+		padding: var(--space-5) var(--space-3) var(--space-3) var(--space-5);
 		display: flex;
 		align-items: flex-end;
 		justify-content: space-between;
@@ -248,7 +282,7 @@
 	}
 	h2 {
 		margin: 0;
-		font-size: 18px;
+		font-size: 20px;
 		font-weight: 700;
 	}
 	.nav {
@@ -264,6 +298,68 @@
 		font-size: 14px;
 		font-weight: 600;
 		cursor: pointer;
+	}
+	.strip {
+		padding: 0 var(--space-4) var(--space-3);
+		display: grid;
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		gap: var(--space-1);
+	}
+	.strip button {
+		min-height: 56px;
+		min-width: 0;
+		padding: 0;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-block);
+		background: var(--surface);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		font: inherit;
+		cursor: pointer;
+	}
+	.strip button.off {
+		color: var(--text-muted);
+	}
+	.strip button[aria-current='date'] {
+		border-color: var(--text);
+	}
+	.strip button[aria-pressed='true'] {
+		background: var(--cta-bg);
+		border-color: var(--cta-bg);
+		color: var(--cta-text);
+	}
+	.strip-day {
+		font-size: 12px;
+	}
+	.strip-date {
+		font-family: var(--font-mono);
+		font-size: 16px;
+		font-weight: 500;
+	}
+	.now {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2-5);
+	}
+	.now-time {
+		width: 44px;
+		flex-shrink: 0;
+		font-family: var(--font-mono);
+		font-size: 12px;
+		font-weight: 500;
+	}
+	.now-line {
+		flex-grow: 1;
+		height: 2px;
+		border-radius: 1px;
+		background: var(--text);
+	}
+	.now-label {
+		font-size: 12px;
+		font-weight: 600;
 	}
 	.blocks {
 		padding: var(--space-1) var(--space-4) var(--space-3);
@@ -310,7 +406,7 @@
 		--q-ink: var(--q-delegate-ink);
 	}
 	.waiting a {
-		min-height: 52px;
+		min-height: 56px;
 		display: flex;
 		align-items: center;
 		gap: var(--space-2-5);
@@ -335,10 +431,10 @@
 	}
 	.what {
 		flex-grow: 1;
-		font-size: 13px;
+		font-size: 14px;
 	}
 	.when {
-		font-size: 11px;
+		font-size: 12px;
 		flex-shrink: 0;
 	}
 	.pending {

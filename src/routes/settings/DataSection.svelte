@@ -5,7 +5,7 @@
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme } from '$lib/theme';
-	import { Button, Sheet } from '$lib/ui';
+	import { Button, SettingsGroup, Sheet } from '$lib/ui';
 
 	let { persisted }: { persisted: boolean | null } = $props();
 
@@ -48,8 +48,7 @@
 	}
 </script>
 
-<section aria-labelledby="s-data">
-	<h2 id="s-data">{i18n.m.data.title}</h2>
+<SettingsGroup title={i18n.m.data.title} summary={i18n.m.settings.dataSummary}>
 	<div class="actions">
 		<Button variant="secondary" onclick={download}>{i18n.m.data.export}</Button>
 		<Button variant="secondary" onclick={() => fileInput?.click()}>{i18n.m.data.import}</Button>
@@ -68,7 +67,7 @@
 	{#if persisted === false}
 		<p class="note">{i18n.m.data.notPersisted}</p>
 	{/if}
-</section>
+</SettingsGroup>
 
 <Sheet open={step > 0} label={i18n.m.data.clear} onclose={() => ((step = 0), (confirmation = ''))}>
 	{#if step === 1}
@@ -88,16 +87,6 @@
 </Sheet>
 
 <style>
-	section {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-	}
-	h2 {
-		margin: 0 var(--space-1);
-		font-size: 18px;
-		font-weight: 700;
-	}
 	.actions {
 		display: flex;
 		flex-wrap: wrap;

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { startApp } from './helpers';
+import { openGroup, startApp } from './helpers';
 
 const SERVER = 'https://qadrant.test';
 const KEY = 'clave-de-prueba';
@@ -32,6 +32,7 @@ test('connects a calendar through the server; the agenda shows it and the schedu
 
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Servidor propio');
 	await expect(page.getByLabel('Dirección secreta en formato iCal')).toHaveCount(0);
 	await page.getByLabel('Dirección', { exact: true }).fill(SERVER);
 	await page.getByLabel('Clave de acceso').fill(KEY);

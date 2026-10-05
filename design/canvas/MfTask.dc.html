@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Detalle de tarea</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAF9F6}
+a{color:#18181B}a:hover{color:#18181B}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #18181B;outline-offset:2px}
+summary{list-style:none}summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(90deg)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FAF9F6; color: #18181B; font-family: 'IBM Plex Sans', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+<header style="flex-shrink: 0; padding: 8px 16px 4px 4px; display: flex; align-items: center; justify-content: space-between">
+<a href="MfMain.dc.html" style="min-height: 44px; padding: 0 12px 0 6px; display: flex; align-items: center; gap: 2px; text-decoration: none; font-size: 15px; font-weight: 500; color: #18181B"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>Matriz</a>
+<span role="status" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6C6C75"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Guardado</span>
+</header>
+
+<div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 18px">
+
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px">
+<label for="t-title" style="font-size: 13px; color: #6C6C75">Tarea</label>
+<textarea id="t-title" rows="2" style="border: 0; border-bottom: 1px solid #8B8B93; background: transparent; padding: 2px 0 8px; font-family: 'Bricolage Grotesque', Georgia, serif; font-size: 24px; font-weight: 700; line-height: 1.2; color: #18181B; resize: none">Enviar la oferta revisada a [CLIENTE]</textarea>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div role="group" aria-label="Cuadrante" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+<button aria-pressed="true" style="min-height: 48px; border-radius: 12px; border: 2px solid #0B3A5E; background: #DCEBF7; color: #0B3A5E; font: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Hacer</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #E9E1F7; color: #3D2770; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Programar</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #DCEFE0; color: #1E4D2B; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Delegar</button>
+<button aria-pressed="false" style="min-height: 48px; border-radius: 12px; border: 2px solid transparent; background: #F6DCE6; color: #6B1D3A; font: inherit; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 2px; cursor: pointer">Eliminar</button>
+</div>
+<div style="border-radius: 16px; background: #F4F4F5; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; color: #6C6C75"><span aria-hidden="true" style="display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: #F97316; margin-right: 6px; vertical-align: 1px; flex-shrink: 0"></span>POR QUÉ ESTÁ EN HACER</span>
+<p style="margin: 0; font-size: 14px; line-height: 1.45">Vence en menos de 2 días laborables. Importancia 87 % por tu objetivo «Ventas Q4».</p>
+</div>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E4E4E7; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden">
+<div style="min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px"><label for="t-due" style="font-size: 15px">Fecha límite</label><input id="t-due" type="datetime-local" value="2026-10-05T09:00" style="border: 0; background: transparent; font: inherit; font-size: 15px; color: #18181B; text-align: right; min-height: 44px"></div>
+<div style="min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #E4E4E7"><label for="t-dur" style="font-size: 15px">Duración</label><select id="t-dur" style="border: 0; background: transparent; font: inherit; font-size: 15px; color: #18181B; text-align: right; min-height: 44px"><option>15 min</option><option>30 min</option><option selected="selected">45 min</option><option>1 h</option><option>2 h</option><option>Otra…</option></select></div>
+<div style="min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #E4E4E7"><label for="t-when" style="font-size: 15px">En la agenda</label><input id="t-when" type="datetime-local" value="2026-10-02T12:00" style="border: 0; background: transparent; font: inherit; font-size: 15px; color: #18181B; text-align: right; min-height: 44px"></div>
+<div style="min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #E4E4E7"><label for="t-who" style="font-size: 15px">Delegar en</label><select id="t-who" style="border: 0; background: transparent; font: inherit; font-size: 15px; color: #18181B; text-align: right; min-height: 44px"><option selected="selected">Nadie</option><option>Ana</option><option>Luis</option></select></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 0 4px">
+<label for="t-notes" style="font-size: 13px; color: #6C6C75">Notas</label>
+<textarea id="t-notes" rows="3" placeholder="Añade detalles" style="border: 1px solid #8B8B93; border-radius: 16px; padding: 12px 14px; font: inherit; font-size: 15px; color: #18181B; background: #FFFFFF; resize: none"></textarea>
+</div>
+
+<div style="margin-top: 8px; border-top: 1px solid #E4E4E7; padding-top: 12px; display: flex; flex-direction: column; gap: 2px">
+<button style="align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 15px; font-weight: 600; color: #DC2626; display: flex; align-items: center; gap: 8px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg>Borrar tarea</button>
+<span style="padding: 0 4px; font-size: 12px; color: #6C6C75">Te pediremos confirmación. No se puede deshacer.</span>
+</div>
+
+</div>
+
+<div style="flex-shrink: 0; padding: 12px 16px 16px; border-top: 1px solid #E4E4E7; background: #FFFFFF">
+<a href="MfMain.dc.html" style="min-height: 56px; border-radius: 28px; background: #18181B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 16px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>Marcar como hecha</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

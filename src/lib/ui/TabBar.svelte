@@ -14,7 +14,7 @@
 <nav aria-label={i18n.m.nav.label}>
 	{#each tabs as tab (tab.href)}
 		<a href={tab.href} aria-current={current === tab.href ? 'page' : undefined}>
-			<Icon name={tab.icon} />
+			<span class="icon"><Icon name={tab.icon} /></span>
 			{tab.label}
 		</a>
 	{/each}
@@ -34,14 +34,26 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 3px;
+		gap: 2px;
 		min-height: 64px;
 		text-decoration: none;
 		color: var(--text-muted);
-		font-size: 11px;
+		font-size: 12px;
+	}
+	/* The current tab carries a filled indicator, not only a darker color (docs/05). */
+	.icon {
+		width: 56px;
+		height: 30px;
+		border-radius: 15px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	a[aria-current='page'] {
 		color: var(--text);
 		font-weight: 600;
+	}
+	a[aria-current='page'] .icon {
+		background: var(--surface-muted);
 	}
 </style>

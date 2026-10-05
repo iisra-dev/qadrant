@@ -28,12 +28,14 @@
 	const listId = $derived(`quadrant-${quadrant}-list`);
 </script>
 
-<section class="card" style={quadrantVars(quadrant)} aria-labelledby={`quadrant-${quadrant}-title`}>
+<section class="card" id={`quadrant-${quadrant}`} style={quadrantVars(quadrant)} aria-labelledby={`quadrant-${quadrant}-title`}>
 	<div class="head">
-		<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
+		<div class="names">
+			<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
+			<span class="rule">{meta.rule}</span>
+		</div>
 		<span class="count" aria-label={i18n.m.common.tasksCount(items.length)}>{items.length}</span>
 	</div>
-	<span class="rule">{meta.rule}</span>
 	{#if items.length === 0}
 		<p class="empty">{meta.empty}</p>
 	{:else}
@@ -48,7 +50,7 @@
 			</button>
 		{/if}
 	{/if}
-	{#if footer}{@render footer()}{/if}
+	{#if footer}<div class="footer">{@render footer()}</div>{/if}
 </section>
 
 <style>
@@ -56,52 +58,67 @@
 		background: var(--q-bg);
 		color: var(--q-ink);
 		border-radius: var(--radius-card);
-		padding: 14px var(--space-3) var(--space-2);
+		padding: 14px var(--space-1) var(--space-1);
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
-		min-height: 0;
-		overflow: auto;
+		scroll-margin-top: var(--space-4);
 	}
 	.head {
+		padding: 0 var(--space-3) 6px;
 		display: flex;
 		justify-content: space-between;
 		align-items: baseline;
+		gap: var(--space-3);
+	}
+	.names {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
 	}
 	h2 {
 		margin: 0;
-		font-size: 19px;
+		font-size: 20px;
 		font-weight: 700;
 	}
 	.count {
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 	}
 	.rule {
-		font-size: 11px;
-		padding: 2px 0 6px;
+		font-size: 12px;
 	}
 	ul {
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
+	li + li {
+		border-top: 1px solid color-mix(in srgb, var(--q-ink) 16%, transparent);
+	}
 	.empty {
-		margin: var(--space-2) 0;
-		font-size: 12px;
+		margin: var(--space-1) var(--space-3) var(--space-3);
+		font-size: 14px;
 		line-height: 1.4;
-		opacity: 0.85;
 	}
 	.more {
 		align-self: flex-start;
 		min-height: var(--touch);
+		margin: 0 var(--space-3);
 		border: 0;
 		background: transparent;
 		padding: 0;
 		font: inherit;
-		font-size: 12px;
+		font-size: 14px;
 		font-weight: 600;
 		color: inherit;
 		cursor: pointer;
+	}
+	.footer {
+		padding: 0 var(--space-3) var(--space-1);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-1);
 	}
 </style>
