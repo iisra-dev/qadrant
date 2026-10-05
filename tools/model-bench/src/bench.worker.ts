@@ -6,13 +6,45 @@ import { AutoTokenizer, env } from '@huggingface/transformers';
 export type Mode = 'webgpu' | 'wasm1' | 'wasmN';
 export interface BenchRequest {
 	mode: Mode;
-	model: ArrayBuffer;
 	reference: { goals: string[]; tasks: { title: string; similarities: number[]; p: number }[] };
 	calibration: { importance: { a: number; b: number } };
 }
 export type BenchResult =
 	| { mode: Mode; ok: true; median: number; p95: number; loadMs: number; maxDiff: number; flips: number; total: number; threads?: number }
 	| { mode: Mode; ok: false; error: string };
+export type BenchMessage = { type: 'progress'; value: number } | { type: 'result'; result: BenchResult };
+
+interface Part {
+	file: string;
+	bytes: number;
+	sha256: string;
+}
+
+async function sha256(data: ArrayBuffer): Promise<string> {
+	const digest = await crypto.subtle.digest('SHA-256', data);
+	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Each worker fetches the chunked model itself (from the HTTP cache after the
+ * first time) and verifies it with the manifest, as the app will. The page keeps
+ * no copy: on an iPhone two or three copies of 130 MB made iOS reload the tab.
+ */
+async function downloadModel(): Promise<Uint8Array> {
+	const manifest = (await (await fetch('/model/manifest.json')).json()) as { bytes: number; parts: Part[] };
+	const model = new Uint8Array(manifest.bytes);
+	let offset = 0;
+	for (const part of manifest.parts) {
+		const data = await (await fetch(`/model/${part.file}`)).arrayBuffer();
+		if (data.byteLength !== part.bytes || (await sha256(data)) !== part.sha256) {
+			throw new Error(`el fragmento ${part.file} no coincide con el manifiesto`);
+		}
+		model.set(new Uint8Array(data), offset);
+		offset += data.byteLength;
+		self.postMessage({ type: 'progress', value: offset / manifest.bytes } satisfies BenchMessage);
+	}
+	return model;
+}
 
 const MAX_TOKENS = 128;
 
@@ -43,21 +75,26 @@ function quantile(sorted: number[], q: number): number {
 }
 
 self.onmessage = async (event: MessageEvent<BenchRequest>) => {
-	const { mode, model, reference, calibration } = event.data;
+	const { mode, reference, calibration } = event.data;
+	let session: ort.InferenceSession | undefined;
 	try {
 		if (mode === 'webgpu' && !('gpu' in navigator)) throw new Error('sin WebGPU');
 		if (mode === 'wasmN' && !crossOriginIsolated) throw new Error('sin aislamiento entre orígenes');
 		const threads = mode === 'wasm1' ? 1 : Math.min(4, navigator.hardwareConcurrency || 1);
 		ort.env.wasm.numThreads = mode === 'webgpu' ? 1 : threads;
 
+		let model: Uint8Array | null = await downloadModel();
 		const start = performance.now();
 		await loadRuntimeBinary();
 		const tokenizer = await AutoTokenizer.from_pretrained('model');
-		const session = await ort.InferenceSession.create(new Uint8Array(model), {
+		session = await ort.InferenceSession.create(model, {
 			executionProviders: [mode === 'webgpu' ? 'webgpu' : 'wasm'],
 			graphOptimizationLevel: 'all'
 		});
+		model = null; // the session has its own copy
+		ort.env.wasm.wasmBinary = undefined;
 		const loadMs = performance.now() - start;
+		const ready = session;
 
 		const embed = async (text: string): Promise<Float32Array> => {
 			const enc = tokenizer(text, { truncation: true, max_length: MAX_TOKENS });
@@ -68,7 +105,7 @@ self.onmessage = async (event: MessageEvent<BenchRequest>) => {
 				attention_mask: new ort.Tensor('int64', mask.data, mask.dims),
 				token_type_ids: new ort.Tensor('int64', new BigInt64Array(ids.data.length), ids.dims)
 			};
-			const out = (await session.run(feeds)).last_hidden_state;
+			const out = (await ready.run(feeds)).last_hidden_state;
 			const hidden = out.data as Float32Array;
 			const [, tokens, dim] = out.dims;
 			const pooled = new Float32Array(dim);
@@ -116,8 +153,14 @@ self.onmessage = async (event: MessageEvent<BenchRequest>) => {
 			total: reference.tasks.length,
 			...(mode !== 'webgpu' && { threads })
 		};
-		self.postMessage(result);
+		await session.release();
+		session = undefined;
+		self.postMessage({ type: 'result', result } satisfies BenchMessage);
 	} catch (error) {
-		self.postMessage({ mode, ok: false, error: error instanceof Error ? error.message : String(error) } satisfies BenchResult);
+		await session?.release().catch(() => {});
+		self.postMessage({
+			type: 'result',
+			result: { mode, ok: false, error: error instanceof Error ? error.message : String(error) }
+		} satisfies BenchMessage);
 	}
 };

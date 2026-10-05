@@ -28,6 +28,6 @@ copyFileSync(join(root, 'tools', 'embed-eval', 'reference.json'), join(pub, 'ref
 copyFileSync(join(root, 'tools', 'embed-eval', 'calibration.json'), join(pub, 'calibration.json'));
 writeFileSync(
 	join(pub, '_headers'),
-	`/*\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Embedder-Policy: require-corp\n  X-Content-Type-Options: nosniff\n\n/model/*\n  Cache-Control: public, max-age=31536000, immutable\n`
+	`/*\n  Cross-Origin-Opener-Policy: same-origin\n  Cross-Origin-Embedder-Policy: require-corp\n  X-Content-Type-Options: nosniff\n\n/model/*\n  Cache-Control: public, max-age=31536000, immutable\n\n/ort/*\n  Cache-Control: public, max-age=86400\n`
 );
 console.log(`public/ ready: model ${manifest.version.slice(0, 7)} in ${manifest.parts.length} parts`);
