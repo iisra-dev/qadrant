@@ -4,8 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
+		"dev": "node scripts/prepare-ort.mjs && vite dev",
+		"build": "node scripts/prepare-ort.mjs && vite build",
 		"preview": "sirv build --single --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -18,7 +18,8 @@
 		"bench:prepare": "node tools/model-bench/prepare.mjs",
 		"bench:build": "pnpm bench:prepare && vite build --config tools/model-bench/vite.config.ts",
 		"bench:preview": "vite preview --config tools/model-bench/vite.config.ts",
-		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench --branch main"
+		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench --branch main",
+		"model:prepare": "node scripts/chunk-model.mjs --model tools/embed-eval/model --out static/models --calibration tools/embed-eval/calibration.json"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",
