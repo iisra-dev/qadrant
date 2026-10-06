@@ -239,6 +239,7 @@ export const es: Messages = {
 		downloading: (percent) => `Descargando ${percent}`,
 		ready: 'Listo',
 		failed: 'Falló la descarga',
+		failedReason: (reason) => `Qué falló: ${reason}`,
 		size: 'Tamaño',
 		webgpu: 'WebGPU',
 		wasm: 'WASM',
