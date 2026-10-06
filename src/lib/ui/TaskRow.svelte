@@ -8,7 +8,9 @@
 		detail,
 		meta,
 		overdue = false,
-		oncomplete
+		done = false,
+		oncomplete,
+		onreopen
 	}: {
 		title: string;
 		href: string;
@@ -17,7 +19,11 @@
 		/** Short trailing text, e.g. today's time. */
 		meta?: string;
 		overdue?: boolean;
+		/** Done in the last 24 hours: struck through, still in its quadrant (docs/01). */
+		done?: boolean;
 		oncomplete: () => void;
+		/** Unticking a done task opens it again. */
+		onreopen?: () => void;
 	} = $props();
 
 	// Swiping left reveals "Done": a shortcut for touch, never the only way.
@@ -34,7 +40,7 @@
 	let swiped = false;
 
 	function down(event: PointerEvent) {
-		if (event.pointerType === 'mouse') return;
+		if (event.pointerType === 'mouse' || done) return;
 		mode = 'pending';
 		swiped = false;
 		startX = event.clientX;
@@ -88,9 +94,9 @@
 	}
 </script>
 
-<div class="row">
+<div class="row" class:is-done={done}>
 	<button
-		class="done"
+		class="swipe-done"
 		class:shown={open || offset !== 0}
 		type="button"
 		tabindex={open ? 0 : -1}
@@ -114,11 +120,16 @@
 		role="presentation"
 	>
 		<label class="check">
-			<input type="checkbox" aria-label={i18n.m.common.complete(title)} onchange={oncomplete} />
+			<input
+				type="checkbox"
+				aria-label={i18n.m.common.complete(title)}
+				checked={done}
+				onchange={(event) => (event.currentTarget.checked ? oncomplete() : onreopen?.())}
+			/>
 		</label>
 		<a {href} onfocus={close}>
 			<span class="title">{title}{#if detail}<span class="detail">{` · ${detail}`}</span>{/if}</span>
-			{#if overdue}<span class="overdue">{i18n.m.common.overdue}</span>{/if}
+			{#if overdue && !done}<span class="overdue">{i18n.m.common.overdue}</span>{/if}
 			{#if meta}<span class="meta">{meta}</span>{/if}
 		</a>
 	</div>
@@ -130,7 +141,7 @@
 		overflow: hidden;
 	}
 	/* Hidden until a swipe starts, so it never peeks at the row's edges. */
-	.done {
+	.swipe-done {
 		visibility: hidden;
 		position: absolute;
 		top: 0;
@@ -149,7 +160,7 @@
 		font-weight: 600;
 		cursor: pointer;
 	}
-	.done.shown {
+	.swipe-done.shown {
 		visibility: visible;
 	}
 	.content {
@@ -205,6 +216,15 @@
 		flex-grow: 1;
 		min-width: 0;
 		overflow-wrap: anywhere;
+	}
+	/* Done: struck through and quieter, but still readable (contrast stays AA). */
+	.is-done .title {
+		text-decoration: line-through;
+		text-decoration-thickness: 1.5px;
+		opacity: 0.75;
+	}
+	.is-done .meta {
+		opacity: 0.75;
 	}
 	.overdue {
 		flex-shrink: 0;

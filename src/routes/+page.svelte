@@ -13,13 +13,16 @@
 	import { capture } from '$lib/app/capture.svelte';
 	import { repos } from '$lib/db/repositories';
 	import { formatLongDate } from '$lib/domain/format';
-	import { groupByQuadrant, isOverdue, staleEliminate } from '$lib/domain/matrix';
-	import { QUADRANTS, type Task } from '$lib/domain/types';
-	import { openTasks, people } from '$lib/stores';
+	import { groupByQuadrant, isOverdue, matrixTasks, staleEliminate } from '$lib/domain/matrix';
+	import { QUADRANTS, type Quadrant, type Task } from '$lib/domain/types';
+	import { allTasks, openTasks, people } from '$lib/stores';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { AgendaBlock, AiDot, Button, Drawer, Icon, QuadrantCard, quadrantVars, Sheet, TaskRow, UndoToast } from '$lib/ui';
 
-	const groups = $derived(groupByQuadrant($openTasks, clock.now));
+	// Open tasks plus those done in the last 24 hours, struck through (docs/01).
+	const groups = $derived(groupByQuadrant(matrixTasks($openTasks, $allTasks, clock.now), clock.now));
+	const openCount = (quadrant: Quadrant) => groups[quadrant].filter((task) => task.status === 'open').length;
+	const openEliminate = $derived(groups.eliminate.filter((task) => task.status === 'open'));
 	const today = $derived(formatLongDate(clock.now, i18n.lang));
 
 	function personName(id: string | undefined): string | undefined {
@@ -30,7 +33,7 @@
 	const next = $derived(nextToday($openTasks, clock.now));
 	const stale = $derived(staleEliminate($openTasks, clock.now));
 
-	// One undo notice at a time, for completing or archiving (docs/02, "Gestos y deshacer").
+	// Undo notice for archiving.
 	let toast = $state<{ id: number; message: string; undo: () => Promise<void> } | null>(null);
 	let toastId = 0;
 
@@ -38,9 +41,9 @@
 		toast = { id: ++toastId, message, undo };
 	}
 
+	// Ticking strikes the task through; unticking opens it again, so no undo notice is needed.
 	async function complete(task: Task) {
 		await repos.tasks.complete(task.id);
-		offerUndo(i18n.m.common.completed(task.title), () => repos.tasks.reopen(task.id));
 	}
 
 	async function archiveIds(ids: string[]) {
@@ -84,7 +87,7 @@
 
 	async function archiveAll() {
 		confirmArchive = false;
-		await archiveIds(groups.eliminate.map((task) => task.id));
+		await archiveIds(openEliminate.map((task) => task.id));
 	}
 </script>
 
@@ -123,7 +126,7 @@
 				<a href={`#quadrant-${quadrant}`} style={quadrantVars(quadrant)}>
 					<span class="tile-head">
 						<span class="tile-name">{i18n.m.quadrants[quadrant].name}</span>
-						<span class="tile-count">{groups[quadrant].length}</span>
+						<span class="tile-count">{openCount(quadrant)}</span>
 					</span>
 					<span class="tile-rule">{i18n.m.quadrants[quadrant].rule}</span>
 				</a>
@@ -133,7 +136,7 @@
 
 	<div class="grid">
 		{#each QUADRANTS as quadrant (quadrant)}
-			<QuadrantCard {quadrant} items={groups[quadrant]} limit={media.web ? 6 : 3}>
+			<QuadrantCard {quadrant} items={groups[quadrant]} count={openCount(quadrant)} limit={media.web ? 6 : 3}>
 				{#snippet row(item)}
 					{@const task = item as Task}
 					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -146,7 +149,9 @@
 						detail={quadrant === 'delegate' ? personName(task.delegatedTo) : undefined}
 						meta={timeToday(task)}
 						overdue={isOverdue(task, clock.now)}
+						done={task.status === 'done'}
 						oncomplete={() => complete(task)}
+						onreopen={() => repos.tasks.reopen(task.id)}
 					/>
 					</div>
 				{/snippet}
@@ -157,9 +162,9 @@
 							{i18n.m.matrix.archiveStale(stale.length)}
 						</button>
 					{/if}
-					{#if quadrant === 'eliminate' && groups.eliminate.length > 0}
+					{#if quadrant === 'eliminate' && openEliminate.length > 0}
 						<button class="archive" type="button" onclick={() => (confirmArchive = true)}>
-							{i18n.m.matrix.archiveAll(groups.eliminate.length)}
+							{i18n.m.matrix.archiveAll(openEliminate.length)}
 						</button>
 					{/if}
 				{/snippet}
@@ -208,7 +213,7 @@
 </Drawer>
 
 <Sheet open={confirmArchive} label={i18n.m.matrix.archiveSheet} onclose={() => (confirmArchive = false)}>
-	<h2 class="confirm-title">{i18n.m.matrix.archiveAsk(groups.eliminate.length)}</h2>
+	<h2 class="confirm-title">{i18n.m.matrix.archiveAsk(openEliminate.length)}</h2>
 	<p class="confirm-text">{i18n.m.matrix.archiveText}</p>
 	<Button size="lg" block onclick={archiveAll}>{i18n.m.matrix.archive}</Button>
 	<Button variant="secondary" size="lg" block onclick={() => (confirmArchive = false)}>{i18n.m.common.cancel}</Button>

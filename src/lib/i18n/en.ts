@@ -59,7 +59,6 @@ export const en = {
 		more: (n: number) => `Show ${n} more`,
 		less: 'Show less',
 		done: 'Done',
-		completed: (title: string) => `Done: ${title}`,
 		saved: 'Saved',
 		onlyHere: 'Your tasks are stored only on this device.',
 		quadrantGroup: 'Quadrant',

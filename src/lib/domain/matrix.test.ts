@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByQuadrant, isOverdue, sortForMatrix, staleEliminate } from './matrix';
+import { DONE_VISIBLE_HOURS, groupByQuadrant, matrixTasks, isOverdue, recentlyDone, sortForMatrix, staleEliminate } from './matrix';
 import type { Task } from './types';
 
 const now = new Date(2026, 9, 2, 10, 0);
@@ -56,5 +56,39 @@ describe('staleEliminate', () => {
 			task('other', { quadrant: 'do', updatedAt: new Date(2026, 8, 1).toISOString() })
 		];
 		expect(staleEliminate(tasks, now).map((t) => t.id)).toEqual(['old']);
+	});
+});
+
+describe('done tasks in the Matrix', () => {
+	it('stay visible, struck through, for 24 hours after being done', () => {
+		const tasks = [
+			task('just-done', { status: 'done', doneAt: new Date(now.getTime() - 60_000).toISOString() }),
+			task('done-23h', { status: 'done', doneAt: new Date(now.getTime() - 23 * 3_600_000).toISOString() }),
+			task('done-25h', { status: 'done', doneAt: new Date(now.getTime() - 25 * 3_600_000).toISOString() }),
+			task('archived', { status: 'archived', doneAt: new Date(now.getTime() - 60_000).toISOString() }),
+			task('deleted', { status: 'done', doneAt: now.toISOString(), deletedAt: now.toISOString() }),
+			task('open')
+		];
+		expect(recentlyDone(tasks, now).map((t) => t.id)).toEqual(['just-done', 'done-23h']);
+		expect(DONE_VISIBLE_HOURS).toBe(24);
+	});
+
+	it('one entry per task, the newer copy winning', () => {
+		const open = task('a', { updatedAt: '2026-10-02T07:00:00.000Z' });
+		const done = task('a', { status: 'done', doneAt: now.toISOString(), updatedAt: '2026-10-02T08:00:00.000Z' });
+		expect(matrixTasks([open], [done], now)).toEqual([done]);
+		const reopened = task('a', { updatedAt: '2026-10-02T09:00:00.000Z' });
+		expect(matrixTasks([reopened], [done], now)).toEqual([reopened]);
+	});
+
+	it('go after the open ones in their quadrant', () => {
+		const groups = groupByQuadrant(
+			[
+				task('done', { status: 'done', doneAt: now.toISOString(), dueAt: '2026-10-01T10:00:00.000Z' }),
+				task('open-late', { dueAt: '2026-10-20T10:00:00.000Z' })
+			],
+			now
+		);
+		expect(groups.do.map((t) => t.id)).toEqual(['open-late', 'done']);
 	});
 });

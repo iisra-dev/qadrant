@@ -58,7 +58,6 @@ export const es: Messages = {
 		more: (n) => `Ver ${n} más`,
 		less: 'Ver menos',
 		done: 'Hecha',
-		completed: (title) => `Completada: ${title}`,
 		saved: 'Guardado',
 		onlyHere: 'Tus tareas se guardan solo en este dispositivo.',
 		quadrantGroup: 'Cuadrante',

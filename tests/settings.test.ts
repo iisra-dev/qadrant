@@ -98,5 +98,5 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	});
 	await expect(page.getByRole('status').filter({ hasText: 'Importado' })).toHaveText(/1 nuevos/);
 	await page.getByRole('link', { name: 'Matriz' }).click();
-	await expect(page.getByRole('link', { name: 'Tarea de otro dispositivo' })).toBeVisible();
+	await expect(page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: 'Tarea de otro dispositivo' })).toBeVisible();
 });
