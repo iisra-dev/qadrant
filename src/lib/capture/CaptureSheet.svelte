@@ -2,7 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { capture } from '$lib/app/capture.svelte';
 	import { classifyContext, currentSettings } from '$lib/app/context';
-	import { dictate, localSpeechAvailable } from '$lib/app/speech';
+	import { dictate, speechMode, type SpeechMode } from '$lib/app/speech';
+	import { repos } from '$lib/db/repositories';
 	import { atTime, fromDateKey } from '$lib/domain/dates';
 	import { captureLines, doubtText } from '$lib/domain/explain';
 	import { formatPercent } from '$lib/domain/format';
@@ -27,7 +28,10 @@
 	let showDate = $state(false);
 	let showPicker = $state(false);
 	let dateValue = $state('');
-	let canDictate = $state(false);
+	let mode = $state<SpeechMode>('none');
+	const canDictate = $derived(mode !== 'none');
+	// The browser's service sends the audio out: ask once before using it (docs/01).
+	let askConsent = $state(false);
 	let stopDictation: (() => void) | null = $state(null);
 	let textarea: HTMLTextAreaElement | undefined = $state();
 
@@ -55,9 +59,10 @@
 		showDate = showPicker = false;
 		dateValue = '';
 		const startDictating = capture.dictate;
-		localSpeechAvailable(i18n.lang).then((available) => {
-			canDictate = available;
-			if (available && startDictating && !stopDictation) toggleDictation();
+		askConsent = false;
+		speechMode(i18n.lang).then((found) => {
+			mode = found;
+			if (found !== 'none' && startDictating && !stopDictation) toggleDictation();
 		});
 		queueMicrotask(() => textarea?.focus());
 	});
@@ -174,12 +179,24 @@
 			stopDictation = null;
 			return;
 		}
+		if (mode === 'none') return;
+		if (mode === 'cloud' && !currentSettings().voiceConsent) {
+			askConsent = true;
+			return;
+		}
 		const base = text ? `${text.trimEnd()} ` : '';
 		stopDictation = dictate(
 			i18n.lang,
+			mode,
 			(spoken) => (text = base + spoken),
 			() => (stopDictation = null)
 		);
+	}
+
+	async function acceptVoice() {
+		askConsent = false;
+		await repos.settings.update({ voiceConsent: true });
+		toggleDictation();
 	}
 
 	const doubtP = $derived(
@@ -220,12 +237,25 @@
 			{/if}
 		</div>
 
+		{#if askConsent}
+			<div class="consent" role="alertdialog" aria-labelledby="voice-title" aria-describedby="voice-text">
+				<p id="voice-title" class="consent-title">{i18n.m.capture.voiceAskTitle}</p>
+				<p id="voice-text" class="consent-text">{i18n.m.capture.voiceAskText}</p>
+				<div class="consent-actions">
+					<Button onclick={acceptVoice}>{i18n.m.capture.voiceAccept}</Button>
+					<Button variant="secondary" onclick={() => (askConsent = false)}>{i18n.m.capture.voiceDecline}</Button>
+				</div>
+			</div>
+		{/if}
+
 		{#if stopDictation}
 			<div class="listening">
 				<span class="pulse" aria-hidden="true"></span>
 				<div class="listening-text">
 					<p class="listening-status" role="status">{i18n.m.capture.listening}</p>
-					<p class="listening-note"><Icon name="lock" size={16} />{i18n.m.capture.voicePrivacy}</p>
+					<p class="listening-note">
+						{#if mode === 'local'}<Icon name="lock" size={16} />{/if}{mode === 'local' ? i18n.m.capture.voicePrivacy : i18n.m.capture.voiceCloud}
+					</p>
 				</div>
 				<Button variant="secondary" onclick={toggleDictation}>{i18n.m.capture.finishDictation}</Button>
 			</div>
@@ -335,6 +365,32 @@
 		line-height: 1.4;
 		background: var(--bg);
 		resize: none;
+	}
+	.consent {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
+		border-radius: 16px;
+		border: 1px solid var(--border-control);
+	}
+	.consent p {
+		margin: 0;
+	}
+	.consent-title {
+		font-family: var(--font-display);
+		font-size: 18px;
+		font-weight: 700;
+	}
+	.consent-text {
+		font-size: 14px;
+		line-height: 1.45;
+		color: var(--text-muted);
+	}
+	.consent-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
 	}
 	.listening {
 		display: flex;

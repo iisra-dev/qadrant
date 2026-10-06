@@ -8,7 +8,7 @@
 	import { nextToday } from '$lib/domain/scheduler';
 	import { formatDuration, formatTime } from '$lib/domain/format';
 	import { sameDay } from '$lib/domain/dates';
-	import { localSpeechAvailable } from '$lib/app/speech';
+	import { speechMode } from '$lib/app/speech';
 	import TaskDetail from '$lib/task/TaskDetail.svelte';
 	import { capture } from '$lib/app/capture.svelte';
 	import { repos } from '$lib/db/repositories';
@@ -70,10 +70,10 @@
 		return sameDay(start, clock.now) ? formatTime(start) : undefined;
 	}
 
-	// Dictation only with on-device recognition (docs/01); otherwise no microphone button.
+	// A microphone only if the browser can dictate at all; the sheet asks before sending audio out (docs/01).
 	let canDictate = $state(false);
 	onMount(() => {
-		void localSpeechAvailable(i18n.lang).then((available) => (canDictate = available));
+		void speechMode(i18n.lang).then((mode) => (canDictate = mode !== 'none'));
 	});
 
 	// On web the detail opens as a side panel with shallow routing (docs/02).

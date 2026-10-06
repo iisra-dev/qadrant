@@ -101,6 +101,12 @@ export const es: Messages = {
 		draftNote: 'Si sales, se queda como borrador',
 		listening: 'Escuchando…',
 		voicePrivacy: 'El audio se procesa en tu dispositivo y no se guarda',
+		voiceCloud: 'Tu navegador envía el audio a su servicio de voz (Apple o Google). Tus tareas no salen del dispositivo.',
+		voiceAskTitle: '¿Dictar con el servicio de tu navegador?',
+		voiceAskText:
+			'Este navegador no puede transcribir en el dispositivo. Para dictar, envía lo que dices a su servicio de voz (Apple en Safari, Google en Chrome). Solo sale el audio; tus tareas se quedan en el dispositivo. Puedes desactivarlo en Ajustes.',
+		voiceAccept: 'Usar el dictado',
+		voiceDecline: 'Ahora no',
 		finishDictation: 'Terminar y revisar',
 		details: 'Más detalles',
 		dictate: 'Dictar',
@@ -237,6 +243,8 @@ export const es: Messages = {
 		webgpu: 'WebGPU',
 		wasm: 'WASM',
 		downloadNow: 'Descargar ahora',
+		voice: 'Dictado con el servicio del navegador',
+		voiceNote: 'Solo donde el navegador no transcribe en el dispositivo: envía el audio a Apple o Google. Tus tareas no salen del dispositivo.',
 		retry: 'Reintentar',
 		removeModel: 'Borrar el modelo',
 		removeAsk: '¿Borrar el modelo de este dispositivo?',
@@ -314,6 +322,11 @@ export const es: Messages = {
 		calendarUnavailable: 'No se puede consultar el calendario ahora.',
 		calendarNote:
 			'Google, iCloud y Outlook ofrecen una dirección secreta de solo lectura. Se guarda en tu servidor, no en este dispositivo; la agenda muestra tus eventos y no coloca tareas encima de los que tienen hora.'
+	},
+	footer: {
+		app: 'Qadrant',
+		licenses: 'Licencias de terceros',
+		author: 'Autor: iisra-dev en GitHub'
 	},
 	notice: {
 		due: (title) => `Vence: ${title}`,

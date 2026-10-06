@@ -91,9 +91,11 @@ export interface Settings extends Base {
 	};
 	server?: { url: string; token: string };
 	onboardingDone: boolean;
+	/** Agreed to dictate with the browser's service, which sends the audio to Apple or Google. */
+	voiceConsent?: boolean;
 }
 
-export const DEVICE_LOCAL_SETTINGS = ['theme', 'language', 'model', 'server', 'onboardingDone'] as const;
+export const DEVICE_LOCAL_SETTINGS = ['theme', 'language', 'model', 'server', 'onboardingDone', 'voiceConsent'] as const;
 export type DeviceLocalSettingsKey = (typeof DEVICE_LOCAL_SETTINGS)[number];
 export type SharedSettings = Omit<Settings, DeviceLocalSettingsKey>;
 

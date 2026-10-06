@@ -102,6 +102,12 @@ export const en = {
 		draftNote: 'If you leave, it stays as a draft',
 		listening: 'Listening…',
 		voicePrivacy: 'The audio is processed on your device and not stored',
+		voiceCloud: 'Your browser sends the audio to its speech service (Apple or Google). Your tasks stay on the device.',
+		voiceAskTitle: 'Dictate with your browser’s service?',
+		voiceAskText:
+			'This browser cannot transcribe on the device. To dictate, it sends what you say to its speech service (Apple in Safari, Google in Chrome). Only the audio goes; your tasks stay on the device. You can turn it off in Settings.',
+		voiceAccept: 'Use dictation',
+		voiceDecline: 'Not now',
 		finishDictation: 'Finish and review',
 		details: 'More details',
 		dictate: 'Dictate',
@@ -238,6 +244,8 @@ export const en = {
 		webgpu: 'WebGPU',
 		wasm: 'WASM',
 		downloadNow: 'Download now',
+		voice: 'Dictate with the browser’s service',
+		voiceNote: 'Only where the browser cannot transcribe on the device: it sends the audio to Apple or Google. Your tasks stay on the device.',
 		retry: 'Try again',
 		removeModel: 'Delete the model',
 		removeAsk: 'Delete the model from this device?',
@@ -316,6 +324,11 @@ export const en = {
 		calendarUnavailable: 'The calendar cannot be checked right now.',
 		calendarNote:
 			'Google, iCloud and Outlook offer a secret read-only address. It is stored on your server, not on this device; the agenda shows your events and never places tasks over timed ones.'
+	},
+	footer: {
+		app: 'Qadrant',
+		licenses: 'Third-party licenses',
+		author: 'Author: iisra-dev on GitHub'
 	},
 	notice: {
 		due: (title: string) => `Due: ${title}`,

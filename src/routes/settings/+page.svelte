@@ -10,7 +10,8 @@
 	import { activeGoals, people, settings } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme, type Theme } from '$lib/theme';
-	import { AiDot, Button, Icon, SettingsGroup, Sheet } from '$lib/ui';
+	import { AiDot, AppFooter, Button, Icon, SettingsGroup, Sheet } from '$lib/ui';
+	import { media } from '$lib/app/media.svelte';
 	import { downloadModel, engineState, removeModel } from '$lib/engine';
 	import { MIN_LABELED } from '$lib/domain/learning';
 	import DataSection from './DataSection.svelte';
@@ -290,7 +291,19 @@
 						onchange={(e) => save({ model: { ...s.model, wifiOnly: e.currentTarget.checked } })}
 					/>
 				</div>
+				<div class="row">
+					<label for="s-voice">{m.voice}</label>
+					<input
+						id="s-voice"
+						class="check"
+						type="checkbox"
+						aria-describedby="s-voice-note"
+						checked={s.voiceConsent ?? false}
+						onchange={(e) => save({ voiceConsent: e.currentTarget.checked })}
+					/>
+				</div>
 			</div>
+			<p id="s-voice-note" class="note">{m.voiceNote}</p>
 			{#if engine.model === 'absent' || engine.model === 'error'}
 				<Button variant="secondary" onclick={downloadModel}>{engine.model === 'error' ? m.retry : m.downloadNow}</Button>
 			{/if}
@@ -327,6 +340,7 @@
 		<DataSection {persisted} />
 
 		<p class="only-here"><Icon name="lock" size={16} />{i18n.m.common.onlyHere}</p>
+		{#if !media.web}<AppFooter />{/if}
 	{/if}
 </div>
 
