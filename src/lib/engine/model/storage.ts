@@ -88,6 +88,31 @@ export async function storedManifests(): Promise<{ model: ModelManifest; runtime
 	return null;
 }
 
+/** Reads a body while reporting the bytes received, so a 25 MiB part does not look stuck. */
+async function readWithProgress(
+	response: Response,
+	expected: number,
+	onBytes: (received: number) => void
+): Promise<Uint8Array<ArrayBuffer>> {
+	if (!response.body) return new Uint8Array(await response.arrayBuffer());
+	const reader = response.body.getReader();
+	const out = new Uint8Array(expected);
+	let received = 0;
+	let reported = 0;
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		if (received + value.byteLength > expected) throw new Error('part larger than the manifest says');
+		out.set(value, received);
+		received += value.byteLength;
+		if (received - reported >= 1_000_000) {
+			reported = received;
+			onBytes(received);
+		}
+	}
+	return received === expected ? out : out.subarray(0, received);
+}
+
 /** Downloads what is missing; resumes from the verified parts already stored. */
 export async function download(
 	model: ModelManifest,
@@ -108,7 +133,7 @@ export async function download(
 		if (!done.has(job.part.sha256)) {
 			const response = await fetch(job.base + job.part.file);
 			if (!response.ok) throw new Error(`download ${job.part.file}: ${response.status}`);
-			const data = new Uint8Array(await response.arrayBuffer());
+			const data = await readWithProgress(response, job.part.bytes, (received) => onProgress(bytes + received));
 			if (data.byteLength !== job.part.bytes || (await sha256(data)) !== job.part.sha256) {
 				throw new Error(`${job.part.file} does not match the manifest`);
 			}
