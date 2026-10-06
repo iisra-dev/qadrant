@@ -27,3 +27,6 @@
 
 /manifest.webmanifest
   Cross-Origin-Resource-Policy: cross-origin
+
+/licenses.txt
+  Content-Type: text/plain; charset=utf-8

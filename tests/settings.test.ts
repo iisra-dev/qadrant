@@ -100,3 +100,13 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	await page.getByRole('link', { name: 'Matriz' }).click();
 	await expect(page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: 'Tarea de otro dispositivo' })).toBeVisible();
 });
+
+test('the footer links the licenses and the author', async ({ page, request }) => {
+	await startApp(page);
+	await page.getByRole('link', { name: 'Ajustes', exact: true }).click();
+	await expect(page.getByRole('link', { name: 'Licencias de terceros' })).toHaveAttribute('href', '/licenses.txt');
+	await expect(page.getByRole('link', { name: 'Autor: iisra-dev en GitHub' })).toHaveAttribute('href', 'https://github.com/iisra-dev');
+	const licenses = await (await request.get('/licenses.txt')).text();
+	expect(licenses).toContain('onnxruntime-web');
+	expect(licenses).toContain('paraphrase-multilingual-MiniLM-L12-v2');
+});

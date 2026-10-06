@@ -45,7 +45,7 @@ export default defineConfig({
 			injectManifest: {
 				// The runtime's small .mjs glue too, so the model works offline; its .wasm
 				// and the model live in OPFS, never in the precache (docs/02).
-				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}', 'client/ort/*.mjs'],
+				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}', 'client/ort/*.mjs', 'client/licenses.txt'],
 				maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
 			}
 		})
