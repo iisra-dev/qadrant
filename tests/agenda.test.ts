@@ -6,7 +6,7 @@ test('a task with a manual time appears in the day agenda', async ({ page }) => 
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy, media hora');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: 'Llamar al taller' }).click();
 	const tomorrow = new Date(Date.now() + 86_400_000);

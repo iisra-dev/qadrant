@@ -15,7 +15,7 @@ test('captures a task, shows the proposal and saves it in Hacer', async ({ page 
 	const sheet = await openCapture(page);
 	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toBeFocused();
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller mañana, media hora');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await expect(sheet.getByText('Sí · vence')).toBeVisible();
 	await expect(sheet.getByText('30 min')).toBeVisible();
 	await expect(sheet.getByRole('button', { name: 'Hacer', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -29,7 +29,7 @@ test('Enter saves and a doubt is asked instead of saving', async ({ page }) => {
 	const field = sheet.getByRole('textbox', { name: 'Tarea' });
 	await field.fill('Mirar cursos de inglés');
 	await field.press('Enter');
-	await expect(sheet.getByText('NO LO TENGO CLARO')).toBeVisible();
+	await expect(sheet.getByText('No lo tengo claro', { exact: true })).toBeVisible();
 	await expect(sheet.getByText('¿Te acerca a alguno de tus objetivos?')).toBeVisible();
 	await sheet.getByRole('button', { name: /Sí, es importante.*va a Programar/ }).click();
 	await expect(sheet).toBeHidden();
@@ -43,7 +43,7 @@ test('adding a date from the doubt recalculates the proposal', async ({ page }) 
 	const tomorrow = new Date(Date.now() + 86_400_000);
 	const key = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 	await sheet.getByLabel('Fecha límite').fill(key);
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await expect(quadrant(page, 'Hacer').getByRole('link', { name: 'Revisar el contrato' })).toBeVisible();
 });
@@ -51,7 +51,7 @@ test('adding a date from the doubt recalculates the proposal', async ({ page }) 
 test('choosing a quadrant by hand from the doubt', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Ordenar marcadores del navegador');
-	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
+	await sheet.getByRole('button', { name: 'Elegir a mano' }).click();
 	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await expect(quadrant(page, 'Eliminar').getByRole('link', { name: 'Ordenar marcadores del navegador' })).toBeVisible();
@@ -60,7 +60,7 @@ test('choosing a quadrant by hand from the doubt', async ({ page }) => {
 test('corrects the quadrant in the detail and explains it', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await quadrant(page, 'Hacer').getByRole('link', { name: 'Llamar al taller' }).click();
 	await expect(page).toHaveURL(/\/task\//);
@@ -76,7 +76,7 @@ test('corrects the quadrant in the detail and explains it', async ({ page }) => 
 test('completes a task from the matrix', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Pagar recibo, venció ayer');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const hacer = quadrant(page, 'Hacer');
 	await expect(hacer.getByText('Vencida')).toBeVisible();
@@ -97,7 +97,7 @@ test('a done task disappears 24 hours later', async ({ page }) => {
 	await page.clock.setFixedTime(new Date('2026-10-02T10:00:00+02:00'));
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const hacer = quadrant(page, 'Hacer');
 	await hacer.getByRole('checkbox', { name: 'Completar: Llamar al taller' }).check();
@@ -109,19 +109,29 @@ test('a done task disappears 24 hours later', async ({ page }) => {
 	await expect(hacer.getByRole('link', { name: /Llamar al taller/ })).toBeHidden();
 });
 
-test('closing the capture keeps the text as a draft', async ({ page }) => {
+test('closing the capture discards what was typed', async ({ page }) => {
 	const sheet = await openCapture(page);
+	await expect(sheet.getByText('Escribe como lo dirías. Por ejemplo:')).toBeVisible();
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Cerrar' }).click();
+	await expect(sheet).toBeHidden();
+	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
+	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('');
+	// Esc closes too, and also discards.
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Otra cosa');
+	await page.keyboard.press('Escape');
 	await expect(sheet).toBeHidden();
 	await page.reload();
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
-	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('Llamar al taller hoy');
-	await expect(sheet.getByText('VA A')).toBeVisible();
-	await sheet.getByRole('button', { name: 'Guardar' }).click();
-	// Once saved, the next capture starts empty.
-	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('');
+});
+
+test('an example fills the capture and gets a proposal', async ({ page }) => {
+	const sheet = await openCapture(page);
+	await sheet.getByRole('button', { name: 'Llamar al taller mañana' }).click();
+	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('Llamar al taller mañana');
+	await expect(sheet.getByRole('button', { name: 'Guardar en Hacer' })).toBeVisible();
 });
 
 test('the summary pills show quadrants with tasks and jump to them', async ({ page }) => {
@@ -131,7 +141,7 @@ test('the summary pills show quadrants with tasks and jump to them', async ({ pa
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Ordenar marcadores del navegador');
-	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
+	await sheet.getByRole('button', { name: 'Elegir a mano' }).click();
 	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const summary = page.getByRole('navigation', { name: 'Cuadrantes' });
@@ -144,7 +154,7 @@ test('the summary pills show quadrants with tasks and jump to them', async ({ pa
 test('archives Eliminar with confirmation and undo', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Ver webinar sin agenda');
-	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
+	await sheet.getByRole('button', { name: 'Elegir a mano' }).click();
 	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const eliminar = quadrant(page, 'Eliminar');
@@ -158,7 +168,7 @@ test('archives Eliminar with confirmation and undo', async ({ page }) => {
 test('swiping a row left reveals "Hecha" as a shortcut', async ({ page }) => {
 	const sheet = await openCapture(page);
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const hacer = quadrant(page, 'Hacer');
 	const link = hacer.getByRole('link', { name: /Llamar al taller/ });

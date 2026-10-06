@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import type { Quadrant } from '$lib/domain/types';
 	import { i18n } from '$lib/i18n/index.svelte';
+	import QuadrantGlyph from './QuadrantGlyph.svelte';
 	import { quadrantVars } from './quadrants';
 
 	type Item = { id: string };
@@ -32,22 +33,11 @@
 	const visible = $derived(expanded ? items : items.slice(0, limit));
 	const hidden = $derived(items.length - Math.min(items.length, limit));
 	const listId = $derived(`quadrant-${quadrant}-list`);
-	// Position of the quadrant in the 2 x 2 matrix: a cue that does not rely on color.
-	const CELLS = [
-		{ quadrant: 'do', x: 1, y: 1 },
-		{ quadrant: 'schedule', x: 9, y: 1 },
-		{ quadrant: 'delegate', x: 1, y: 9 },
-		{ quadrant: 'eliminate', x: 9, y: 9 }
-	] as const;
 </script>
 
 <section class="card" id={`quadrant-${quadrant}`} style={quadrantVars(quadrant)} aria-labelledby={`quadrant-${quadrant}-title`}>
 	<div class="head">
-		<svg class="glyph" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true">
-			{#each CELLS as cell (cell.quadrant)}
-				<rect x={cell.x} y={cell.y} width="6" height="6" rx="1.5" fill="currentColor" opacity={cell.quadrant === quadrant ? 1 : 0.22} />
-			{/each}
-		</svg>
+		<QuadrantGlyph {quadrant} />
 		<div class="names">
 			<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
 			<span class="rule">{meta.rule}</span>
@@ -84,6 +74,8 @@
 		flex-direction: column;
 		min-width: 0;
 		scroll-margin-top: var(--space-4);
+		/* The quadrant's color, kept for rows that sit on the plain surface. */
+		--q-tint: var(--q-bg);
 	}
 	.head {
 		padding: 14px var(--space-4);
@@ -92,9 +84,6 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-	}
-	.glyph {
-		flex-shrink: 0;
 	}
 	.names {
 		flex-grow: 1;

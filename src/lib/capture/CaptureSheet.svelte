@@ -13,11 +13,19 @@
 	import { classify, latestClassifier } from '$lib/engine';
 	import { taskActions } from '$lib/tasks/actions';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import { AiDot, Button, Icon, IconButton, QuadrantPicker, quadrantVars, Sheet } from '$lib/ui';
+	import { fade, fly, slide } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { AiDot, autoHeight, Button, Icon, IconButton, QuadrantGlyph, QuadrantPicker, quadrantVars, Sheet } from '$lib/ui';
 	import { activeGoals, calendarEvents, openTasks, people } from '$lib/stores';
 
 	const DEBOUNCE_MS = 400;
+	/** "Thinking" shows only if the answer takes longer than this: rules answer at once and never flash it. */
+	const THINKING_DELAY_MS = 150;
 	const classifyLatest = latestClassifier();
+
+	// Entrances slide up a little; with reduced motion they only fade (docs/05, "Movimiento").
+	const reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const rise = (delay = 0) => ({ y: reduced ? 0 : 8, duration: reduced ? 150 : 320, delay: reduced ? 0 : delay, easing: quintOut });
 
 	let text = $state('');
 	// Raw: the decision is stored in IndexedDB as is, and proxies cannot be cloned.
@@ -25,6 +33,7 @@
 	let decidedFor = $state('');
 	let chosen = $state<Quadrant | null>(null);
 	let saving = $state(false);
+	let thinking = $state(false);
 	let showDate = $state(false);
 	let showPicker = $state(false);
 	let dateValue = $state('');
@@ -74,10 +83,14 @@
 		if (!current) {
 			decision = null;
 			decidedFor = '';
+			thinking = false;
 			return;
 		}
 		const timer = setTimeout(async () => {
+			const slow = setTimeout(() => (thinking = true), THINKING_DELAY_MS);
 			const result = await classifyLatest(current, classifyContext());
+			clearTimeout(slow);
+			thinking = false;
 			if (result) setDecision(result, current);
 		}, DEBOUNCE_MS);
 		return () => clearTimeout(timer);
@@ -99,13 +112,18 @@
 		return result;
 	}
 
-	/** Closing without saving keeps the text as a draft (docs/01, "Captura"). */
-	function close(saved = false) {
-		// The dialog's own close event comes after a save; the draft is already settled.
+	/** Closing without saving discards the text (docs/01, "Captura"). */
+	function close() {
 		if (!capture.open) return;
 		stopDictation?.();
 		stopDictation = null;
-		capture.hide(saved ? '' : text);
+		thinking = false;
+		capture.hide();
+	}
+
+	function useExample(example: string) {
+		text = example;
+		textarea?.focus();
 	}
 
 	async function save(options: { details?: boolean } = {}) {
@@ -122,7 +140,8 @@
 				settings: currentSettings(),
 				scheduledAt: slotFor(chosen ?? result.quadrant)
 			});
-			close(true);
+			close();
+			capture.markLanded(task.id);
 			if (options.details) await goto(`/task/${task.id}`);
 		} finally {
 			saving = false;
@@ -133,14 +152,15 @@
 		if (!decision || saving) return;
 		saving = true;
 		try {
-			await taskActions.saveCapture({
+			const task = await taskActions.saveCapture({
 				rawInput: text.trim(),
 				decision,
 				choice: { kind: 'answer', answer: yes },
 				settings: currentSettings(),
 				scheduledAt: outcomes ? slotFor(yes ? outcomes.yes : outcomes.no) : undefined
 			});
-			close(true);
+			close();
+			capture.markLanded(task.id);
 		} finally {
 			saving = false;
 		}
@@ -222,23 +242,26 @@
 			<textarea
 				id="capture-text"
 				rows="2"
+				class:with-mic={canDictate}
 				bind:this={textarea}
 				bind:value={text}
 				onkeydown={onTextKeydown}
 				placeholder={i18n.m.capture.placeholder}
 			></textarea>
 			{#if canDictate}
-				<IconButton
-					label={stopDictation ? i18n.m.capture.stopDictation : i18n.m.capture.dictate}
-					icon="mic"
-					aria-pressed={Boolean(stopDictation)}
-					onclick={toggleDictation}
-				/>
+				<span class="mic" class:on={Boolean(stopDictation)}>
+					<IconButton
+						label={stopDictation ? i18n.m.capture.stopDictation : i18n.m.capture.dictate}
+						icon="mic"
+						aria-pressed={Boolean(stopDictation)}
+						onclick={toggleDictation}
+					/>
+				</span>
 			{/if}
 		</div>
 
 		{#if askConsent}
-			<div class="consent" role="alertdialog" aria-labelledby="voice-title" aria-describedby="voice-text">
+			<div class="consent" role="alertdialog" aria-labelledby="voice-title" aria-describedby="voice-text" transition:slide={{ duration: reduced ? 0 : 280 }}>
 				<p id="voice-title" class="consent-title">{i18n.m.capture.voiceAskTitle}</p>
 				<p id="voice-text" class="consent-text">{i18n.m.capture.voiceAskText}</p>
 				<div class="consent-actions">
@@ -249,7 +272,7 @@
 		{/if}
 
 		{#if stopDictation}
-			<div class="listening">
+			<div class="listening" transition:slide={{ duration: reduced ? 0 : 280 }}>
 				<span class="pulse" aria-hidden="true"></span>
 				<div class="listening-text">
 					<p class="listening-status" role="status">{i18n.m.capture.listening}</p>
@@ -261,75 +284,100 @@
 			</div>
 		{/if}
 
-		{#if decision && isDoubt && decision.ask && outcomes}
-			<div class="doubt">
-				<span class="label">
-					<AiDot />{i18n.m.capture.unsure}{#if doubtP !== null}&nbsp;· {formatPercent(doubtP, i18n.lang)}{/if}
-				</span>
-				<p class="question">
-					{decision.ask === 'importance' ? i18n.m.capture.askImportance : i18n.m.capture.askDelegable}
-				</p>
-				<p class="context">{doubtText(decision, explainCtx)}</p>
-			</div>
-			<div class="answers">
-				<button type="button" class="answer" style={quadrantVars(outcomes.yes)} onclick={() => answer(true)} disabled={saving}>
-					{decision.ask === 'importance' ? i18n.m.capture.yesImportant : i18n.m.capture.yesDelegable}
-					<span>{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.yes].name)}</span>
-				</button>
-				<button type="button" class="answer" style={quadrantVars(outcomes.no)} onclick={() => answer(false)} disabled={saving}>
-					{decision.ask === 'importance' ? i18n.m.capture.noImportant : i18n.m.capture.noDelegable}
-					<span>{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.no].name)}</span>
-				</button>
-			</div>
-			<div class="links">
-				<Button variant="text" aria-expanded={showDate} onclick={() => (showDate = !showDate)}>{i18n.m.capture.addDate}</Button>
-				<Button variant="text" aria-expanded={showPicker} onclick={() => (showPicker = !showPicker)}>
-					{i18n.m.capture.pickByHand}
-				</Button>
-			</div>
-			{#if showDate}
-				<div class="date">
-					<label for="capture-date">{i18n.m.capture.dueDate}</label>
-					<input id="capture-date" type="date" bind:value={dateValue} onchange={applyDate} />
-				</div>
-			{/if}
-			{#if showPicker}
-				<QuadrantPicker value={chosen} label={i18n.m.capture.choose} onchange={(q) => (chosen = q)} />
-			{/if}
-		{:else if decision && quadrant && lines}
-			<div class="result" style={quadrantVars(quadrant)}>
-				<div class="result-head">
-					<div class="result-main">
-						<span class="label">
-							{#if !chosen}<AiDot />{/if}{chosen ? i18n.m.capture.youPut : i18n.m.capture.goesTo}
-						</span>
-						<span class="result-name">{i18n.m.quadrants[quadrant].name}</span>
+		<!-- The proposal area grows and shrinks smoothly instead of jumping (docs/05, "Movimiento"). -->
+		<div class="zone" use:autoHeight>
+			<div class="zone-inner">
+				{#if decision && isDoubt && decision.ask && outcomes}
+					<div class="doubt-block" in:fly={rise()}>
+						<div class="doubt">
+							<span class="label">
+								<AiDot />{i18n.m.capture.unsure}{#if doubtP !== null}&nbsp;· {formatPercent(doubtP, i18n.lang)}{/if}
+							</span>
+							<p class="question">
+								{decision.ask === 'importance' ? i18n.m.capture.askImportance : i18n.m.capture.askDelegable}
+							</p>
+							<p class="context">{doubtText(decision, explainCtx)}</p>
+						</div>
+						<div class="answers">
+							<button type="button" class="answer" style={quadrantVars(outcomes.yes)} onclick={() => answer(true)} disabled={saving}>
+								<span class="answer-text">{decision.ask === 'importance' ? i18n.m.capture.yesImportant : i18n.m.capture.yesDelegable}</span>
+								<span class="answer-goes">{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.yes].name)}</span>
+								<Icon name="next" size={16} />
+							</button>
+							<button type="button" class="answer" style={quadrantVars(outcomes.no)} onclick={() => answer(false)} disabled={saving}>
+								<span class="answer-text">{decision.ask === 'importance' ? i18n.m.capture.noImportant : i18n.m.capture.noDelegable}</span>
+								<span class="answer-goes">{i18n.m.capture.goesToQuadrant(i18n.m.quadrants[outcomes.no].name)}</span>
+								<Icon name="next" size={16} />
+							</button>
+						</div>
+						<div class="links">
+							<button type="button" class="chip" aria-expanded={showDate} onclick={() => (showDate = !showDate)}>
+								<Icon name="agenda" size={16} />{i18n.m.capture.addDate}
+							</button>
+							<button type="button" class="chip" aria-expanded={showPicker} onclick={() => (showPicker = !showPicker)}>
+								<Icon name="matrix" size={16} />{i18n.m.capture.pickByHand}
+							</button>
+						</div>
+						{#if showDate}
+							<div class="date" in:fly={rise()}>
+								<label for="capture-date">{i18n.m.capture.dueDate}</label>
+								<input id="capture-date" type="date" bind:value={dateValue} onchange={applyDate} />
+							</div>
+						{/if}
+						{#if showPicker}
+							<div in:fly={rise()}>
+								<QuadrantPicker value={chosen} label={i18n.m.capture.choose} onchange={(q) => (chosen = q)} />
+							</div>
+						{/if}
 					</div>
-					<span class="result-rule">{i18n.m.quadrants[quadrant].result}</span>
-				</div>
-				<dl>
-					<div><dt>{i18n.m.capture.urgent}</dt><dd>{lines.urgent}</dd></div>
-					<div><dt>{i18n.m.capture.important}</dt><dd>{lines.important}</dd></div>
-					<div><dt>{i18n.m.capture.slot}</dt><dd>{lines.slot}</dd></div>
-				</dl>
+				{:else if decision && quadrant && lines}
+					<div class="proposal" in:fly={rise()}>
+						<!-- The color follows the quadrant with a transition when it changes. -->
+						<div class="result" style={quadrantVars(quadrant)}>
+							<div class="result-head">
+								<div class="result-main">
+									<span class="label">{#if !chosen}<AiDot />{/if}{chosen ? i18n.m.capture.youPut : i18n.m.capture.goesTo}</span>
+									<span class="result-name">{i18n.m.quadrants[quadrant].name}</span>
+								</div>
+								<QuadrantGlyph {quadrant} size={28} />
+							</div>
+							<dl>
+								<div in:fly={rise(80)}><dt>{i18n.m.capture.urgent}</dt><dd>{lines.urgent}</dd></div>
+								<div in:fly={rise(140)}><dt>{i18n.m.capture.important}</dt><dd>{lines.important}</dd></div>
+								<div in:fly={rise(200)}><dt>{i18n.m.capture.slot}</dt><dd>{lines.slot}</dd></div>
+							</dl>
+						</div>
+						<QuadrantPicker value={quadrant} label={i18n.m.capture.change} onchange={(q) => (chosen = q)} />
+					</div>
+				{:else if thinking}
+					<div class="thinking" role="status" in:fade={{ duration: 150 }}>
+						<span class="label"><span class="beat" aria-hidden="true"></span>{i18n.m.capture.thinking}</span>
+						<span class="bar wide" aria-hidden="true"></span>
+						<span class="bar" aria-hidden="true"></span>
+						<span class="bar short" aria-hidden="true"></span>
+					</div>
+				{:else}
+					<!-- Stays while the first proposal is on its way, so the area does not collapse and grow again. -->
+					<div class="examples" in:fade={{ duration: 150 }}>
+						<span class="examples-label">{i18n.m.capture.examplesLabel}</span>
+						<div class="example-list">
+							{#each i18n.m.capture.examples as example (example)}
+								<button type="button" class="example" onclick={() => useExample(example)}>{example}</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
 			</div>
-			<div class="change">
-				<span class="hint">{i18n.m.capture.changeHint}</span>
-				<QuadrantPicker value={quadrant} label={i18n.m.capture.change} onchange={(q) => (chosen = q)} />
-			</div>
-		{/if}
+		</div>
 
 		{#if !isDoubt}
-			<div class="actions">
+			<div class="actions" transition:slide={{ duration: reduced ? 0 : 320, easing: quintOut }}>
 				<Button size="lg" block onclick={() => save()} disabled={saving || !text.trim()}>
 					{quadrant ? i18n.m.capture.saveIn(i18n.m.quadrants[quadrant].name) : i18n.m.capture.save}
 				</Button>
-				<div class="secondary">
-					<Button variant="text" onclick={() => save({ details: true })} disabled={saving || !text.trim()}>
-						{i18n.m.capture.details}
-					</Button>
-					<span class="draft-note">{i18n.m.capture.draftNote}</span>
-				</div>
+				<Button variant="text" onclick={() => save({ details: true })} disabled={saving || !text.trim()}>
+					{i18n.m.capture.details}
+				</Button>
 			</div>
 		{/if}
 	</div>
@@ -345,26 +393,47 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		margin-right: calc(-1 * var(--space-2));
 	}
 	h2 {
 		margin: 0;
-		font-size: 22px;
+		font-size: 20px;
+		font-weight: 600;
 	}
 	.input {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-2);
+		position: relative;
 	}
 	textarea {
-		flex-grow: 1;
-		min-height: 72px;
-		border: 1px solid var(--border-control);
+		display: block;
+		width: 100%;
+		box-sizing: border-box;
+		min-height: 84px;
+		border: 1px solid transparent;
 		border-radius: 16px;
-		padding: var(--space-3) 14px;
-		font-size: 16px;
+		padding: 14px var(--space-4);
+		font-size: 17px;
 		line-height: 1.4;
-		background: var(--bg);
+		background: var(--surface-muted);
+		color: var(--text);
 		resize: none;
+	}
+	textarea.with-mic {
+		padding-right: 56px;
+	}
+	.mic {
+		position: absolute;
+		right: var(--space-1);
+		bottom: var(--space-1);
+		border-radius: var(--radius-pill);
+		background: var(--surface);
+		box-shadow: 0 1px 2px rgb(9 9 11 / 0.1);
+	}
+	.mic.on {
+		background: var(--cta-bg);
+		color: var(--cta-text);
+	}
+	.mic.on :global(.icon-button) {
+		color: inherit;
 	}
 	.consent {
 		display: flex;
@@ -380,7 +449,7 @@
 	.consent-title {
 		font-family: var(--font-display);
 		font-size: 18px;
-		font-weight: 700;
+		font-weight: 600;
 	}
 	.consent-text {
 		font-size: 14px;
@@ -414,11 +483,6 @@
 			opacity: 0.3;
 		}
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.pulse {
-			animation: none;
-		}
-	}
 	.listening-text {
 		flex: 1 1 180px;
 		min-width: 0;
@@ -429,7 +493,7 @@
 	.listening-status {
 		font-family: var(--font-display);
 		font-size: 18px;
-		font-weight: 700;
+		font-weight: 600;
 	}
 	.listening-note {
 		display: flex;
@@ -438,80 +502,152 @@
 		font-size: 13px;
 		color: var(--text-muted);
 	}
+	.zone {
+		transition: height 320ms cubic-bezier(0.32, 0.72, 0, 1);
+	}
+	.zone-inner {
+		display: flex;
+		flex-direction: column;
+	}
 	.label {
-		font-family: var(--font-mono);
-		font-size: 11px;
-		font-weight: 500;
-		letter-spacing: 0.08em;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		font-weight: 600;
+	}
+	.examples {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+	.examples-label {
+		font-size: 13px;
+		color: var(--text-muted);
+	}
+	.example-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+	.example {
+		min-height: var(--touch);
+		padding: 0 14px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-pill);
+		background: var(--surface);
+		color: var(--text);
+		font: inherit;
+		font-size: 14px;
+		cursor: pointer;
+	}
+	/* Placeholder while a slow answer (the model) comes: same place and size as the proposal. */
+	.thinking {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		min-height: 168px;
+		box-sizing: border-box;
+		padding: var(--space-4);
+		border-radius: var(--radius-card);
+		background: var(--surface-muted);
+		color: var(--text-muted);
+	}
+	.beat {
+		width: 8px;
+		height: 8px;
+		border-radius: 4px;
+		background: var(--accent-ai);
+		animation: beat 1.1s ease-in-out infinite;
+	}
+	@keyframes beat {
+		50% {
+			transform: scale(0.6);
+			opacity: 0.45;
+		}
+	}
+	.bar {
+		width: 70%;
+		height: 12px;
+		border-radius: 6px;
+		background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+		background-size: 200% 100%;
+		animation: shimmer 1.4s linear infinite;
+	}
+	.bar.wide {
+		width: 88%;
+	}
+	.bar.short {
+		width: 52%;
+	}
+	@keyframes shimmer {
+		from {
+			background-position: 200% 0;
+		}
+		to {
+			background-position: -200% 0;
+		}
+	}
+	.proposal {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
 	}
 	.result {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
+		gap: var(--space-2-5);
 		background: var(--q-bg);
 		color: var(--q-ink);
 		border-radius: var(--radius-card);
-		padding: 14px var(--space-4);
+		padding: var(--space-4);
+		transition:
+			background-color 300ms ease,
+			color 300ms ease;
 	}
 	.result-head {
 		display: flex;
-		align-items: flex-end;
+		align-items: flex-start;
 		justify-content: space-between;
 		gap: var(--space-3);
 	}
 	.result-main {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
 	}
 	.result-name {
 		font-family: var(--font-display);
 		font-size: 28px;
 		font-weight: 700;
-		line-height: 1.1;
+		line-height: 1.15;
 	}
-	.result-rule {
-		font-size: 13px;
-		text-align: right;
-		max-width: 10em;
-	}
-	/* The three reasons side by side on a phone; they wrap when the text grows. */
+	/* One reason per line: label and value side by side, the value wraps. */
 	dl {
 		margin: 0;
-		padding-top: var(--space-2-5);
-		border-top: 1px solid color-mix(in srgb, var(--q-ink) 16%, transparent);
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-		gap: var(--space-2);
-	}
-	dl div {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
-		min-width: 0;
+		gap: var(--space-1);
+		font-size: 14px;
 	}
-	dt {
-		font-size: 12px;
+	dl div {
+		display: grid;
+		grid-template-columns: 92px minmax(0, 1fr);
+		gap: var(--space-2);
 	}
 	dd {
 		margin: 0;
-		font-size: 14px;
 		font-weight: 600;
 		overflow-wrap: anywhere;
 	}
-	.change {
+	.doubt-block {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
-	}
-	.hint {
-		font-size: 13px;
-		color: var(--text-muted);
+		gap: var(--space-3);
 	}
 	.doubt {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: var(--space-1);
 	}
 	.doubt .label {
 		color: var(--text-muted);
@@ -519,8 +655,8 @@
 	.question {
 		margin: 0;
 		font-family: var(--font-display);
-		font-size: 24px;
-		font-weight: 700;
+		font-size: 22px;
+		font-weight: 600;
 		line-height: 1.25;
 	}
 	.context {
@@ -535,33 +671,48 @@
 		gap: var(--space-2-5);
 	}
 	.answer {
-		min-height: 60px;
+		min-height: 56px;
 		border: 0;
 		border-radius: 16px;
 		background: var(--q-bg);
 		color: var(--q-ink);
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		gap: var(--space-3);
-		padding: var(--space-2) 18px;
+		padding: var(--space-2) 14px var(--space-2) 18px;
 		font: inherit;
 		font-size: 16px;
 		font-weight: 600;
 		text-align: left;
 		cursor: pointer;
 	}
-	.answer span {
+	.answer-text {
+		flex-grow: 1;
+	}
+	.answer-goes {
 		font-size: 13px;
 		font-weight: 400;
 		flex-shrink: 0;
 	}
 	.links {
 		display: flex;
-		justify-content: space-between;
 		flex-wrap: wrap;
-		border-top: 1px solid var(--border);
-		padding-top: var(--space-1);
+		gap: var(--space-2);
+	}
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		min-height: var(--touch);
+		padding: 0 14px;
+		border: 0;
+		border-radius: var(--radius-control);
+		background: var(--surface-muted);
+		color: var(--text);
+		font: inherit;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
 	}
 	.date {
 		display: flex;
@@ -580,17 +731,21 @@
 	.actions {
 		display: flex;
 		flex-direction: column;
+		align-items: flex-start;
 		gap: var(--space-1);
 	}
-	.secondary {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		column-gap: var(--space-3);
+	.actions > :global(:first-child) {
+		align-self: stretch;
 	}
-	.draft-note {
-		font-size: 12px;
-		color: var(--text-muted);
+	@media (prefers-reduced-motion: reduce) {
+		.pulse,
+		.beat,
+		.bar {
+			animation: none;
+		}
+		.zone,
+		.result {
+			transition: none;
+		}
 	}
 </style>

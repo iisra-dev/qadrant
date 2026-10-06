@@ -1,4 +1,5 @@
 export { default as AgendaBlock } from './AgendaBlock.svelte';
+export { autoHeight } from './autoHeight';
 export { default as AppFooter } from './AppFooter.svelte';
 export { default as AiDot } from './AiDot.svelte';
 export { default as Button } from './Button.svelte';
@@ -7,6 +8,7 @@ export { default as Field } from './Field.svelte';
 export { default as Icon } from './Icon.svelte';
 export { default as IconButton } from './IconButton.svelte';
 export { default as QuadrantCard } from './QuadrantCard.svelte';
+export { default as QuadrantGlyph } from './QuadrantGlyph.svelte';
 export { default as QuadrantPicker } from './QuadrantPicker.svelte';
 export { default as SettingsGroup } from './SettingsGroup.svelte';
 export { default as Sheet } from './Sheet.svelte';
