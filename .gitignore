@@ -58,3 +58,6 @@ tools/embed-eval/model/
 # Model bench (generated)
 tools/model-bench/public/
 tools/model-bench/dist/
+
+# Personal course material (not part of the project)
+Mobile-First-Documentation/
