@@ -24,6 +24,7 @@
 	const openCount = (quadrant: Quadrant) => groups[quadrant].filter((task) => task.status === 'open').length;
 	const openEliminate = $derived(groups.eliminate.filter((task) => task.status === 'open'));
 	const today = $derived(formatLongDate(clock.now, i18n.lang));
+	const summary = $derived(QUADRANTS.filter((quadrant) => openCount(quadrant) > 0));
 
 	function personName(id: string | undefined): string | undefined {
 		return id ? $people.find((person) => person.id === id)?.name : undefined;
@@ -95,48 +96,56 @@
 	<title>{i18n.m.common.pageTitle(i18n.m.matrix.title)}</title>
 </svelte:head>
 
+{#snippet eliminateFooter()}
+	{#if stale.length > 0}
+		<p class="suggest"><AiDot />{i18n.m.matrix.stale(stale.length)}</p>
+		<button class="archive" type="button" onclick={archiveStale}>
+			{i18n.m.matrix.archiveStale(stale.length)}
+		</button>
+	{/if}
+	<button class="archive" type="button" onclick={() => (confirmArchive = true)}>
+		{i18n.m.matrix.archiveAll(openEliminate.length)}
+	</button>
+{/snippet}
+
+{#snippet nextCard()}
+	{#if next}
+		<!-- The first thing to do today, before any list (docs/01, "Matriz"). -->
+		<a class="next" href="/agenda">
+			<span class="next-time">
+				<span>{formatTime(next.start)}</span>
+				<span class="next-duration">{formatDuration(next.task.durationMin ?? 30)}</span>
+			</span>
+			<span class="next-body">
+				<span class="next-label"><AiDot />{i18n.m.matrix.nextLabel}</span>
+				<span class="next-title">{next.task.title}</span>
+			</span>
+			<span class="next-chevron"><Icon name="next" size={20} /></span>
+		</a>
+	{/if}
+{/snippet}
+
 <div class="page" class:wide={media.wide}>
 <div class="matrix">
-	<div class="top">
-		<header>
-			<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
-			<h1>{i18n.m.matrix.title}</h1>
-		</header>
-		{#if next}
-			<!-- The first thing to do today, before any list (docs/01, "Matriz"). -->
-			<a class="next" href="/agenda">
-				<span class="next-time">
-					<span>{formatTime(next.start)}</span>
-					<span class="next-duration">{formatDuration(next.task.durationMin ?? 30)}</span>
-				</span>
-				<span class="next-body">
-					<span class="next-label"><AiDot />{i18n.m.matrix.nextLabel}</span>
-					<span class="next-title">{next.task.title}</span>
-					<span class="next-meta">{i18n.m.matrix.nextMeta(i18n.m.quadrants[next.task.quadrant].name)}</span>
-				</span>
-				<span class="next-chevron"><Icon name="next" size={20} /></span>
-			</a>
+	<header>
+		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
+		<h1>{i18n.m.matrix.title}</h1>
+		{#if !media.web && summary.length > 0}
+			<!-- One line of pills: only quadrants with something to do; each jumps to its list. -->
+			<nav class="summary" aria-label={i18n.m.matrix.quadrants}>
+				{#each summary as quadrant (quadrant)}
+					<a href={`#quadrant-${quadrant}`} style={quadrantVars(quadrant)}>
+						{i18n.m.quadrants[quadrant].name}<span class="pill-count">{openCount(quadrant)}</span>
+					</a>
+				{/each}
+			</nav>
 		{/if}
-	</div>
-
-	{#if !media.web}
-		<!-- Compact 2 x 2 map of the matrix; each tile jumps to its list below. -->
-		<nav class="overview" aria-label={i18n.m.matrix.quadrants}>
-			{#each QUADRANTS as quadrant (quadrant)}
-				<a href={`#quadrant-${quadrant}`} style={quadrantVars(quadrant)}>
-					<span class="tile-head">
-						<span class="tile-name">{i18n.m.quadrants[quadrant].name}</span>
-						<span class="tile-count">{openCount(quadrant)}</span>
-					</span>
-					<span class="tile-rule">{i18n.m.quadrants[quadrant].rule}</span>
-				</a>
-			{/each}
-		</nav>
-	{/if}
+	</header>
+	{#if !media.wide}{@render nextCard()}{/if}
 
 	<div class="grid">
 		{#each QUADRANTS as quadrant (quadrant)}
-			<QuadrantCard {quadrant} items={groups[quadrant]} count={openCount(quadrant)} limit={media.web ? 6 : 3}>
+			<QuadrantCard {quadrant} items={groups[quadrant]} count={openCount(quadrant)} showCount={media.web} limit={media.web ? 6 : 3} footer={quadrant === 'eliminate' && openEliminate.length > 0 ? eliminateFooter : undefined}>
 				{#snippet row(item)}
 					{@const task = item as Task}
 					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -154,19 +163,6 @@
 						onreopen={() => repos.tasks.reopen(task.id)}
 					/>
 					</div>
-				{/snippet}
-				{#snippet footer()}
-					{#if quadrant === 'eliminate' && stale.length > 0}
-						<p class="suggest"><AiDot />{i18n.m.matrix.stale(stale.length)}</p>
-						<button class="archive" type="button" onclick={archiveStale}>
-							{i18n.m.matrix.archiveStale(stale.length)}
-						</button>
-					{/if}
-					{#if quadrant === 'eliminate' && openEliminate.length > 0}
-						<button class="archive" type="button" onclick={() => (confirmArchive = true)}>
-							{i18n.m.matrix.archiveAll(openEliminate.length)}
-						</button>
-					{/if}
 				{/snippet}
 			</QuadrantCard>
 		{/each}
@@ -189,6 +185,7 @@
 
 {#if media.wide}
 	<aside aria-labelledby="today-agenda">
+		{@render nextCard()}
 		<h2 id="today-agenda">{i18n.m.matrix.todayAgenda}</h2>
 		{#each todayAgenda as task (task.id)}
 			<AgendaBlock
@@ -242,13 +239,8 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 14px;
+		gap: var(--space-5);
 		padding: var(--space-5) var(--space-4) 0;
-	}
-	.top {
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
 	}
 	header {
 		padding: 0 var(--space-1);
@@ -257,20 +249,54 @@
 		gap: 2px;
 	}
 	.date {
-		font-size: 14px;
+		font-size: 13px;
 		color: var(--text-muted);
 	}
 	h1 {
 		margin: 0;
-		font-size: 32px;
+		font-size: 34px;
 		font-weight: 700;
 		letter-spacing: -0.02em;
+		line-height: 1.1;
+	}
+	/* Summary pills: one line that scrolls sideways, cut at the edge to hint there is more. */
+	.summary {
+		display: flex;
+		gap: var(--space-2);
+		margin: var(--space-3) calc(-1 * var(--space-5)) 0;
+		padding: 0 var(--space-5);
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.summary::-webkit-scrollbar {
+		display: none;
+	}
+	.summary a {
+		flex-shrink: 0;
+		min-height: var(--touch);
+		padding: 0 var(--space-4);
+		border-radius: var(--radius-pill);
+		background: var(--q-bg);
+		color: var(--q-ink);
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: 15px;
+		font-weight: 600;
+		white-space: nowrap;
+		text-decoration: none;
+	}
+	.pill-count {
+		font-family: var(--font-mono);
+		font-weight: 500;
 	}
 	.next {
 		display: flex;
 		align-items: center;
 		gap: 14px;
+		min-height: 72px;
 		padding: 14px var(--space-4);
+		box-sizing: border-box;
 		border-radius: var(--radius-card);
 		background: var(--surface);
 		border: 1px solid var(--border);
@@ -278,7 +304,7 @@
 		text-decoration: none;
 	}
 	.next-time {
-		width: 56px;
+		min-width: 52px;
 		flex-shrink: 0;
 		display: flex;
 		flex-direction: column;
@@ -288,7 +314,9 @@
 		font-weight: 500;
 	}
 	.next-duration {
-		font-size: 11px;
+		font-family: var(--font-body);
+		font-size: 12px;
+		font-weight: 400;
 		color: var(--text-muted);
 	}
 	.next-body {
@@ -299,69 +327,30 @@
 		gap: 2px;
 	}
 	.next-label {
-		font-family: var(--font-mono);
-		font-size: 11px;
-		font-weight: 500;
-		letter-spacing: 0.08em;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 13px;
+		font-weight: 600;
 		color: var(--text-muted);
 	}
 	.next-title {
 		font-family: var(--font-display);
 		font-size: 20px;
-		font-weight: 700;
+		font-weight: 600;
 		line-height: 1.2;
 		overflow-wrap: anywhere;
-	}
-	.next-meta {
-		font-size: 13px;
-		color: var(--text-muted);
 	}
 	.next-chevron {
 		flex-shrink: 0;
 		color: var(--text-muted);
 		display: flex;
 	}
-	.overview {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-2);
-	}
-	.overview a {
-		min-height: 64px;
-		padding: var(--space-2-5) var(--space-3);
-		border-radius: var(--radius-block);
-		background: var(--q-bg);
-		color: var(--q-ink);
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		gap: var(--space-1);
-		text-decoration: none;
-	}
-	.tile-head {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		gap: var(--space-2);
-	}
-	.tile-name {
-		font-family: var(--font-display);
-		font-size: 16px;
-		font-weight: 700;
-	}
-	.tile-count {
-		font-family: var(--font-mono);
-		font-size: 18px;
-		font-weight: 500;
-	}
-	.tile-rule {
-		font-size: 11px;
-	}
 	/* Phone: one column, full-width rows that let long titles wrap (docs/05, "Responsive"). */
 	.grid {
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-3);
+		gap: var(--space-5);
 		padding-bottom: var(--space-4);
 	}
 	.suggest {
@@ -372,11 +361,11 @@
 	.archive {
 		min-height: var(--touch);
 		padding: 0 14px;
-		border: 1px solid currentColor;
-		border-radius: var(--radius-pill);
-		background: transparent;
+		border: 1px solid var(--border-control);
+		border-radius: var(--radius-control);
+		background: var(--surface-muted);
 		font: inherit;
-		font-size: 14px;
+		font-size: 15px;
 		font-weight: 600;
 		color: inherit;
 		cursor: pointer;
@@ -385,25 +374,31 @@
 		position: sticky;
 		bottom: calc(64px + env(safe-area-inset-bottom));
 		margin: 0 calc(-1 * var(--space-4));
-		padding: var(--space-2) var(--space-4) var(--space-3);
+		padding: var(--space-6) var(--space-4) var(--space-3);
 		display: flex;
 		gap: var(--space-2);
-		background: var(--bg);
+		/* Scroll edge: the list fades out behind the capture instead of being cut. */
+		background: linear-gradient(to bottom, transparent, var(--bg) 45%);
+		pointer-events: none;
+	}
+	.capture-bar > * {
+		pointer-events: auto;
 	}
 	.capture {
 		flex-grow: 1;
 		min-height: 56px;
-		border: 0;
+		border: 1px solid var(--capture-border);
 		border-radius: 28px;
-		background: var(--cta-bg);
-		color: var(--cta-text);
+		background: var(--capture-bg);
+		color: var(--capture-text);
 		display: flex;
 		align-items: center;
 		gap: var(--space-2-5);
 		padding: 0 var(--space-5);
 		font: inherit;
-		font-size: 16px;
+		font-size: 17px;
 		font-weight: 500;
+		box-shadow: 0 6px 20px rgb(9 9 11 / 0.18);
 		cursor: pointer;
 	}
 	.dictate {
@@ -427,16 +422,16 @@
 		gap: var(--space-2);
 	}
 	aside h2 {
-		margin: 0 0 var(--space-2);
+		margin: var(--space-4) 0 var(--space-2);
 		font-size: 20px;
-		font-weight: 700;
+		font-weight: 600;
 	}
 	.empty {
 		margin: 0;
 		font-size: 14px;
 		color: var(--text-muted);
 	}
-	/* Tablet and up: the full 2 x 2 matrix comes back, with the next task beside the title. */
+	/* Tablet and up: the 2 x 2 matrix; from 1024 px the next task heads the agenda column. */
 	@media (min-width: 768px) {
 		.matrix {
 			padding: var(--space-6) var(--space-6) 0;
@@ -444,27 +439,11 @@
 		.page.wide .matrix {
 			padding: var(--space-6) 0 0;
 		}
-		.top {
-			flex-direction: row;
-			align-items: flex-end;
-			justify-content: space-between;
-			gap: var(--space-5);
-		}
-		.next {
-			flex: 0 1 380px;
-			padding: var(--space-3) var(--space-4);
-		}
-		.next-title {
-			font-size: 18px;
-		}
-		h1 {
-			font-size: 36px;
-		}
 		.grid {
 			display: grid;
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			align-items: start;
-			gap: var(--space-3);
+			gap: var(--space-4);
 			padding-bottom: var(--space-6);
 		}
 	}

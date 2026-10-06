@@ -63,12 +63,11 @@ export const es: Messages = {
 		quadrantGroup: 'Cuadrante',
 		pageTitle: (page) => `${page} · Qadrant`
 	},
-	nav: { label: 'Navegación principal', matrix: 'Matriz', agenda: 'Agenda', settings: 'Ajustes', newTask: 'Nueva tarea', placeholder: '¿Qué tienes en mente?', dictate: 'Dictar una tarea' },
+	nav: { label: 'Navegación principal', matrix: 'Matriz', agenda: 'Agenda', settings: 'Ajustes', newTask: 'Nueva tarea', placeholder: '¿Qué tienes en mente?', dictate: 'Dictar una tarea', captureKey: (mac: boolean) => (mac ? '⌘ K' : 'Ctrl K') },
 	update: { available: 'Hay una versión nueva', reload: 'Actualizar', later: 'Ahora no' },
 	matrix: {
 		title: 'Hoy',
-		nextLabel: 'SIGUIENTE',
-		nextMeta: (quadrant) => `${quadrant} · Ver en la agenda`,
+		nextLabel: 'Siguiente',
 		quadrants: 'Cuadrantes',
 		archiveAll: (n) => (n === 1 ? 'Archivar' : `Archivar las ${n}`),
 		capture: '¿Qué tienes en mente?',

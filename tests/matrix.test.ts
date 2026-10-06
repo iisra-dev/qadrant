@@ -124,11 +124,19 @@ test('closing the capture keeps the text as a draft', async ({ page }) => {
 	await expect(sheet.getByRole('textbox', { name: 'Tarea' })).toHaveValue('');
 });
 
-test('the overview jumps to each quadrant', async ({ page }) => {
+test('the summary pills show quadrants with tasks and jump to them', async ({ page }) => {
 	await startApp(page);
-	const overview = page.getByRole('navigation', { name: 'Cuadrantes' });
-	await expect(overview.getByRole('link')).toHaveCount(4);
-	await overview.getByRole('link', { name: /^Eliminar 0/ }).click();
+	// With nothing to do there are no pills.
+	await expect(page.getByRole('navigation', { name: 'Cuadrantes' })).toBeHidden();
+	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
+	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Ordenar marcadores del navegador');
+	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
+	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
+	await sheet.getByRole('button', { name: 'Guardar' }).click();
+	const summary = page.getByRole('navigation', { name: 'Cuadrantes' });
+	await expect(summary.getByRole('link')).toHaveCount(1);
+	await summary.getByRole('link', { name: /^Eliminar 1/ }).click();
 	await expect(page).toHaveURL(/#quadrant-eliminate$/);
 	await expect(quadrant(page, 'Eliminar')).toBeInViewport();
 });

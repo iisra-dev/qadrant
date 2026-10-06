@@ -10,7 +10,7 @@ test('uses the light theme by default', async ({ page }) => {
 test('follows the system dark scheme', async ({ page }) => {
 	await page.emulateMedia({ colorScheme: 'dark' });
 	await page.goto('/');
-	await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(9, 13, 22)');
+	await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(14, 14, 16)');
 });
 
 test('applies the saved theme before the app starts', async ({ page }) => {
@@ -20,7 +20,7 @@ test('applies the saved theme before the app starts', async ({ page }) => {
 	await page.route('**/_app/**', (route) => route.abort());
 	await page.goto('/');
 	await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-	await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', '#090D16');
+	await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute('content', '#0E0E10');
 });
 
 test('a saved theme overrides the system scheme', async ({ page }) => {

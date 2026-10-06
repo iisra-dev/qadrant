@@ -5,7 +5,7 @@ export type Theme = 'light' | 'dark' | 'system';
 export const THEME_STORAGE_KEY = 'qadrant.theme';
 
 // Same values as --bg in design/tokens.css; meta tags cannot read CSS variables.
-export const THEME_COLORS = { light: '#FAF9F6', dark: '#090D16' } as const;
+export const THEME_COLORS = { light: '#FAF9F6', dark: '#0E0E10' } as const;
 
 export function parseTheme(value: string | null | undefined): Theme {
 	return value === 'light' || value === 'dark' ? value : 'system';

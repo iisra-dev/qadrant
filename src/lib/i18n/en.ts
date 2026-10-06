@@ -64,12 +64,11 @@ export const en = {
 		quadrantGroup: 'Quadrant',
 		pageTitle: (page: string) => `${page} · Qadrant`
 	},
-	nav: { label: 'Main navigation', matrix: 'Matrix', agenda: 'Agenda', settings: 'Settings', newTask: 'New task', placeholder: "What's on your mind?", dictate: 'Dictate a task' },
+	nav: { label: 'Main navigation', matrix: 'Matrix', agenda: 'Agenda', settings: 'Settings', newTask: 'New task', placeholder: "What's on your mind?", dictate: 'Dictate a task', captureKey: (mac: boolean) => (mac ? '⌘ K' : 'Ctrl K') },
 	update: { available: 'A new version is available', reload: 'Update', later: 'Not now' },
 	matrix: {
 		title: 'Today',
-		nextLabel: 'NEXT',
-		nextMeta: (quadrant: string) => `${quadrant} · See it in the agenda`,
+		nextLabel: 'Next',
 		quadrants: 'Quadrants',
 		archiveAll: (n: number) => (n === 1 ? 'Archive' : `Archive all ${n}`),
 		capture: "What's on your mind?",
