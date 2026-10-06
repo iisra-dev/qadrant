@@ -1,10 +1,21 @@
 /// <reference types="vitest/config" />
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+// ONNX Runtime and Transformers.js reference their own .wasm (≈ 27 MB, over the
+// 25 MiB Pages limit). The engine loads the runtime from /ort/ in parts instead
+// (scripts/prepare-ort.mjs), so the bundled copies are dropped.
+const dropBundledWasm: Plugin = {
+	name: 'drop-bundled-ort-wasm',
+	generateBundle(_options, bundle) {
+		for (const name of Object.keys(bundle)) if (/ort-wasm.*\.wasm$/.test(name)) delete bundle[name];
+	}
+};
 
 export default defineConfig({
 	plugins: [
+		dropBundledWasm,
 		sveltekit(),
 		SvelteKitPWA({
 			strategies: 'injectManifest',
@@ -32,10 +43,14 @@ export default defineConfig({
 			// Precaches the adapter-static fallback (index.html) so the SPA opens offline.
 			kit: { adapterFallback: 'index.html', spa: true },
 			injectManifest: {
-				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}']
+				// The runtime's small .mjs glue too, so the model works offline; its .wasm
+				// and the model live in OPFS, never in the precache (docs/02).
+				globPatterns: ['client/**/*.{js,css,ico,png,svg,webp,woff2,webmanifest}', 'client/ort/*.mjs'],
+				maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
 			}
 		})
 	],
+	worker: { format: 'es', plugins: () => [dropBundledWasm] },
 	// Component tests mount Svelte in jsdom, which needs the browser build.
 	resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
 	test: {

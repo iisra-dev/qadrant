@@ -73,6 +73,10 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 				.filter((task) => !task.deletedAt)
 				.toArray();
 		},
+		/** Every task not deleted, done and archived too: what the engine learns from. */
+		async listAll(): Promise<Task[]> {
+			return db.tasks.filter((task) => !task.deletedAt).toArray();
+		},
 		async listByQuadrant(quadrant: Quadrant): Promise<Task[]> {
 			return db.tasks
 				.where('quadrant')

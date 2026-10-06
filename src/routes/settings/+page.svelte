@@ -10,7 +10,9 @@
 	import { activeGoals, people, settings } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
 	import { applyTheme, type Theme } from '$lib/theme';
-	import { AiDot, Button, Icon, SettingsGroup } from '$lib/ui';
+	import { AiDot, Button, Icon, SettingsGroup, Sheet } from '$lib/ui';
+	import { downloadModel, engineState, removeModel } from '$lib/engine';
+	import { MIN_LABELED } from '$lib/domain/learning';
 	import DataSection from './DataSection.svelte';
 	import ServerSection from './ServerSection.svelte';
 
@@ -66,6 +68,24 @@
 		const extra = [...s.holidays.extra, newHoliday].sort();
 		await save({ holidays: { ...s.holidays, extra } }, true);
 		newHoliday = '';
+	}
+
+	const engine = $derived(engineState.status);
+	const modelLabel = $derived(
+		{
+			checking: m.checking,
+			unavailable: m.unavailable,
+			absent: m.notDownloaded,
+			downloading: m.downloading(`${Math.round((engine.progress ?? 0) * 100)} %`),
+			ready: m.ready,
+			error: m.failed
+		}[engine.model]
+	);
+	const engineLabel = $derived({ 'model-webgpu': m.webgpu, 'model-wasm': m.wasm, rules: m.rules }[engine.engine]);
+	let confirmRemove = $state(false);
+
+	function formatMegabytes(bytes: number): string {
+		return `${Math.round(bytes / 1_000_000)} MB`;
 	}
 
 	const themeLabel = $derived(s ? { light: m.light, dark: m.dark, system: m.system }[s.theme] : '');
@@ -239,15 +259,26 @@
 			<p class="note">{m.peopleNote}</p>
 		</SettingsGroup>
 
-		<SettingsGroup title={m.assistant} summary={m.assistantSummary(m.notDownloaded, m.rules)}>
+		<SettingsGroup title={m.assistant} summary={m.assistantSummary(modelLabel, engineLabel)}>
 			<div class="card">
 				<div class="row">
 					<span><AiDot />{m.state}</span>
-					<span class="badge">{m.notDownloaded}</span>
+					<span class="badge" role="status">{modelLabel}</span>
 				</div>
+				{#if engine.model === 'downloading'}
+					<div class="row">
+						<progress max="1" value={engine.progress ?? 0} aria-label={modelLabel}></progress>
+					</div>
+				{/if}
+				{#if engine.sizeBytes}
+					<div class="row">
+						<span>{m.size}</span>
+						<span>{formatMegabytes(engine.sizeBytes)}</span>
+					</div>
+				{/if}
 				<div class="row">
 					<span>{m.engine}</span>
-					<span>{m.rules}</span>
+					<span>{engineLabel}</span>
 				</div>
 				<div class="row">
 					<label for="s-wifi">{m.wifi}</label>
@@ -260,7 +291,13 @@
 					/>
 				</div>
 			</div>
-			<p class="note">{m.assistantNote}</p>
+			{#if engine.model === 'absent' || engine.model === 'error'}
+				<Button variant="secondary" onclick={downloadModel}>{engine.model === 'error' ? m.retry : m.downloadNow}</Button>
+			{/if}
+			<p class="note">{engine.engine === 'rules' ? m.assistantNote : m.learning(MIN_LABELED)}</p>
+			{#if engine.model === 'ready'}
+				<Button variant="danger" onclick={() => (confirmRemove = true)}>{m.removeModel}</Button>
+			{/if}
 		</SettingsGroup>
 
 		<ServerSection server={s.server} />
@@ -292,6 +329,21 @@
 		<p class="only-here"><Icon name="lock" size={16} />{i18n.m.common.onlyHere}</p>
 	{/if}
 </div>
+
+<Sheet open={confirmRemove} label={m.removeModel} onclose={() => (confirmRemove = false)}>
+	<h2 class="sheet-title">{m.removeAsk}</h2>
+	<p class="sheet-text">{m.removeText}</p>
+	<Button
+		variant="danger"
+		size="lg"
+		block
+		onclick={() => {
+			confirmRemove = false;
+			removeModel();
+		}}>{m.removeModel}</Button
+	>
+	<Button variant="secondary" size="lg" block onclick={() => (confirmRemove = false)}>{i18n.m.common.cancel}</Button>
+</Sheet>
 
 <style>
 	.settings {
@@ -501,6 +553,20 @@
 		color: var(--accent-ai-ink);
 		font-size: 12px;
 		font-weight: 600;
+	}
+	progress {
+		flex-grow: 1;
+		accent-color: var(--accent-ai);
+	}
+	.sheet-title {
+		margin: 0;
+		font-size: 22px;
+	}
+	.sheet-text {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1.45;
+		color: var(--text-muted);
 	}
 	.note {
 		margin: 0 var(--space-1);

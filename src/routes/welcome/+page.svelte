@@ -10,7 +10,7 @@
 	let goals = $state(['', '', '']);
 	// One goal is asked for; up to two more appear on request (progressive disclosure).
 	let shown = $state(1);
-	let wifiOnly = $state(true);
+	let autoDownload = $state(true);
 	let missingGoal = $state(false);
 	let saving = $state(false);
 	let installHint = $state<'ios' | 'desktop' | 'android' | null>(null);
@@ -57,7 +57,8 @@
 			await repos.settings.update({
 				onboardingDone: true,
 				language: i18n.lang,
-				model: { ...settings.model, wifiOnly }
+				// Checked: download on its own, on Wi-Fi (docs/01, "Bienvenida").
+				model: { ...settings.model, autoDownload, wifiOnly: true }
 			});
 			// Ask the browser not to evict our data (docs/02, "Persistencia").
 			try {
@@ -126,7 +127,7 @@
 	</div>
 
 	<div class="ai">
-		<span class="check"><input id="welcome-wifi" type="checkbox" aria-describedby="welcome-ai" bind:checked={wifiOnly} /></span>
+		<span class="check"><input id="welcome-wifi" type="checkbox" aria-describedby="welcome-ai" bind:checked={autoDownload} /></span>
 		<div class="ai-text">
 			<label for="welcome-wifi"><AiDot />{m.wifi}</label>
 			<p id="welcome-ai">{m.assistant}. {m.assistantText}</p>
