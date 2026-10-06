@@ -20,7 +20,7 @@
 	import type { Settings } from '$lib/domain/types';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { applyTheme } from '$lib/theme';
-	import { TabBar, WebHeader } from '$lib/ui';
+	import { AppFooter, TabBar, WebHeader } from '$lib/ui';
 
 	let { children } = $props();
 
@@ -124,6 +124,9 @@
 	<main>
 		{@render children()}
 	</main>
+	{#if media.web && section !== '/task'}
+		<AppFooter />
+	{/if}
 	{#if showTabs && !media.web}
 		<div class="tabs"><TabBar current={section} /></div>
 	{/if}

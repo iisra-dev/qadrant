@@ -46,7 +46,7 @@ test('main flows in English: capture, doubt, correct, complete', async ({ page }
 
 	// Complete.
 	await page.getByRole('region', { name: 'Delegate' }).getByRole('checkbox', { name: 'Complete: Call the garage' }).check();
-	await expect(page.getByRole('region', { name: 'Delegate' }).getByText('Nothing to hand off.')).toBeVisible();
+	await expect(page.getByRole('region', { name: 'Delegate' }).getByLabel('0 tasks')).toBeVisible();
 });
 
 test('switching to Spanish in Settings applies at once and is kept', async ({ page }) => {

@@ -1,4 +1,5 @@
 export { default as AgendaBlock } from './AgendaBlock.svelte';
+export { default as AppFooter } from './AppFooter.svelte';
 export { default as AiDot } from './AiDot.svelte';
 export { default as Button } from './Button.svelte';
 export { default as Drawer } from './Drawer.svelte';

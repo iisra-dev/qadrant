@@ -4,8 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "node scripts/prepare-ort.mjs && vite dev",
-		"build": "node scripts/prepare-ort.mjs && vite build",
+		"dev": "node scripts/prepare-ort.mjs && node scripts/licenses.mjs && vite dev",
+		"build": "node scripts/prepare-ort.mjs && node scripts/licenses.mjs && vite build",
 		"preview": "sirv build --single --port 4173",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

@@ -10,6 +10,7 @@
 		quadrant,
 		items,
 		limit = 3,
+		count,
 		row,
 		footer
 	}: {
@@ -17,6 +18,8 @@
 		items: Item[];
 		/** Rows shown before "+N more"; Infinity shows them all. */
 		limit?: number;
+		/** Tasks still to do; done ones are listed but not counted. Defaults to all items. */
+		count?: number;
 		row: Snippet<[Item]>;
 		footer?: Snippet;
 	} = $props();
@@ -34,7 +37,7 @@
 			<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
 			<span class="rule">{meta.rule}</span>
 		</div>
-		<span class="count" aria-label={i18n.m.common.tasksCount(items.length)}>{items.length}</span>
+		<span class="count" aria-label={i18n.m.common.tasksCount(count ?? items.length)}>{count ?? items.length}</span>
 	</div>
 	{#if items.length === 0}
 		<p class="empty">{meta.empty}</p>

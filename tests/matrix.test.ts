@@ -80,13 +80,33 @@ test('completes a task from the matrix', async ({ page }) => {
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	const hacer = quadrant(page, 'Hacer');
 	await expect(hacer.getByText('Vencida')).toBeVisible();
-	await hacer.getByRole('checkbox', { name: 'Completar: Pagar recibo' }).check();
-	await expect(hacer.getByRole('link', { name: /Pagar recibo/ })).toBeHidden();
-	await expect(hacer.getByText('Nada urgente. Buen momento para Programar.')).toBeVisible();
-	// Completing can be undone for a few seconds.
-	await expect(page.getByRole('status').filter({ hasText: 'Completada: Pagar recibo' })).toBeVisible();
-	await page.getByRole('button', { name: 'Deshacer' }).click();
+	const box = hacer.getByRole('checkbox', { name: 'Completar: Pagar recibo' });
+	await box.check();
+	// Done: struck through and still there, no longer counted nor overdue.
 	await expect(hacer.getByRole('link', { name: /Pagar recibo/ })).toBeVisible();
+	await expect(hacer.getByRole('link', { name: /Pagar recibo/ }).locator('.title')).toHaveCSS('text-decoration-line', 'line-through');
+	await expect(hacer.getByLabel('0 tareas')).toBeVisible();
+	await expect(hacer.getByText('Vencida')).toBeHidden();
+	// Unticking opens it again.
+	await box.uncheck();
+	await expect(hacer.getByText('Vencida')).toBeVisible();
+	await expect(hacer.getByLabel('1 tarea', { exact: true })).toBeVisible();
+});
+
+test('a done task disappears 24 hours later', async ({ page }) => {
+	await page.clock.setFixedTime(new Date('2026-10-02T10:00:00+02:00'));
+	const sheet = await openCapture(page);
+	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
+	await expect(sheet.getByText('VA A')).toBeVisible();
+	await sheet.getByRole('button', { name: 'Guardar' }).click();
+	const hacer = quadrant(page, 'Hacer');
+	await hacer.getByRole('checkbox', { name: 'Completar: Llamar al taller' }).check();
+	await page.clock.setFixedTime(new Date('2026-10-03T09:00:00+02:00'));
+	await page.reload();
+	await expect(hacer.getByRole('link', { name: /Llamar al taller/ })).toBeVisible();
+	await page.clock.setFixedTime(new Date('2026-10-03T10:01:00+02:00'));
+	await page.reload();
+	await expect(hacer.getByRole('link', { name: /Llamar al taller/ })).toBeHidden();
 });
 
 test('closing the capture keeps the text as a draft', async ({ page }) => {
@@ -142,6 +162,6 @@ test('swiping a row left reveals "Hecha" as a shortcut', async ({ page }) => {
 	await link.dispatchEvent('pointermove', { ...touch, clientX: box.x + 60, clientY: y });
 	await link.dispatchEvent('pointerup', { ...touch, clientX: box.x + 60, clientY: y });
 	await hacer.getByRole('button', { name: 'Hecha' }).click();
-	await expect(link).toBeHidden();
-	await expect(page.getByRole('status').filter({ hasText: 'Completada: Llamar al taller' })).toBeVisible();
+	await expect(hacer.getByRole('checkbox', { name: 'Completar: Llamar al taller' })).toBeChecked();
+	await expect(link.locator('.title')).toHaveCSS('text-decoration-line', 'line-through');
 });

@@ -13,3 +13,20 @@
 
 /_app/immutable/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Home screen and manifest icons: under COEP, iOS may fetch them from outside the
+# page, so they say any origin can read them (they are public anyway).
+/apple-touch-icon*
+  Cross-Origin-Resource-Policy: cross-origin
+
+/pwa-*
+  Cross-Origin-Resource-Policy: cross-origin
+
+/maskable-icon-*
+  Cross-Origin-Resource-Policy: cross-origin
+
+/manifest.webmanifest
+  Cross-Origin-Resource-Policy: cross-origin
+
+/licenses.txt
+  Content-Type: text/plain; charset=utf-8
