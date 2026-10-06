@@ -8,6 +8,9 @@ Agenda PWA basada en la matriz de Eisenhower. Cada tarea se clasifica en el prop
 
 Este repositorio contiene la app, su especificación (`docs/`), el diseño (`design/`), las herramientas de la fase 0 (`tools/`) y el servidor opcional (`server/`).
 
+## Servidor propio (opcional)
+Qadrant funciona por completo sin servidor y no ofrece uno. Quien quiera avisos, calendario o, desde la fase 4, las mismas tareas en todos sus dispositivos puede montar el suyo siguiendo `server/README.md`. Cada servidor es de una persona y sirve a todos sus dispositivos. Lo que se sincroniza va sin cifrar: puede leerlo quien administre ese servidor y el servicio del túnel, si lo hay. Cada dispositivo sigue clasificando con su propio asistente. El servidor se publicará aparte, en un repositorio público, para que cualquiera pueda montarlo.
+
 ## Cómo usarlo con Claude Code
 
 1. Entra en la carpeta del repositorio: `cd ~/WSApps/Qadrant-App`. Es la raíz del proyecto SvelteKit, junto a `docs/`, `design/`, `tools/` y `server/`.
