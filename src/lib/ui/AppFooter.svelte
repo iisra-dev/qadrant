@@ -7,7 +7,7 @@
 </script>
 
 <footer>
-	<span>{i18n.m.footer.app}</span>
+	<span>{i18n.m.footer.app(__APP_VERSION__)}</span>
 	<a href="/licenses.txt" target="_blank" rel="noopener">{i18n.m.footer.licenses}</a>
 	<a href={AUTHOR_URL} target="_blank" rel="noopener noreferrer">{i18n.m.footer.author}</a>
 </footer>
