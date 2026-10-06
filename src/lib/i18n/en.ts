@@ -240,6 +240,7 @@ export const en = {
 		downloading: (percent: string) => `Downloading ${percent}`,
 		ready: 'Ready',
 		failed: 'Download failed',
+		failedReason: (reason: string) => `What went wrong: ${reason}`,
 		size: 'Size',
 		webgpu: 'WebGPU',
 		wasm: 'WASM',

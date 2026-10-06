@@ -3,8 +3,10 @@ import { openGroup, startApp } from './helpers';
 
 // Phase 2: the model downloads to OPFS, opens in the worker (WASM in headless
 // Chromium) and classifies. Needs a build with static/models (pnpm model:prepare).
-test('downloads the model, classifies with it and deletes it', async ({ page, request }) => {
+test('downloads the model, classifies with it and deletes it', async ({ page, request, browserName }) => {
 	test.skip(!(await request.get('/models/manifest.json')).ok(), 'build without the model');
+	// Playwright's WebKit build (WPE, headless) has no OPFS: navigator.storage.getDirectory() throws UnknownError. Safari on iPhone has it.
+	test.skip(browserName === 'webkit', 'no OPFS in Playwright WebKit');
 	test.setTimeout(180_000);
 	await page.clock.setFixedTime(new Date('2026-10-02T10:00:00+02:00'));
 	await startApp(page, 'Cerrar las ventas del trimestre', 'es', { model: true });

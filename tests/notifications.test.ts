@@ -3,6 +3,8 @@ import { startApp } from './helpers';
 
 // The headless shell always denies notifications; the full Chromium in headless mode does not.
 test.use({ channel: 'chromium' });
+// Push and the notification permission in automation are Chromium's.
+test.skip(({ browserName }) => browserName !== 'chromium', 'Chromium only');
 
 test('the service worker shows a notice for a push message and opens the task on click', async ({ page, context }) => {
 	await context.grantPermissions(['notifications'], { origin: 'http://localhost:4173' });

@@ -46,6 +46,11 @@ pnpm exec playwright install chromium   # solo la primera vez, para pnpm test:e2
 pnpm dev
 ```
 
+## Pruebas en WebKit (Safari)
+`pnpm test:e2e` usa Chromium. `pnpm test:e2e:webkit` pasa los mismos tests en WebKit, el motor de Safari en iPhone, dentro del contenedor oficial de Playwright (podman o docker): el WebKit de Playwright necesita librerías de Ubuntu que Fedora no trae. El script compila, sirve `build/` en el puerto 4173 y lanza el navegador en el contenedor. La primera vez descarga la imagen (unos 2 GB).
+
+Se saltan en WebKit, con el motivo en el propio test: notificaciones (solo Chromium), las dos pruebas sin conexión (Playwright WebKit falla al recargar sin red con service worker) y la del modelo (el WebKit de Playwright no tiene OPFS; Safari sí).
+
 ## Primer despliegue en Cloudflare Pages
 
 1. `pnpm exec wrangler login` (abre el navegador para entrar en tu cuenta de Cloudflare).

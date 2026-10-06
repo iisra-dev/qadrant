@@ -304,6 +304,9 @@
 				</div>
 			</div>
 			<p id="s-voice-note" class="note">{m.voiceNote}</p>
+			{#if engine.model === 'error' && engine.error}
+				<p class="note">{m.failedReason(engine.error)}</p>
+			{/if}
 			{#if engine.model === 'absent' || engine.model === 'error'}
 				<Button variant="secondary" onclick={downloadModel}>{engine.model === 'error' ? m.retry : m.downloadNow}</Button>
 			{/if}
