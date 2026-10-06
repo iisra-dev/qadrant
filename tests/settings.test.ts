@@ -104,6 +104,7 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 test('the footer links the licenses and the author', async ({ page, request }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes', exact: true }).click();
+	await expect(page.getByText(/^Qadrant \d+\.\d+\.\d+$/)).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Licencias de terceros' })).toHaveAttribute('href', '/licenses.txt');
 	await expect(page.getByRole('link', { name: 'Autor: iisra-dev en GitHub' })).toHaveAttribute('href', 'https://github.com/iisra-dev');
 	const licenses = await (await request.get('/licenses.txt')).text();

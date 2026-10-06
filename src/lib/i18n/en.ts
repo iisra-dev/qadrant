@@ -327,7 +327,7 @@ export const en = {
 			'Google, iCloud and Outlook offer a secret read-only address. It is stored on your server, not on this device; the agenda shows your events and never places tasks over timed ones.'
 	},
 	footer: {
-		app: 'Qadrant',
+		app: (version: string) => `Qadrant ${version}`,
 		licenses: 'Third-party licenses',
 		author: 'Author: iisra-dev on GitHub'
 	},

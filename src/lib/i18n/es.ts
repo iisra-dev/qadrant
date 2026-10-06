@@ -325,7 +325,7 @@ export const es: Messages = {
 			'Google, iCloud y Outlook ofrecen una dirección secreta de solo lectura. Se guarda en tu servidor, no en este dispositivo; la agenda muestra tus eventos y no coloca tareas encima de los que tienen hora.'
 	},
 	footer: {
-		app: 'Qadrant',
+		app: (version) => `Qadrant ${version}`,
 		licenses: 'Licencias de terceros',
 		author: 'Autor: iisra-dev en GitHub'
 	},

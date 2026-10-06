@@ -2,6 +2,8 @@
 
 Nombre completo: **Qadrant Calendar** (así aparece al instalarla; en el icono, «Qadrant»).
 
+Versión actual: **1.0.0** (6 oct 2026). Cambios en `CHANGELOG.md`. Autor: [iisra-dev](https://github.com/iisra-dev).
+
 Agenda PWA basada en la matriz de Eisenhower. Cada tarea se clasifica en el propio dispositivo: unas reglas calculan la urgencia a partir de la fecha y un modelo pequeño de embeddings multilingüe decide la importancia comparando la tarea con tus objetivos.
 
 Este repositorio contiene la app, su especificación (`docs/`), el diseño (`design/`), las herramientas de la fase 0 (`tools/`) y el servidor opcional (`server/`).

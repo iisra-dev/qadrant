@@ -2,6 +2,8 @@
 /// <reference types="vite-plugin-pwa/info" />
 // See https://svelte.dev/docs/kit/types#app.d.ts
 declare global {
+	/** package.json version, replaced at build time. */
+	const __APP_VERSION__: string;
 	namespace App {
 		// interface Error {}
 		// interface Locals {}

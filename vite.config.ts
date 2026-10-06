@@ -1,7 +1,10 @@
 /// <reference types="vitest/config" />
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
+import { readFileSync } from 'node:fs';
 import { defineConfig, type Plugin } from 'vite';
+
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 // ONNX Runtime and Transformers.js reference their own .wasm (≈ 27 MB, over the
 // 25 MiB Pages limit). The engine loads the runtime from /ort/ in parts instead
@@ -50,6 +53,8 @@ export default defineConfig({
 			}
 		})
 	],
+	// The version in the footer comes from package.json.
+	define: { __APP_VERSION__: JSON.stringify(version) },
 	worker: { format: 'es', plugins: () => [dropBundledWasm] },
 	// Component tests mount Svelte in jsdom, which needs the browser build.
 	resolve: process.env.VITEST ? { conditions: ['browser'] } : undefined,
