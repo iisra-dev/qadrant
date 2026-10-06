@@ -13,7 +13,7 @@ test('the capture proposes a slot, saves it and the Matrix shows "Siguiente"', a
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy, 45 min');
 	await expect(sheet.getByText('Hoy 10:00 · 45 min')).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
-	const next = page.getByRole('link', { name: /^10:00 45 min SIGUIENTE\s*Llamar al taller/ });
+	const next = page.getByRole('link', { name: /^10:00 45 min Siguiente\s*Llamar al taller/ });
 	await expect(next).toBeVisible();
 	await next.click();
 	await expect(page).toHaveURL(/\/agenda$/);

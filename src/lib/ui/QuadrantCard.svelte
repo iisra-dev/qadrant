@@ -11,6 +11,7 @@
 		items,
 		limit = 3,
 		count,
+		showCount = true,
 		row,
 		footer
 	}: {
@@ -20,6 +21,8 @@
 		limit?: number;
 		/** Tasks still to do; done ones are listed but not counted. Defaults to all items. */
 		count?: number;
+		/** Visible count; off on the phone, where the summary pills above already show it. */
+		showCount?: boolean;
 		row: Snippet<[Item]>;
 		footer?: Snippet;
 	} = $props();
@@ -29,15 +32,28 @@
 	const visible = $derived(expanded ? items : items.slice(0, limit));
 	const hidden = $derived(items.length - Math.min(items.length, limit));
 	const listId = $derived(`quadrant-${quadrant}-list`);
+	// Position of the quadrant in the 2 x 2 matrix: a cue that does not rely on color.
+	const CELLS = [
+		{ quadrant: 'do', x: 1, y: 1 },
+		{ quadrant: 'schedule', x: 9, y: 1 },
+		{ quadrant: 'delegate', x: 1, y: 9 },
+		{ quadrant: 'eliminate', x: 9, y: 9 }
+	] as const;
 </script>
 
 <section class="card" id={`quadrant-${quadrant}`} style={quadrantVars(quadrant)} aria-labelledby={`quadrant-${quadrant}-title`}>
 	<div class="head">
+		<svg class="glyph" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true">
+			{#each CELLS as cell (cell.quadrant)}
+				<rect x={cell.x} y={cell.y} width="6" height="6" rx="1.5" fill="currentColor" opacity={cell.quadrant === quadrant ? 1 : 0.22} />
+			{/each}
+		</svg>
 		<div class="names">
 			<h2 id={`quadrant-${quadrant}-title`}>{meta.name}</h2>
 			<span class="rule">{meta.rule}</span>
 		</div>
-		<span class="count" aria-label={i18n.m.common.tasksCount(count ?? items.length)}>{count ?? items.length}</span>
+		<!-- Hidden on the phone but still read out, so each region says how many tasks it has. -->
+		<span class="count" class:hidden={!showCount} aria-label={i18n.m.common.tasksCount(count ?? items.length)}>{count ?? items.length}</span>
 	</div>
 	{#if items.length === 0}
 		<p class="empty">{meta.empty}</p>
@@ -57,71 +73,117 @@
 </section>
 
 <style>
+	/* Colored header, tasks on the plain surface (design/canvas, "Hoy rediseñada"). */
 	.card {
-		background: var(--q-bg);
-		color: var(--q-ink);
+		background: var(--surface);
+		color: var(--text);
+		border: 1px solid var(--border);
 		border-radius: var(--radius-card);
-		padding: 14px var(--space-1) var(--space-1);
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
 		scroll-margin-top: var(--space-4);
 	}
 	.head {
-		padding: 0 var(--space-3) 6px;
+		padding: 14px var(--space-4);
+		background: var(--q-bg);
+		color: var(--q-ink);
 		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
+		align-items: center;
 		gap: var(--space-3);
 	}
+	.glyph {
+		flex-shrink: 0;
+	}
 	.names {
+		flex-grow: 1;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
 	}
 	h2 {
 		margin: 0;
 		font-size: 20px;
-		font-weight: 700;
-	}
-	.count {
-		font-family: var(--font-mono);
-		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.2;
 	}
 	.rule {
-		font-size: 12px;
+		font-size: 13px;
+	}
+	.count {
+		flex-shrink: 0;
+		min-width: 28px;
+		height: 24px;
+		padding: 0 var(--space-2);
+		box-sizing: border-box;
+		border-radius: var(--radius-pill);
+		background: var(--surface);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-family: var(--font-mono);
+		font-size: 13px;
+		font-weight: 500;
+	}
+	.count.hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		min-width: 0;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 	ul {
 		list-style: none;
 		margin: 0;
 		padding: 0;
+		/* Rows sit on the surface; the swipe button keeps the quadrant's ink. */
+		--q-bg: var(--surface);
 	}
+	ul :global(.meta) {
+		color: var(--text-muted);
+	}
+	/* Separator inset past the checkbox, as in grouped lists. */
 	li + li {
-		border-top: 1px solid color-mix(in srgb, var(--q-ink) 16%, transparent);
+		position: relative;
+	}
+	li + li::before {
+		content: '';
+		position: absolute;
+		z-index: 1;
+		top: 0;
+		left: calc(var(--touch) + var(--space-1));
+		right: 0;
+		border-top: 1px solid var(--border);
 	}
 	.empty {
-		margin: var(--space-1) var(--space-3) var(--space-3);
-		font-size: 14px;
+		margin: 0;
+		padding: 14px var(--space-4);
+		font-size: 15px;
 		line-height: 1.4;
+		color: var(--text-muted);
 	}
 	.more {
 		align-self: flex-start;
 		min-height: var(--touch);
-		margin: 0 var(--space-3);
+		margin: 0 var(--space-4);
 		border: 0;
 		background: transparent;
 		padding: 0;
 		font: inherit;
-		font-size: 14px;
+		font-size: 15px;
 		font-weight: 600;
 		color: inherit;
 		cursor: pointer;
 	}
 	.footer {
-		padding: 0 var(--space-3) var(--space-1);
+		padding: var(--space-1) var(--space-4) var(--space-4);
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: var(--space-1);
+		gap: var(--space-2);
 	}
 </style>

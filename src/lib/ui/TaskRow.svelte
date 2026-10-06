@@ -209,7 +209,7 @@
 		padding: var(--space-2) var(--space-3) var(--space-2) 0;
 		color: inherit;
 		text-decoration: none;
-		font-size: 15px;
+		font-size: 16px;
 		line-height: 1.35;
 	}
 	.title {
@@ -240,7 +240,7 @@
 	.meta {
 		flex-shrink: 0;
 		font-family: var(--font-mono);
-		font-size: 12px;
+		font-size: 13px;
 		font-weight: 500;
 	}
 </style>
