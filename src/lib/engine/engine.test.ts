@@ -121,3 +121,73 @@ describe('EngineClient', () => {
 		expect(workers).toHaveLength(2);
 	});
 });
+
+/** In-memory stand-in for localStorage. */
+function memoryStorage() {
+	const map = new Map<string, string>();
+	return {
+		map,
+		getItem: (k: string) => map.get(k) ?? null,
+		setItem: (k: string, v: string) => void map.set(k, v),
+		removeItem: (k: string) => void map.delete(k)
+	};
+}
+
+/** A worker that records every message and lets the test emit events. */
+class EventWorker implements WorkerLike {
+	sent: unknown[] = [];
+	private listeners: ((e: MessageEvent) => void)[] = [];
+	postMessage(message: unknown) {
+		this.sent.push(message);
+	}
+	addEventListener(type: 'message' | 'error', listener: never) {
+		if (type === 'message') this.listeners.push(listener);
+	}
+	terminate() {}
+	emit(data: unknown) {
+		for (const l of this.listeners) l({ data } as MessageEvent);
+	}
+}
+
+describe('EngineClient crash guard and status', () => {
+	it('a backend that was loading when the tab closed is blocked from then on', () => {
+		const storage = memoryStorage();
+		const first = new EventWorker();
+		const client = new EngineClient(() => first, 1500, storage);
+		client.start({ autoDownload: true, wifiOnly: true });
+		expect(first.sent[0]).toMatchObject({ type: 'start', blocked: [] });
+		first.emit({ type: 'loading', backend: 'wasm' });
+		// The tab dies here: no 'loaded'. Next start, on a fresh page.
+		const second = new EventWorker();
+		new EngineClient(() => second, 1500, storage).start({ autoDownload: true, wifiOnly: true });
+		expect(second.sent[0]).toMatchObject({ type: 'start', blocked: ['wasm'] });
+	});
+
+	it('a backend that finished loading is not blocked', () => {
+		const storage = memoryStorage();
+		const worker = new EventWorker();
+		const client = new EngineClient(() => worker, 1500, storage);
+		client.start({ autoDownload: false, wifiOnly: true });
+		worker.emit({ type: 'loading', backend: 'webgpu' });
+		worker.emit({ type: 'loaded' });
+		expect(client.blockedBackends()).toEqual([]);
+	});
+
+	it('removing the model clears the blocked list', () => {
+		const storage = memoryStorage();
+		storage.setItem('qadrant.engineBlocked', '["wasm"]');
+		const client = new EngineClient(() => new EventWorker(), 1500, storage);
+		client.remove();
+		expect(client.blockedBackends()).toEqual([]);
+	});
+
+	it('passes status events to listeners', () => {
+		const worker = new EventWorker();
+		const client = new EngineClient(() => worker, 1500, memoryStorage());
+		const seen: string[] = [];
+		client.onStatus((status) => seen.push(status.model));
+		client.start({ autoDownload: false, wifiOnly: true });
+		worker.emit({ type: 'status', status: { model: 'downloading', progress: 0.5, engine: 'rules' } });
+		expect(seen).toEqual(['downloading']);
+	});
+});

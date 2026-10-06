@@ -1,26 +1,47 @@
-import type { ClassifyContext, Decision } from '$lib/domain/types';
-import type { ClassifyRequest, ClassifyResponse } from './protocol';
+import type { LabeledTask } from '$lib/domain/learning';
+import type { ClassifyContext, Decision, Goal } from '$lib/domain/types';
+import type { Backend, EngineEvent, EngineRequest, EngineStatus } from './protocol';
 import { classifyWithRules } from './rules-classifier';
 
 /** The subset of Worker the client needs, so tests can pass a fake. */
 export interface WorkerLike {
-	postMessage(message: ClassifyRequest): void;
-	addEventListener(type: 'message', listener: (event: MessageEvent<ClassifyResponse>) => void): void;
+	postMessage(message: EngineRequest): void;
+	addEventListener(type: 'message', listener: (event: MessageEvent<EngineEvent>) => void): void;
 	addEventListener(type: 'error', listener: (event: Event) => void): void;
 	terminate(): void;
+}
+
+/** Where the crash guard keeps its two keys (localStorage in the app). */
+export interface GuardStorage {
+	getItem(key: string): string | null;
+	setItem(key: string, value: string): void;
+	removeItem(key: string): void;
 }
 
 /** Maximum time per classification before falling back to rules (docs/03). */
 export const LOCAL_TIMEOUT_MS = 1500;
 
+const LOADING_KEY = 'qadrant.engineLoading';
+const BLOCKED_KEY = 'qadrant.engineBlocked';
+
+function safeStorage(): GuardStorage | null {
+	try {
+		return typeof localStorage === 'undefined' ? null : localStorage;
+	} catch {
+		return null;
+	}
+}
+
 export class EngineClient {
 	private worker: WorkerLike | null = null;
 	private nextId = 1;
 	private pending = new Map<number, (decision: Decision | null) => void>();
+	private statusListeners: ((status: EngineStatus) => void)[] = [];
 
 	constructor(
 		private readonly createWorker: () => WorkerLike | null,
-		private readonly timeoutMs = LOCAL_TIMEOUT_MS
+		private readonly timeoutMs = LOCAL_TIMEOUT_MS,
+		private readonly guard: GuardStorage | null = safeStorage()
 	) {}
 
 	private ensureWorker(): WorkerLike | null {
@@ -31,13 +52,7 @@ export class EngineClient {
 			this.worker = null;
 		}
 		if (!this.worker) return null;
-		this.worker.addEventListener('message', (event) => {
-			const response = event.data;
-			const resolve = this.pending.get(response.id);
-			if (!resolve) return;
-			this.pending.delete(response.id);
-			resolve(response.type === 'decision' ? response.decision : null);
-		});
+		this.worker.addEventListener('message', (event) => this.onEvent(event.data));
 		this.worker.addEventListener('error', () => {
 			// A broken worker: answer everything pending with rules and start over next time.
 			for (const resolve of this.pending.values()) resolve(null);
@@ -46,6 +61,71 @@ export class EngineClient {
 			this.worker = null;
 		});
 		return this.worker;
+	}
+
+	private onEvent(event: EngineEvent) {
+		switch (event.type) {
+			case 'decision':
+			case 'error': {
+				const resolve = this.pending.get(event.id);
+				if (!resolve) return;
+				this.pending.delete(event.id);
+				resolve(event.type === 'decision' ? event.decision : null);
+				break;
+			}
+			case 'status':
+				for (const listener of this.statusListeners) listener(event.status);
+				break;
+			case 'loading':
+				this.guard?.setItem(LOADING_KEY, event.backend);
+				break;
+			case 'loaded':
+				this.guard?.removeItem(LOADING_KEY);
+				break;
+		}
+	}
+
+	/**
+	 * Backends that must not be tried again on this device. If the tab was
+	 * closed while a session was being created (an iPhone out of memory reloads
+	 * the page, docs/07), that backend goes on the list instead of crashing again.
+	 */
+	blockedBackends(): Backend[] {
+		const blocked = new Set<Backend>(JSON.parse(this.guard?.getItem(BLOCKED_KEY) ?? '[]') as Backend[]);
+		const crashed = this.guard?.getItem(LOADING_KEY) as Backend | null | undefined;
+		if (crashed) {
+			blocked.add(crashed);
+			this.guard?.setItem(BLOCKED_KEY, JSON.stringify([...blocked]));
+			this.guard?.removeItem(LOADING_KEY);
+		}
+		return [...blocked];
+	}
+
+	onStatus(listener: (status: EngineStatus) => void): () => void {
+		this.statusListeners.push(listener);
+		return () => (this.statusListeners = this.statusListeners.filter((l) => l !== listener));
+	}
+
+	/** Opens the model in the background when the app starts (docs/03), downloading it if allowed. */
+	start(options: { autoDownload: boolean; wifiOnly: boolean }): void {
+		this.ensureWorker()?.postMessage({ type: 'start', blocked: this.blockedBackends(), ...options });
+	}
+
+	/** Downloads now, whatever the connection: the user asked for it. */
+	download(): void {
+		this.ensureWorker()?.postMessage({ type: 'download' });
+	}
+
+	/** Deletes the model from the device; the app goes on with rules. */
+	remove(): void {
+		this.guard?.removeItem(BLOCKED_KEY);
+		this.guard?.removeItem(LOADING_KEY);
+		this.ensureWorker()?.postMessage({ type: 'remove' });
+	}
+
+	/** The user's labels, for the classifiers learned on the device. */
+	train(examples: LabeledTask[], goals: Goal[]): void {
+		this.worker?.postMessage({ type: 'train', examples, goals: JSON.parse(JSON.stringify(goals)) });
 	}
 
 	/**
