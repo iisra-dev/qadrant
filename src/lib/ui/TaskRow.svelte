@@ -9,6 +9,7 @@
 		meta,
 		overdue = false,
 		done = false,
+		landed = false,
 		oncomplete,
 		onreopen
 	}: {
@@ -21,6 +22,8 @@
 		overdue?: boolean;
 		/** Done in the last 24 hours: struck through, still in its quadrant (docs/01). */
 		done?: boolean;
+		/** Just saved from the capture: the row arrives tinted with its quadrant's color. */
+		landed?: boolean;
 		oncomplete: () => void;
 		/** Unticking a done task opens it again. */
 		onreopen?: () => void;
@@ -111,6 +114,7 @@
 	<div
 		class="content"
 		class:dragging
+		class:landed
 		style="transform: translateX({offset}px)"
 		onpointerdown={down}
 		onpointermove={move}
@@ -176,6 +180,15 @@
 	}
 	.content.dragging {
 		transition: none;
+	}
+	/* Lands after the sheet has gone down, then the tint fades out. */
+	.content.landed {
+		animation: land 1400ms ease-out 250ms both;
+	}
+	@keyframes land {
+		from {
+			background-color: var(--q-tint, var(--q-bg));
+		}
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.content {

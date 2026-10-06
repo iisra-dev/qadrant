@@ -26,7 +26,7 @@ test('"Buscarles hueco" schedules tasks without a time into a focus block', asyn
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Estudiar el tema 4, una hora');
-	await sheet.getByRole('button', { name: 'Elegir cuadrante a mano' }).click();
+	await sheet.getByRole('button', { name: 'Elegir a mano' }).click();
 	await sheet.getByRole('group', { name: 'Elegir cuadrante' }).getByRole('button', { name: 'Eliminar' }).click();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await page.getByRole('region', { name: 'Eliminar' }).getByRole('link', { name: 'Estudiar el tema 4' }).click();

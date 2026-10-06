@@ -17,7 +17,7 @@ test('an assignment waits on others with a follow-up date', async ({ page }) => 
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Pedirle a Luis que compre material de oficina');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 
 	await page.getByRole('link', { name: 'Agenda' }).click();

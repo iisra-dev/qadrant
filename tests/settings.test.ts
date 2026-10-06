@@ -14,7 +14,7 @@ test('people added in settings turn assignments into Delegar', async ({ page }) 
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Que Ana reserve la sala');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 	await expect(page.getByRole('region', { name: 'Delegar' }).getByRole('link', { name: /Que Ana reserve la sala · Ana/ })).toBeVisible();
 });
@@ -69,7 +69,7 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	await page.getByRole('button', { name: '¿Qué tienes en mente?' }).click();
 	const sheet = page.getByRole('dialog', { name: 'Nueva tarea' });
 	await sheet.getByRole('textbox', { name: 'Tarea' }).fill('Llamar al taller hoy');
-	await expect(sheet.getByText('VA A')).toBeVisible();
+	await expect(sheet.getByText('Va a', { exact: true })).toBeVisible();
 	await sheet.getByRole('button', { name: 'Guardar' }).click();
 
 	await page.getByRole('link', { name: 'Ajustes' }).click();

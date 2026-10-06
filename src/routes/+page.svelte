@@ -159,6 +159,7 @@
 						meta={timeToday(task)}
 						overdue={isOverdue(task, clock.now)}
 						done={task.status === 'done'}
+						landed={task.id === capture.landed}
 						oncomplete={() => complete(task)}
 						onreopen={() => repos.tasks.reopen(task.id)}
 					/>

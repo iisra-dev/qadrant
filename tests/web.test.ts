@@ -12,7 +12,7 @@ test('web: header capture, shortcuts, side agenda and detail panel', async ({ pa
 	await page.getByRole('textbox', { name: 'Nueva tarea' }).fill('Llamar al taller hoy');
 	await page.getByRole('button', { name: 'Añadir' }).click();
 	const modal = page.getByRole('dialog', { name: 'Nueva tarea' });
-	await expect(modal.getByText('VA A')).toBeVisible();
+	await expect(modal.getByText('Va a', { exact: true })).toBeVisible();
 	// 1-4 change the quadrant when the focus is not in the text field.
 	await modal.getByRole('button', { name: 'Cerrar' }).focus();
 	await page.keyboard.press('2');

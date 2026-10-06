@@ -22,7 +22,7 @@ test('main flows in English: capture, doubt, correct, complete', async ({ page }
 	await page.getByRole('button', { name: "What's on your mind?" }).click();
 	const sheet = page.getByRole('dialog', { name: 'New task' });
 	await sheet.getByRole('textbox', { name: 'Task' }).fill('Call the garage tomorrow, half an hour');
-	await expect(sheet.getByText('GOES TO')).toBeVisible();
+	await expect(sheet.getByText('Goes to', { exact: true })).toBeVisible();
 	await expect(sheet.getByText('Yes · due Tue, Oct 6, 18:00')).toBeVisible();
 	await expect(sheet.getByText('Today 10:00 · 30 min')).toBeVisible();
 	await expect(sheet.getByRole('button', { name: 'Do', exact: true })).toHaveAttribute('aria-pressed', 'true');
