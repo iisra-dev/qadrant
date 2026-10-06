@@ -15,11 +15,16 @@ export async function openGroup(page: Page, title: string) {
  * Completes the first-run welcome and lands on the Matrix. The app starts in
  * English; most tests are written in Spanish, so they pick it on the welcome.
  */
-export async function startApp(page: Page, goal = 'Ventas Q4', lang: 'en' | 'es' = 'es') {
+/** The welcome's checkbox that downloads the model on its own. */
+export const WIFI = { es: 'Descargar cuando haya wifi', en: 'Download when on Wi-Fi' } as const;
+
+export async function startApp(page: Page, goal = 'Ventas Q4', lang: 'en' | 'es' = 'es', options: { model?: boolean } = {}) {
 	await page.goto('/');
 	await expect(page).toHaveURL(/\/welcome$/);
 	if (lang === 'es') await page.getByLabel('Español').check();
 	await page.getByRole('textbox', { name: MAIN_GOAL[lang] }).fill(goal);
+	// Rules only unless a test wants the model: no download in the background.
+	if (!options.model) await page.getByLabel(WIFI[lang]).uncheck();
 	await page.getByRole('button', { name: lang === 'es' ? 'Empezar' : 'Start' }).click();
 	await expect(page.getByRole('heading', { name: lang === 'es' ? 'Hoy' : 'Today', level: 1 })).toBeVisible();
 }

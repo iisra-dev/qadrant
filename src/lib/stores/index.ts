@@ -3,6 +3,8 @@ import type { CalendarEvent, Goal, Person, Settings, Task } from '$lib/domain/ty
 import { live } from './live';
 
 export const openTasks = live<Task[]>(() => repos.tasks.listOpen(), []);
+/** Open, done and archived: the labels the engine learns from (docs/03). */
+export const allTasks = live<Task[]>(() => repos.tasks.listAll(), []);
 export const activeGoals = live<Goal[]>(() => repos.goals.listActive(), []);
 export const people = live<Person[]>(() => repos.people.list(), []);
 // undefined until the settings have been read; liveQuery only allows read-only queries.

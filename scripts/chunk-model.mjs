@@ -1,6 +1,8 @@
 // Splits the engine model into parts of at most 25 MiB (Cloudflare Pages limit)
 // and writes manifest.json with version, size and SHA-256 per part (docs/02).
-// Usage: node scripts/chunk-model.mjs --model tools/embed-eval/model --out <dir>
+// With --calibration, the default importance calibration (docs/03, step 6) goes in
+// the manifest, published with the model it was fitted for.
+// Usage: node scripts/chunk-model.mjs --model tools/embed-eval/model --out <dir> [--calibration <file>]
 import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,7 +13,7 @@ const TOKENIZER_FILES = ['tokenizer.json', 'tokenizer_config.json', 'config.json
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex');
 
-export function chunkModel(modelDir, outDir) {
+export function chunkModel(modelDir, outDir, calibrationFile) {
 	const info = JSON.parse(readFileSync(join(modelDir, 'model-info.json'), 'utf8'));
 	const onnx = readFileSync(join(modelDir, 'onnx', 'model_quantized.onnx'));
 	rmSync(outDir, { recursive: true, force: true });
@@ -35,18 +37,21 @@ export function chunkModel(modelDir, outDir) {
 		bytes: onnx.length,
 		sha256: sha256(onnx),
 		parts,
-		tokenizer
+		tokenizer,
+		...(calibrationFile && { calibration: JSON.parse(readFileSync(calibrationFile, 'utf8')) })
 	};
 	writeFileSync(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 	return manifest;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-	const { values } = parseArgs({ options: { model: { type: 'string' }, out: { type: 'string' } } });
+	const { values } = parseArgs({
+		options: { model: { type: 'string' }, out: { type: 'string' }, calibration: { type: 'string' } }
+	});
 	if (!values.model || !values.out) {
-		console.error('Usage: node scripts/chunk-model.mjs --model <dir> --out <dir>');
+		console.error('Usage: node scripts/chunk-model.mjs --model <dir> --out <dir> [--calibration <file>]');
 		process.exit(1);
 	}
-	const manifest = chunkModel(values.model, values.out);
+	const manifest = chunkModel(values.model, values.out, values.calibration);
 	console.log(`${manifest.parts.length} parts, ${(manifest.bytes / 2 ** 20).toFixed(1)} MiB, version ${manifest.version}`);
 }

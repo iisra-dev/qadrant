@@ -35,6 +35,7 @@ __pycache__/
 *.onnx_data
 *.onnx.data
 static/models/
+static/ort/
 
 # Deploy tooling
 .wrangler/

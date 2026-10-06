@@ -14,7 +14,10 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
 	import { createReminderSync } from '$lib/ownserver/sync';
-	import { openTasks, settings } from '$lib/stores';
+	import { activeGoals, allTasks, openTasks, settings } from '$lib/stores';
+	import { engineState, startEngine, teachEngine } from '$lib/engine';
+	import { importanceLabels, recalibrateThresholds, trainingSet } from '$lib/domain/learning';
+	import type { Settings } from '$lib/domain/types';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { applyTheme } from '$lib/theme';
 	import { TabBar, WebHeader } from '$lib/ui';
@@ -62,6 +65,38 @@
 	// Interface language (device-local setting, English by default).
 	$effect(() => {
 		if ($settings) i18n.set($settings.language ?? 'en');
+	});
+
+	// The engine opens the model in the background once the welcome is done (docs/03).
+	let engineStarted = false;
+	$effect(() => {
+		if (!$settings?.onboardingDone || engineStarted) return;
+		engineStarted = true;
+		startEngine({ autoDownload: $settings.model.autoDownload ?? true, wifiOnly: $settings.model.wifiOnly });
+	});
+
+	// Settings keeps what the assistant has on this device (device-local, docs/04).
+	$effect(() => {
+		const { model, version, sizeBytes } = engineState.status;
+		const current = $settings?.model;
+		if (!current || model === 'checking' || model === 'downloading') return;
+		const state: Settings['model']['state'] = model === 'unavailable' ? 'absent' : model;
+		if (current.state === state && current.version === version && current.sizeBytes === sizeBytes) return;
+		void repos.settings.update({ model: { ...current, state, version, sizeBytes } });
+	});
+
+	// What the user's choices teach: classifiers on the device and the thresholds (docs/03).
+	$effect(() => {
+		const examples = trainingSet($allTasks);
+		const goals = $activeGoals;
+		const timer = setTimeout(() => teachEngine(examples, goals), 2000);
+		return () => clearTimeout(timer);
+	});
+	$effect(() => {
+		const current = $settings?.thresholds;
+		const next = recalibrateThresholds(importanceLabels($allTasks));
+		if (!current || !next || (next.low === current.low && next.high === current.high)) return;
+		void repos.settings.update({ thresholds: next });
 	});
 
 	// First run: the welcome screen, only once (docs/01).

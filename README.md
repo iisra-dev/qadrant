@@ -54,3 +54,10 @@ pnpm dev
 4. Comprueba en la URL `*.pages.dev` que la consola del navegador dice `crossOriginIsolated === true` y que la app abre sin conexión tras la primera visita.
 
 Si prefieres otro nombre de proyecto, cámbialo en el script `deploy:pages` de `package.json`.
+
+## Desplegar con el modelo (fase 2)
+El modelo (≈ 113 MiB) no va en git. Desde una máquina que lo tenga descargado (`tools/embed-eval/fetch_model.py`):
+1. `pnpm model:prepare`: lo trocea en `static/models/` en fragmentos de 25 MiB con su manifiesto (versión, tamaño y SHA-256 de cada fragmento) y la calibración por defecto.
+2. `pnpm deploy:pages`: el build copia también ONNX Runtime a `/ort/` en fragmentos.
+
+Un despliegue sin `static/models/` sigue funcionando: Ajustes dice que el servidor no ofrece el asistente y la app clasifica con reglas.

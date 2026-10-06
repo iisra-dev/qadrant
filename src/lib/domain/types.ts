@@ -84,7 +84,10 @@ export interface Settings extends Base {
 		progress?: number;
 		sizeBytes?: number;
 		version?: string;
+		/** Updates and the first download on their own only on Wi-Fi (Settings). */
 		wifiOnly: boolean;
+		/** The welcome's "Download when on Wi-Fi"; undefined (before phase 2) counts as yes. */
+		autoDownload?: boolean;
 	};
 	server?: { url: string; token: string };
 	onboardingDone: boolean;
