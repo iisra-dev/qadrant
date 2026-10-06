@@ -9,7 +9,9 @@ test('links the manifest and registers the service worker', async ({ page }) => 
 	expect(scope).toMatch(/\/$/);
 });
 
-test('opens offline once the service worker is active', async ({ page, context }) => {
+test('opens offline once the service worker is active', async ({ page, context, browserName }) => {
+	// Playwright's WebKit stops with an internal error when it reloads offline under a service worker.
+	test.skip(browserName === 'webkit', 'offline reload not supported by Playwright WebKit');
 	await page.goto('/');
 	await page.evaluate(async () => {
 		await navigator.serviceWorker.ready;

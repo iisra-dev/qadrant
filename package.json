@@ -12,14 +12,15 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "TZ=Europe/Madrid vitest run",
 		"test:watch": "TZ=Europe/Madrid vitest",
-		"test:e2e": "playwright test",
+		"test:e2e": "playwright test --project=chromium",
 		"icons": "pwa-assets-generator",
 		"deploy:pages": "pnpm build && wrangler pages deploy build --project-name qadrant",
 		"bench:prepare": "node tools/model-bench/prepare.mjs",
 		"bench:build": "pnpm bench:prepare && vite build --config tools/model-bench/vite.config.ts",
 		"bench:preview": "vite preview --config tools/model-bench/vite.config.ts",
 		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench --branch main",
-		"model:prepare": "node scripts/chunk-model.mjs --model tools/embed-eval/model --out static/models --calibration tools/embed-eval/calibration.json"
+		"model:prepare": "node scripts/chunk-model.mjs --model tools/embed-eval/model --out static/models --calibration tools/embed-eval/calibration.json",
+		"test:e2e:webkit": "scripts/e2e-webkit.sh"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",

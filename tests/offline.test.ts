@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { startApp } from './helpers';
 
-test('works offline with the service worker active: reload, capture and detail', async ({ page, context }) => {
+test('works offline with the service worker active: reload, capture and detail', async ({ page, context, browserName }) => {
+	// Playwright's WebKit stops with an internal error when it reloads offline under a service worker.
+	test.skip(browserName === 'webkit', 'offline reload not supported by Playwright WebKit');
 	await startApp(page);
 	await page.evaluate(async () => {
 		await navigator.serviceWorker.ready;
