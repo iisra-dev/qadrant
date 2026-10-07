@@ -134,7 +134,9 @@ describe('own date expressions', () => {
 		['llamar a Aldo sobre las 17:00', local(2026, 10, 2, 17), 'Llamar a Aldo'],
 		['quedar con Ana hacia las 19:00', local(2026, 10, 2, 19), 'Quedar con Ana'],
 		['llamar a Aldo a eso de las 18:00', local(2026, 10, 2, 18), 'Llamar a Aldo'],
-		['llamar a Aldo alrededor de las 16:00', local(2026, 10, 2, 16), 'Llamar a Aldo']
+		['llamar a Aldo alrededor de las 16:00', local(2026, 10, 2, 16), 'Llamar a Aldo'],
+		// Before a day they stay: only a time takes them along.
+		['hablar sobre mañana con Ana', local(2026, 10, 3, 18), 'Hablar sobre con Ana']
 	])('%s', (text, dueAt, title) => {
 		const result = run(text);
 		expect(result.dueAt).toBe(dueAt);

@@ -75,7 +75,14 @@ describe('own English expressions', () => {
 		['tomorrow at 9 dentist', local(2026, 10, 3, 9), 'Dentist'],
 		['last Friday I said I would call grandma', local(2026, 9, 25, 18), 'I said I would call grandma'],
 		['finish the exercises on Thursday next week', local(2026, 10, 8, 18), 'Finish the exercises'],
-		['pay the electricity bill (it was due yesterday)', local(2026, 10, 1, 18), 'Pay the electricity bill']
+		['pay the electricity bill (it was due yesterday)', local(2026, 10, 1, 18), 'Pay the electricity bill'],
+		// Words that introduce a time go with it; before a day they stay.
+		['call Aldo at 5:30pm', local(2026, 10, 2, 17, 30), 'Call Aldo'],
+		['call Aldo around 5pm', local(2026, 10, 2, 17), 'Call Aldo'],
+		['call Aldo at around 5pm', local(2026, 10, 2, 17), 'Call Aldo'],
+		['call Aldo at about 5pm', local(2026, 10, 2, 17), 'Call Aldo'],
+		['meet Ana towards 7pm', local(2026, 10, 2, 19), 'Meet Ana'],
+		['talk about Monday with Ana', local(2026, 10, 5, 18), 'Talk about with Ana']
 	])('%s', (text, dueAt, title) => {
 		const result = run(text);
 		expect(result.dueAt).toBe(dueAt);
