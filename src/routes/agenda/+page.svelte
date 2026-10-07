@@ -5,7 +5,7 @@
 	import { agendaForDay, agendaItems, eventsForDay, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, isoWeekday, sameDay, startOfDay } from '$lib/domain/dates';
 	import { formatDayMonth, formatDuration, formatLongDate, formatTime, weekdayShort } from '$lib/domain/format';
-	import { allTasks, calendarEvents, people, settings } from '$lib/stores';
+	import { allTasks, calendarEvents, people, settings, tasksLoaded } from '$lib/stores';
 	import { weeklyReview } from '$lib/domain/review';
 	import { QUADRANTS } from '$lib/domain/types';
 	import WeekView from './WeekView.svelte';
@@ -189,7 +189,7 @@
 				/>
 			{/if}
 		{:else}
-			<p class="empty">{i18n.m.agenda.empty}</p>
+			{#if $tasksLoaded}<p class="empty">{i18n.m.agenda.empty}</p>{/if}
 		{/each}
 		{#if nowIndex === -1 && rows.length}{@render nowLine()}{/if}
 	</div>
@@ -229,7 +229,7 @@
 				{/each}
 			</ul>
 			<button class="find" type="button" onclick={findSlots} disabled={busy}>{i18n.m.agenda.findSlots}</button>
-		{:else}
+		{:else if $tasksLoaded}
 			<p class="empty">{i18n.m.agenda.allScheduled}</p>
 		{/if}
 		<p class="note" role="status">{message}</p>

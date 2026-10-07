@@ -14,6 +14,7 @@
 		limit = 3,
 		count,
 		showCount = true,
+		loaded = true,
 		row,
 		footer
 	}: {
@@ -25,6 +26,8 @@
 		count?: number;
 		/** Visible count; off on the phone, where the summary pills above already show it. */
 		showCount?: boolean;
+		/** False until the tasks have been read: no "empty" text before that. */
+		loaded?: boolean;
 		row: Snippet<[Item]>;
 		footer?: Snippet;
 	} = $props();
@@ -46,7 +49,7 @@
 		<!-- Hidden on the phone but still read out, so each region says how many tasks it has. -->
 		<span class="count" class:hidden={!showCount} aria-label={i18n.m.common.tasksCount(count ?? items.length)}>{count ?? items.length}</span>
 	</div>
-	{#if items.length === 0}
+	{#if items.length === 0 && loaded}
 		<p class="empty">{meta.empty}</p>
 	{/if}
 	<!-- Always there, so rows animate in and out, also into an empty quadrant (docs/05, "Movimiento"). -->

@@ -1,9 +1,14 @@
 import { repos } from '$lib/db/repositories';
 import type { CalendarEvent, Goal, Person, Settings, Task } from '$lib/domain/types';
 import type { SyncState } from '$lib/sync/types';
+import { writable } from 'svelte/store';
 import { live } from './live';
 
-export const openTasks = live<Task[]>(() => repos.tasks.listOpen(), []);
+export { storageError } from './live';
+/** False until the open tasks have been read once: empty states wait for it. */
+export const tasksLoaded = writable(false);
+
+export const openTasks = live<Task[]>(() => repos.tasks.listOpen(), [], () => tasksLoaded.set(true));
 /** Open, done and archived: the labels the engine learns from (docs/03). */
 export const allTasks = live<Task[]>(() => repos.tasks.listAll(), []);
 export const activeGoals = live<Goal[]>(() => repos.goals.listActive(), []);

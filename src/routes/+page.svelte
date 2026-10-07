@@ -15,7 +15,7 @@
 	import { formatLongDate } from '$lib/domain/format';
 	import { groupByQuadrant, isOverdue, matrixTasks, staleEliminate } from '$lib/domain/matrix';
 	import { QUADRANTS, type Quadrant, type Task } from '$lib/domain/types';
-	import { allTasks, openTasks, people } from '$lib/stores';
+	import { allTasks, openTasks, people, tasksLoaded } from '$lib/stores';
 	import { arrivals } from '$lib/sync/activity.svelte';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { AgendaBlock, AiDot, Button, Drawer, Icon, QuadrantCard, quadrantVars, Sheet, SyncIndicator, TaskRow, UndoToast } from '$lib/ui';
@@ -146,7 +146,7 @@
 
 	<div class="grid">
 		{#each QUADRANTS as quadrant (quadrant)}
-			<QuadrantCard {quadrant} items={groups[quadrant]} count={openCount(quadrant)} showCount={media.web} limit={media.web ? 6 : 3} footer={quadrant === 'eliminate' && openEliminate.length > 0 ? eliminateFooter : undefined}>
+			<QuadrantCard {quadrant} items={groups[quadrant]} loaded={$tasksLoaded} count={openCount(quadrant)} showCount={media.web} limit={media.web ? 6 : 3} footer={quadrant === 'eliminate' && openEliminate.length > 0 ? eliminateFooter : undefined}>
 				{#snippet row(item)}
 					{@const task = item as Task}
 					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -199,7 +199,7 @@
 				minutes={task.durationMin ?? 30}
 			/>
 		{:else}
-			<p class="empty">{i18n.m.matrix.nothingTimed}</p>
+			{#if $tasksLoaded}<p class="empty">{i18n.m.matrix.nothingTimed}</p>{/if}
 		{/each}
 	</aside>
 {/if}

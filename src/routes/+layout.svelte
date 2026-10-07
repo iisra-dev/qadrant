@@ -14,7 +14,7 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
 	import { createReminderSync } from '$lib/ownserver/sync';
-	import { activeGoals, allTasks, openTasks, settings, syncState } from '$lib/stores';
+	import { activeGoals, allTasks, openTasks, settings, storageError, syncState } from '$lib/stores';
 	import { claimLeadership, leader } from '$lib/sync/leader.svelte';
 	import { startDeviceSync } from '$lib/sync';
 	import { engineState, startEngine, teachEngine } from '$lib/engine';
@@ -139,6 +139,9 @@
 		<WebHeader current={section} oncapture={(text) => capture.show(text)} />
 	{/if}
 	<main>
+		{#if $storageError}
+			<p class="storage-error" role="alert">{i18n.m.error.storage}</p>
+		{/if}
 		{@render children()}
 	</main>
 	{#if media.web && section !== '/task'}
@@ -163,6 +166,15 @@
 		display: flex;
 		flex-direction: column;
 		min-height: 0;
+	}
+	.storage-error {
+		margin: var(--space-3) var(--space-4) 0;
+		padding: var(--space-3) var(--space-4);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-block);
+		background: var(--surface-muted);
+		font-size: 14px;
+		line-height: 1.45;
 	}
 	.tabs {
 		position: sticky;
