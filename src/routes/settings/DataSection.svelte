@@ -7,7 +7,7 @@
 	import { applyTheme } from '$lib/theme';
 	import { Button, SettingsGroup, Sheet } from '$lib/ui';
 
-	let { persisted }: { persisted: boolean | null } = $props();
+	let { persisted, synced = false }: { persisted: boolean | null; synced?: boolean } = $props();
 
 	// Double confirmation (docs/01): a sheet, then typing a word.
 	let step = $state<0 | 1 | 2>(0);
@@ -72,7 +72,7 @@
 <Sheet open={step > 0} label={i18n.m.data.clear} onclose={() => ((step = 0), (confirmation = ''))}>
 	{#if step === 1}
 		<h2 class="title">{i18n.m.data.clearAsk}</h2>
-		<p class="text">{i18n.m.data.clearText}</p>
+		<p class="text">{i18n.m.data.clearText}{#if synced}{' '}{i18n.m.data.clearSynced}{/if}</p>
 		<Button variant="danger" size="lg" block onclick={() => (step = 2)}>{i18n.m.data.continue}</Button>
 		<Button variant="secondary" size="lg" block onclick={() => (step = 0)}>{i18n.m.common.cancel}</Button>
 	{:else if step === 2}

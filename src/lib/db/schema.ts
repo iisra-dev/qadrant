@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { CalendarEvent, Correction, Goal, Person, Settings, Task } from '$lib/domain/types';
+import type { OutboxEntry, SyncMeta, SyncState } from '$lib/sync/types';
 
 export class QadrantDB extends Dexie {
 	tasks!: EntityTable<Task, 'id'>;
@@ -9,6 +10,10 @@ export class QadrantDB extends Dexie {
 	settings!: EntityTable<Settings, 'id'>;
 	/** Read-only copy of the calendar; replaced on every download, never exported or synced (docs/04). */
 	events!: EntityTable<CalendarEvent, 'id'>;
+	/** Sync (phase 4, docs/04): never exported nor synced themselves. */
+	syncMeta!: EntityTable<SyncMeta, 'key'>;
+	outbox!: EntityTable<OutboxEntry, 'key'>;
+	syncState!: EntityTable<SyncState, 'id'>;
 
 	constructor(name = 'qadrant') {
 		super(name);
@@ -21,6 +26,7 @@ export class QadrantDB extends Dexie {
 			settings: 'id'
 		});
 		this.version(2).stores({ events: 'id, start' });
+		this.version(3).stores({ syncMeta: 'key', outbox: 'key', syncState: 'id' });
 	}
 }
 

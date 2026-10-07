@@ -30,7 +30,7 @@
   </p>
 </div>
 
-Current version: **1.2.3** (Oct 7, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for changes.
+Current version: **1.3.0** (Oct 7, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for changes.
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -220,7 +220,7 @@ A deployment without `static/models/` still works: Settings says the server does
 
 ### Self-hosted server (optional)
 
-Qadrant works fully without a server and does not provide one. Anyone who wants reminders, a calendar or, from phase 4 on, the same tasks on all their devices can run their own by following [`server/README.md`](server/README.md). Each server belongs to one person and serves all of their devices. Synced data is not encrypted: whoever runs that server, and the tunnel service if there is one, can read it. Each device keeps classifying with its own assistant. The server will be published separately, in a public repository, so anyone can run it.
+Qadrant works fully without a server and does not provide one. Anyone who wants reminders, a calendar or the same tasks on all their devices (sync, off by default) can run their own by following [`server/README.md`](server/README.md). Each server belongs to one person and serves all of their devices. Synced data is not encrypted: whoever runs that server, and the tunnel service if there is one, can read it. Each device keeps classifying with its own assistant. The server is also published on its own, with instructions in English and Spanish, at [github.com/iisra-dev/qadrant-server](https://github.com/iisra-dev/qadrant-server).
 
 ### Working with Claude Code
 

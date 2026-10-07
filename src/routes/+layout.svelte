@@ -14,7 +14,9 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
 	import { createReminderSync } from '$lib/ownserver/sync';
-	import { activeGoals, allTasks, openTasks, settings } from '$lib/stores';
+	import { activeGoals, allTasks, openTasks, settings, syncState } from '$lib/stores';
+	import { claimLeadership, leader } from '$lib/sync/leader.svelte';
+	import { startDeviceSync } from '$lib/sync';
 	import { engineState, startEngine, teachEngine } from '$lib/engine';
 	import { importanceLabels, recalibrateThresholds, trainingSet } from '$lib/domain/learning';
 	import type { Settings } from '$lib/domain/types';
@@ -27,9 +29,11 @@
 	onMount(() => {
 		const stopClock = clock.start();
 		const stopMedia = media.start();
+		const release = claimLeadership();
 		return () => {
 			stopClock();
 			stopMedia();
+			release();
 		};
 	});
 
@@ -39,15 +43,18 @@
 		repos.settings.get().then(() => taskActions.reevaluateOpenTasks(currentSettings()));
 	});
 
-	// Own server (phase 3): keep its reminders in step with the tasks.
+	// Own server (phase 3): keep its reminders in step with the tasks. Only the
+	// leading tab talks to the server (docs/02); with sync on, the list says
+	// which sync version it comes from.
 	const reminderSync = createReminderSync();
 	$effect(() => {
-		reminderSync.update($openTasks, $settings?.server);
+		if (!leader.active) return reminderSync.stop();
+		reminderSync.update($openTasks, $settings?.server, $settings?.sync ? ($syncState?.cursor ?? 0) : undefined);
 	});
 
 	// Calendar copy (optional): on start, when the server changes and every 15 minutes.
 	// Only a change of server (not of other settings) restarts it.
-	const serverKey = $derived($settings ? JSON.stringify($settings.server ?? null) : undefined);
+	const serverKey = $derived($settings && leader.active ? JSON.stringify($settings.server ?? null) : undefined);
 	$effect(() => {
 		if (serverKey === undefined) return;
 		const server = JSON.parse(serverKey) as NonNullable<typeof $settings>['server'] | null ?? undefined;
@@ -55,6 +62,16 @@
 		if (!server) return;
 		const timer = setInterval(() => refreshCalendar(server), CALENDAR_REFRESH_MS);
 		return () => clearInterval(timer);
+	});
+
+	// Sync (phase 4, optional): upload, download and merge while the app is open.
+	// The passage of time runs again after each download (docs/02).
+	const syncKey = $derived(leader.active && $settings?.sync && $settings.server ? JSON.stringify($settings.server) : '');
+	$effect(() => {
+		if (!syncKey) return;
+		return startDeviceSync(JSON.parse(syncKey), async () => {
+			await taskActions.reevaluateOpenTasks(await repos.settings.get());
+		});
 	});
 
 	// Settings are the source of truth for the theme; localStorage only mirrors it for the first paint.

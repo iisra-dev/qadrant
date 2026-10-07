@@ -1,13 +1,21 @@
 <script lang="ts">
 	import { repos } from '$lib/db/repositories';
 	import type { Settings } from '$lib/domain/types';
-	import { normaliseUrl, ServerError, serverApi } from '$lib/ownserver/client';
+	import { normaliseUrl, serverApi, type ServerInfo } from '$lib/ownserver/client';
+	import { serverErrorText } from '$lib/ownserver/errors';
+	import { instructionsUrl } from '$lib/ownserver/repository';
+	import { clock } from '$lib/app/clock.svelte';
+	import { pendingChanges, syncState } from '$lib/stores';
+	import { prepareSync, SYNC_API_VERSION } from '$lib/sync';
+	import { syncStatusLine } from '$lib/sync/status';
 	import { refreshCalendar } from '$lib/ownserver/calendar';
 	import { askPermission, disablePush, enablePush, pushStatus, pushSupported, type PushStatus } from '$lib/ownserver/push';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { Button, SettingsGroup } from '$lib/ui';
 
-	let { server }: { server: Settings['server'] } = $props();
+	let { server, sync = false }: { server: Settings['server']; sync?: boolean } = $props();
+
+	const m = $derived(i18n.m.server);
 
 	let url = $state('');
 	let token = $state('');
@@ -50,6 +58,41 @@
 		} finally {
 			busy = false;
 			refreshNotices();
+		}
+	}
+
+	// What the server can do: from API version 2 it syncs (docs/01).
+	let info = $state<ServerInfo | null>(null);
+	let syncMessage = $state('');
+	$effect(() => {
+		const current = server;
+		info = null;
+		if (!current) return;
+		serverApi
+			.ping(current)
+			.then((result) => (info = result))
+			.catch(() => (info = null));
+	});
+	const syncs = $derived(info === null || info.version >= SYNC_API_VERSION);
+	const status = $derived(
+		!syncs && !sync ? m.syncUnsupported : syncStatusLine(m, $syncState, $pendingChanges, clock.now, i18n.lang)
+	);
+
+	async function toggleSync(on: boolean) {
+		if (!server) return;
+		busy = true;
+		syncMessage = '';
+		try {
+			if (on) {
+				// Everything goes up and comes down again (docs/04).
+				await prepareSync();
+				await repos.settings.update({ sync: true });
+			} else {
+				await repos.settings.update({ sync: false });
+				syncMessage = m.syncOff;
+			}
+		} finally {
+			busy = false;
 		}
 	}
 
@@ -96,23 +139,8 @@
 		}
 	}
 
-	const m = $derived(i18n.m.server);
-
-	/** The message of a server error, in the interface language. */
 	function errorText(error: unknown, fallback: string): string {
-		if (!(error instanceof ServerError)) return fallback;
-		switch (error.code) {
-			case 'unreachable':
-				return m.cannotConnect;
-			case 'unauthorized':
-				return m.wrongKey;
-			case 'notQadrant':
-				return m.notQadrant;
-			case 'calendarUnreadable':
-				return m.calendarUnreadable;
-			default:
-				return m.serverError(error.status ?? 0);
-		}
+		return serverErrorText(m, error, fallback);
 	}
 
 	async function connect(event: SubmitEvent) {
@@ -146,7 +174,8 @@
 		try {
 			await disablePush(server).catch(() => {});
 			await serverApi.putReminders(server, []).catch(() => {});
-			await repos.settings.update({ server: undefined });
+			// Leaving the server also leaves sync; the server keeps its data (docs/02).
+			await repos.settings.update({ server: undefined, sync: false });
 			message = m.removed;
 		} finally {
 			busy = false;
@@ -155,6 +184,12 @@
 </script>
 
 <SettingsGroup title={m.title} summary={i18n.m.settings.serverSummary(Boolean(server))}>
+	<p class="note">
+		{m.intro}
+		{#if instructionsUrl(i18n.lang)}
+			<a href={instructionsUrl(i18n.lang)} target="_blank" rel="noopener noreferrer">{m.instructions}</a>
+		{/if}
+	</p>
 	<div class="card">
 		{#if server}
 			<div class="row">
@@ -188,6 +223,28 @@
 			<p class="note">{notices === 'blocked' ? m.noticesBlockedHelp : m.noticesUnsupportedHelp}</p>
 		{/if}
 
+		<div class="card">
+			<div class="row">
+				<label for="s-sync">{m.sync}</label>
+				<input
+					id="s-sync"
+					class="check"
+					type="checkbox"
+					aria-describedby="s-sync-status"
+					checked={sync}
+					disabled={busy || (!syncs && !sync)}
+					onchange={(e) => toggleSync(e.currentTarget.checked)}
+				/>
+			</div>
+		</div>
+		{#if sync || !syncs}
+			<p class="note" id="s-sync-status" role="status">{status}</p>
+		{/if}
+		<p class="note" role="status">{syncMessage}</p>
+		{#if sync}
+			<p class="note">{m.syncLive}</p>
+		{/if}
+
 		<h3 id="s-calendar">{m.calendar}</h3>
 		<div class="card" aria-labelledby="s-calendar" role="group">
 			{#if calendarConnected}
@@ -216,7 +273,7 @@
 		<p class="note" role="status">{calendarMessage}</p>
 		<p class="note">{m.calendarNote}</p>
 	{/if}
-	<p class="note">{m.privacy}</p>
+	<p class="note">{sync ? m.privacySync : m.privacy}</p>
 </SettingsGroup>
 
 <style>
@@ -238,6 +295,25 @@
 		justify-content: space-between;
 		gap: var(--space-2);
 		font-size: 14px;
+	}
+	.check {
+		width: 22px;
+		height: 22px;
+		margin: 0 var(--space-3);
+		accent-color: var(--cta-bg);
+	}
+	.row label {
+		flex-grow: 1;
+		min-height: var(--touch);
+		display: flex;
+		align-items: center;
+	}
+	.note a {
+		color: var(--text);
+		text-underline-offset: 3px;
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--touch);
 	}
 	.url {
 		font-family: var(--font-mono);

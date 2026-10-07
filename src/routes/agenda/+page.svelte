@@ -5,7 +5,9 @@
 	import { agendaForDay, agendaItems, eventsForDay, waitingOnOthers, weekDays, withoutSlot } from '$lib/domain/agenda';
 	import { addDays, isoWeekday, sameDay, startOfDay } from '$lib/domain/dates';
 	import { formatDayMonth, formatDuration, formatLongDate, formatTime, weekdayShort } from '$lib/domain/format';
-	import { calendarEvents, people, settings } from '$lib/stores';
+	import { allTasks, calendarEvents, people, settings } from '$lib/stores';
+	import { weeklyReview } from '$lib/domain/review';
+	import { QUADRANTS } from '$lib/domain/types';
 	import WeekView from './WeekView.svelte';
 	import { openTasks } from '$lib/stores';
 	import { taskActions } from '$lib/tasks/actions';
@@ -49,6 +51,8 @@
 	}
 	const pending = $derived(withoutSlot($openTasks));
 	const waiting = $derived(waitingOnOthers($openTasks));
+	// Weekly review (docs/01): only when there is something to look at.
+	const review = $derived(weeklyReview($allTasks, clock.now));
 
 	function personName(id: string | undefined): string | undefined {
 		return id ? $people.find((p) => p.id === id)?.name : undefined;
@@ -219,6 +223,31 @@
 		{/if}
 		<p class="note" role="status">{message}</p>
 	</section>
+
+	{#if review.totalMinutes || review.stale.length}
+		<section class="review" aria-labelledby="review-title">
+			<h2 id="review-title">{i18n.m.agenda.review}</h2>
+			{#if review.totalMinutes}
+				<h3 id="review-hours">{i18n.m.agenda.reviewHours}</h3>
+				<dl aria-labelledby="review-hours">
+					{#each QUADRANTS as quadrant (quadrant)}
+						<div class="hours q-{quadrant}">
+							<dt>{i18n.m.quadrants[quadrant].name}</dt>
+							<dd>{review.minutes[quadrant] ? formatDuration(review.minutes[quadrant]) : '–'}</dd>
+						</div>
+					{/each}
+				</dl>
+			{/if}
+			{#if review.stale.length}
+				<h3 id="review-stale">{i18n.m.agenda.reviewStale}</h3>
+				<ul aria-labelledby="review-stale">
+					{#each review.stale as { task, weeks } (task.id)}
+						<li><a href={`/task/${task.id}`}>{task.title}<span> · {i18n.m.agenda.weeks(weeks)}</span></a></li>
+					{/each}
+				</ul>
+			{/if}
+		</section>
+	{/if}
 </div>
 
 <style>
@@ -436,6 +465,59 @@
 	.when {
 		font-size: 12px;
 		flex-shrink: 0;
+	}
+	.review {
+		margin: 0 var(--space-4) var(--space-6);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+	.review h3 {
+		margin: var(--space-1) var(--space-1) 0;
+		font-family: var(--font-body);
+		font-size: 13px;
+		font-weight: 500;
+	}
+	dl {
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 6px;
+	}
+	.hours {
+		min-height: 56px;
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-block);
+		background: var(--q-bg);
+		color: var(--q-ink);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	.hours dt {
+		font-size: 13px;
+	}
+	.hours dd {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: 15px;
+		font-weight: 600;
+	}
+	.q-do {
+		--q-bg: var(--q-do-bg);
+		--q-ink: var(--q-do-ink);
+	}
+	.q-schedule {
+		--q-bg: var(--q-schedule-bg);
+		--q-ink: var(--q-schedule-ink);
+	}
+	.q-delegate {
+		--q-bg: var(--q-delegate-bg);
+		--q-ink: var(--q-delegate-ink);
+	}
+	.q-eliminate {
+		--q-bg: var(--q-eliminate-bg);
+		--q-ink: var(--q-eliminate-ink);
 	}
 	.pending {
 		margin: var(--space-2) var(--space-4) var(--space-6);

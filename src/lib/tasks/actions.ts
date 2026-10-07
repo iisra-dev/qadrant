@@ -141,7 +141,9 @@ export function createTaskActions(repos: Repositories = defaultRepos) {
 						followUpAt: move.to === 'delegate' ? defaultFollowUp(now, settings) : undefined
 					}
 				})),
-				now
+				now,
+				// Automatic: it must not win over what the user changed on another device (docs/02).
+				{ automatic: true }
 			);
 		}
 		return moves.length;

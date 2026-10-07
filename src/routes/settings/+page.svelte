@@ -316,7 +316,7 @@
 			{/if}
 		</SettingsGroup>
 
-		<ServerSection server={s.server} />
+		<ServerSection server={s.server} sync={Boolean(s.server && s.sync)} />
 
 		<SettingsGroup title={m.appearance} summary={m.appearanceSummary(themeLabel, s.language === "es" ? "Español" : "English")}>
 			<fieldset class="segmented">
@@ -340,9 +340,9 @@
 			</fieldset>
 		</SettingsGroup>
 
-		<DataSection {persisted} />
+		<DataSection {persisted} synced={Boolean(s.server && s.sync)} />
 
-		<p class="only-here"><Icon name="lock" size={16} />{i18n.m.common.onlyHere}</p>
+		<p class="only-here"><Icon name="lock" size={16} />{s.server && s.sync ? i18n.m.common.alsoServer : i18n.m.common.onlyHere}</p>
 		{#if !media.web}<AppFooter />{/if}
 	{/if}
 </div>
