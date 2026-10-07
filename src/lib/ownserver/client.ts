@@ -1,5 +1,6 @@
 import type { CalendarEvent } from '$lib/domain/types';
 import type { Reminder } from './reminders';
+import type { PullPage, PushItem, PushResponse } from '$lib/sync/api';
 
 export interface CalendarState {
 	connected: boolean;
@@ -11,6 +12,12 @@ export interface CalendarState {
 export interface ServerConfig {
 	url: string;
 	token: string;
+}
+
+/** What /ping says about the server: its API version (2 and later sync) and the id of its synced data. */
+export interface ServerInfo {
+	version: number;
+	syncId?: string;
 }
 
 export type ServerErrorCode = 'unreachable' | 'unauthorized' | 'status' | 'notQadrant' | 'calendarUnreadable';
@@ -56,9 +63,10 @@ async function call(config: ServerConfig, path: string, init: RequestInit = {}):
 }
 
 export const serverApi = {
-	async ping(config: ServerConfig): Promise<void> {
-		const body = await (await call(config, '/ping')).json();
+	async ping(config: ServerConfig): Promise<ServerInfo> {
+		const body = await (await call(config, '/ping')).json().catch(() => null);
 		if (!body?.ok) throw new ServerError('notQadrant');
+		return { version: Number(body.version) || 1, ...(typeof body.syncId === 'string' && { syncId: body.syncId }) };
 	},
 	async vapidKey(config: ServerConfig): Promise<string> {
 		return (await (await call(config, '/vapid')).json()).publicKey;
@@ -69,8 +77,20 @@ export const serverApi = {
 	async unsubscribe(config: ServerConfig, endpoint: string): Promise<void> {
 		await call(config, '/subscriptions', { method: 'DELETE', body: JSON.stringify({ endpoint }) });
 	},
-	async putReminders(config: ServerConfig, reminders: Reminder[]): Promise<void> {
-		await call(config, '/reminders', { method: 'PUT', body: JSON.stringify(reminders) });
+	/** With `version` (devices that sync), the server ignores lists older than the last one. */
+	async putReminders(config: ServerConfig, reminders: Reminder[], version?: number): Promise<void> {
+		const query = version === undefined ? '' : `?version=${version}`;
+		await call(config, `/reminders${query}`, { method: 'PUT', body: JSON.stringify(reminders) });
+	},
+	async syncPush(config: ServerConfig, items: PushItem[]): Promise<PushResponse> {
+		return (await call(config, '/sync/push', { method: 'POST', body: JSON.stringify(items) })).json();
+	},
+	async syncPull(config: ServerConfig, since: number): Promise<PullPage> {
+		return (await call(config, `/sync/pull?since=${since}`)).json();
+	},
+	/** The change stream (SSE). Read with fetch: EventSource cannot send Authorization. */
+	async syncEvents(config: ServerConfig, signal: AbortSignal): Promise<Response> {
+		return call(config, '/sync/events', { signal, headers: { Accept: 'text/event-stream' } });
 	},
 	async calendar(config: ServerConfig): Promise<CalendarState> {
 		return (await call(config, '/calendar')).json();

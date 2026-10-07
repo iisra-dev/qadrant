@@ -20,11 +20,14 @@ export interface OutboxEntry {
 	rev: string;
 }
 
-/** Highest server version already pulled. */
+/** Highest server version already pulled, and the id of the server data it belongs to. */
 export interface SyncState {
 	id: 'sync';
 	cursor: number;
 	lastSyncAt?: string;
+	syncId?: string;
+	/** Why the last cycle failed, for the status line of every tab. */
+	lastError?: 'offline' | 'unsupported' | 'unauthorized' | 'failed';
 }
 
 export function syncKey(collection: SyncCollection, id: string): string {
