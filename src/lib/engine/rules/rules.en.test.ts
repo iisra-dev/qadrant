@@ -82,7 +82,11 @@ describe('own English expressions', () => {
 		['call Aldo at around 5pm', local(2026, 10, 2, 17), 'Call Aldo'],
 		['call Aldo at about 5pm', local(2026, 10, 2, 17), 'Call Aldo'],
 		['meet Ana towards 7pm', local(2026, 10, 2, 19), 'Meet Ana'],
-		['talk about Monday with Ana', local(2026, 10, 5, 18), 'Talk about with Ana']
+		['talk about Monday with Ana', local(2026, 10, 5, 18), 'Talk about with Ana'],
+		// An hour without am/pm: 1-7 is the afternoon, 8-11 the morning.
+		['call Aldo at 5', local(2026, 10, 2, 17), 'Call Aldo'],
+		['call Aldo at 9', local(2026, 10, 3, 9), 'Call Aldo'],
+		['gym at 5am', local(2026, 10, 3, 5), 'Gym']
 	])('%s', (text, dueAt, title) => {
 		const result = run(text);
 		expect(result.dueAt).toBe(dueAt);
