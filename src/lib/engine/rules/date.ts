@@ -17,6 +17,10 @@ interface DateRules {
 	dayAfterTomorrow: RegExp;
 	/** Words that introduce a date and go away with it. Also right after "(". */
 	introducer: RegExp;
+	/** Words that introduce only a time ("a las 5", "around 5pm"); before a day they stay. */
+	timeIntroducer: RegExp;
+	/** chrono's text starts with a time of day, not a day. */
+	timeFirst: RegExp;
 	/** "el viernes pasado" (after the date) / "last Friday" (in chrono's own text). */
 	pastAfter?: RegExp;
 	pastInText?: RegExp;
@@ -36,10 +40,12 @@ const RULES: Record<Lang, DateRules> = {
 			{ pattern: /\b(?:a|al) mediod[ií]a\b/i, time: () => '12:00' }
 		],
 		dayAfterTomorrow: /\bpasado mañana\b/i,
-		// "para el martes", "antes del jueves", "venció ayer", "el cine del sábado", "la clase de mañana",
-		// and before a time, "a las 17:30", "sobre las 6", "a eso de las 7".
+		// "para el martes", "antes del jueves", "venció ayer", "el cine del sábado", "la clase de mañana".
 		introducer:
-			/(?:^|[\s(])(?:(?:vence|venci[oó])(?: el| la)?|para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|a eso de|alrededor de|sobre|hacia|del|de|el|la|los|a)\s*$/i,
+			/(?:^|[\s(])(?:(?:vence|venci[oó])(?: el| la)?|para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|del|de|el|la|los)\s*$/i,
+		// "a las 17:30", "sobre las 6", "a eso de las 7"; "hablar sobre mañana" keeps its "sobre".
+		timeIntroducer: /(?:^|[\s(])(?:a eso de|alrededor de|sobre|hacia|a)\s*$/i,
+		timeFirst: /^(?:las?\s+)?\d/i,
 		pastAfter: /^\s+pasad[oa]\b/i,
 		nextWeekAfter: /^\s+(?:de\s+)?la\s+(?:semana\s+que\s+viene|pr[oó]xima\s+semana)\b/i
 	},
@@ -55,6 +61,9 @@ const RULES: Record<Lang, DateRules> = {
 		dayAfterTomorrow: /\b(?:the )?day after tomorrow\b/i,
 		// "by Wednesday", "before Thursday", "for Tuesday", "on October 20", "it was due yesterday".
 		introducer: /(?:^|[\s(])(?:it was due|was due|is due|due on|due by|due|by|before|until|till|for|on|the)\s*$/i,
+		// "around 5pm", "at about 5"; "talk about Monday" keeps its "about".
+		timeIntroducer: /(?:^|[\s(])(?:at around|at about|around|about|towards|toward|at)\s*$/i,
+		timeFirst: /^(?:at\s+)?\d/i,
 		pastInText: /^last\s/i,
 		nextWeekAfter: /^\s+(?:of\s+)?next\s+week\b/i,
 		nextWeekInText: /\bnext\s+week\b/i
@@ -116,7 +125,9 @@ export function extractDate(text: string, now: Date, hours: Hours, lang: Lang = 
 		return { dueAt: due.toISOString(), ranges };
 	}
 
-	const start = introducerStart(masked, result.index, rules.introducer);
+	// A time looks first for its own words: "a eso de" ends in "de", which also introduces days.
+	const timeStart = rules.timeFirst.test(result.text) ? introducerStart(masked, result.index, rules.timeIntroducer) : result.index;
+	const start = timeStart < result.index ? timeStart : introducerStart(masked, result.index, rules.introducer);
 	let end = result.index + result.text.length;
 	let parsed = result.start.date();
 	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
