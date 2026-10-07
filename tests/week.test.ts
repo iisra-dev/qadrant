@@ -81,3 +81,17 @@ test('an unknown address shows the error page with a way back', async ({ page })
 	await page.getByRole('link', { name: 'Ir a la matriz' }).click();
 	await expect(page.getByRole('heading', { name: 'Hoy', level: 1 })).toBeVisible();
 });
+
+test('"Back" in the matrix side panel returns to the matrix, not the page before it', async ({ page }) => {
+	await startApp(page);
+	await seed(page, [{ id: 'd', title: 'Llamar a papá', quadrant: 'do' }]);
+	const nav = page.getByRole('navigation', { name: 'Navegación principal' });
+	await nav.getByRole('link', { name: 'Matriz' }).click();
+	await page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: /Llamar a papá/ }).click();
+	await expect(page).toHaveURL(/\/task\/d$/);
+	await page.getByRole('button', { name: 'Volver' }).click();
+	// The bug stepped back twice; the second step came right after the first, so give it time to show.
+	await page.waitForTimeout(500);
+	await expect(page).toHaveURL(/\/$/);
+	await expect(page.getByRole('heading', { name: 'Hoy', level: 1 })).toBeVisible();
+});

@@ -84,6 +84,10 @@
 		event.preventDefault();
 		pushState(`/task/${id}`, { taskId: id });
 	}
+	// Going back closes the dialog, whose close event calls this again: step back only while the panel is in the history.
+	function closeDetail() {
+		if (page.state.taskId) history.back();
+	}
 
 	let confirmArchive = $state(false);
 
@@ -205,9 +209,9 @@
 {/if}
 </div>
 
-<Drawer open={Boolean(page.state.taskId)} label={i18n.m.matrix.detailPanel} onclose={() => history.back()}>
+<Drawer open={Boolean(page.state.taskId)} label={i18n.m.matrix.detailPanel} onclose={closeDetail}>
 	{#if page.state.taskId}
-		<TaskDetail id={page.state.taskId} onclose={() => history.back()} />
+		<TaskDetail id={page.state.taskId} onclose={closeDetail} />
 	{/if}
 </Drawer>
 
