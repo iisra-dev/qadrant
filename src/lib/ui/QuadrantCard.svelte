@@ -4,6 +4,7 @@
 	import { i18n } from '$lib/i18n/index.svelte';
 	import QuadrantGlyph from './QuadrantGlyph.svelte';
 	import { quadrantVars } from './quadrants';
+	import { moveRow, receiveRow, sendRow } from './motion';
 
 	type Item = { id: string };
 
@@ -47,17 +48,17 @@
 	</div>
 	{#if items.length === 0}
 		<p class="empty">{meta.empty}</p>
-	{:else}
-		<ul id={listId}>
-			{#each visible as item (item.id)}
-				<li>{@render row(item)}</li>
-			{/each}
-		</ul>
-		{#if hidden > 0}
-			<button class="more" type="button" aria-expanded={expanded} aria-controls={listId} onclick={() => (expanded = !expanded)}>
-				{expanded ? i18n.m.common.less : i18n.m.common.more(hidden)}
-			</button>
-		{/if}
+	{/if}
+	<!-- Always there, so rows animate in and out, also into an empty quadrant (docs/05, "Movimiento"). -->
+	<ul id={listId}>
+		{#each visible as item (item.id)}
+			<li animate:moveRow in:receiveRow={{ key: item.id }} out:sendRow={{ key: item.id }}>{@render row(item)}</li>
+		{/each}
+	</ul>
+	{#if hidden > 0}
+		<button class="more" type="button" aria-expanded={expanded} aria-controls={listId} onclick={() => (expanded = !expanded)}>
+			{expanded ? i18n.m.common.less : i18n.m.common.more(hidden)}
+		</button>
 	{/if}
 	{#if footer}<div class="footer">{@render footer()}</div>{/if}
 </section>

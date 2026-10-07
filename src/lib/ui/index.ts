@@ -12,6 +12,7 @@ export { default as QuadrantGlyph } from './QuadrantGlyph.svelte';
 export { default as QuadrantPicker } from './QuadrantPicker.svelte';
 export { default as SettingsGroup } from './SettingsGroup.svelte';
 export { default as Sheet } from './Sheet.svelte';
+export { default as SyncIndicator } from './SyncIndicator.svelte';
 export { default as TabBar } from './TabBar.svelte';
 export { default as TaskRow } from './TaskRow.svelte';
 export { default as UndoToast } from './UndoToast.svelte';

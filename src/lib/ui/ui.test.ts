@@ -8,6 +8,13 @@ import QuadrantPicker from './QuadrantPicker.svelte';
 import TabBar from './TabBar.svelte';
 import TaskRow from './TaskRow.svelte';
 
+// jsdom has no Web Animations; Svelte's row transitions need a stand-in that ends at once.
+Element.prototype.animate ??= function () {
+	const animation = { onfinish: null as null | (() => void), cancel() {}, finished: Promise.resolve(), currentTime: 0, play() {}, pause() {} };
+	queueMicrotask(() => animation.onfinish?.());
+	return animation as unknown as Animation;
+};
+
 // These cases check the Spanish texts; one case at the end checks English.
 beforeEach(() => i18n.set('es'));
 afterEach(cleanup);

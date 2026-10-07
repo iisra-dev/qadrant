@@ -2,7 +2,7 @@ import type { Table } from 'dexie';
 import type { Base } from '$lib/domain/types';
 import { defaultSettings } from '$lib/db/defaults';
 import type { QadrantDB } from '$lib/db/schema';
-import { SYNC_API_VERSION, type PushItem, type SyncApi } from './api';
+import { SYNC_API_VERSION, type PushItem, type SyncApi, type SyncRecord } from './api';
 import { mergeCopies, type SyncCopy } from './merge';
 import { baseline, trackedFields } from './track';
 import { SYNC_COLLECTIONS, syncKey, type OutboxEntry, type SyncCollection } from './types';
@@ -20,8 +20,13 @@ const PUSH_BATCH = 200;
 const PUSH_ROUNDS = 5;
 
 export interface SyncEngineOptions {
-	/** Runs after each download that changed something: the passage of time (docs/02). */
+	/**
+	 * Runs after each download that changed something: the passage of time
+	 * (docs/02). It runs inside the download's transaction, so Dexie only.
+	 */
 	afterPull?: () => Promise<void>;
+	/** Tasks whose content changed here because of another device, to tint them on screen. */
+	onArrived?: (taskIds: string[]) => void;
 	now?: () => Date;
 }
 
@@ -31,6 +36,7 @@ export interface SyncEngineOptions {
  */
 export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngineOptions = {}) {
 	const now = options.now ?? (() => new Date());
+	let arrived = new Set<string>();
 	const tables = [db.tasks, db.goals, db.people, db.corrections, db.settings, db.syncMeta, db.outbox, db.syncState];
 
 	function table(collection: SyncCollection): Table<Base, string> {
@@ -76,6 +82,7 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 			local = { record: defaultSettings(now()), changedAt: {} };
 		}
 		const merged = local ? mergeCopies(local, remote, trackedFields(collection)) : remote;
+		if (collection === 'tasks' && JSON.stringify(local?.record) !== JSON.stringify(merged.record)) arrived.add(id);
 		await table(collection).put(merged.record);
 		await db.syncMeta.put({ key: syncKey(collection, id), changedAt: merged.changedAt, version });
 	}
@@ -122,45 +129,58 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 		}
 	}
 
-	async function pull(): Promise<boolean> {
+	/**
+	 * Downloads every page first and then applies them all, with the passage
+	 * of time, in one transaction: open screens change once, not page by page.
+	 * afterPull must only touch Dexie (no network, no timers) or the
+	 * transaction would close under it.
+	 */
+	async function pull(): Promise<void> {
 		const state = await db.syncState.get('sync');
-		let cursor = state?.cursor ?? 0;
-		let changed = false;
+		const since = state?.cursor ?? 0;
+		let cursor = since;
+		const records: SyncRecord[] = [];
 		for (;;) {
 			const page = await api.pull(cursor);
-			await db.transaction('rw', tables, async () => {
-				for (const record of page.records) {
-					cursor = Math.max(cursor, record.version);
-					if (!SYNC_COLLECTIONS.includes(record.collection)) continue;
-					const meta = await db.syncMeta.get(syncKey(record.collection, record.id));
-					if (meta && meta.version >= record.version) continue; // our own upload
-					const remote = parse(record.content);
-					if (!remote || remote.record.id !== record.id) continue;
-					await applyRemote(record.collection, record.id, remote, record.version);
-					changed = true;
-				}
-				if (!page.more) cursor = Math.max(cursor, page.version);
-				const current = await db.syncState.get('sync');
-				await db.syncState.put({ ...current, id: 'sync', cursor });
-			});
-			if (!page.more) return changed;
+			records.push(...page.records);
+			for (const record of page.records) cursor = Math.max(cursor, record.version);
+			if (!page.more) {
+				cursor = Math.max(cursor, page.version);
+				break;
+			}
 		}
+		await db.transaction('rw', tables, async () => {
+			let changed = false;
+			for (const record of records) {
+				if (!SYNC_COLLECTIONS.includes(record.collection)) continue;
+				const meta = await db.syncMeta.get(syncKey(record.collection, record.id));
+				if (meta && meta.version >= record.version) continue; // our own upload
+				const remote = parse(record.content);
+				if (!remote || remote.record.id !== record.id) continue;
+				await applyRemote(record.collection, record.id, remote, record.version);
+				changed = true;
+			}
+			const current = await db.syncState.get('sync');
+			await db.syncState.put({ ...current, id: 'sync', cursor });
+			if (changed) await options.afterPull?.();
+		});
 	}
 
 	return {
 		/** One cycle: check the server, upload, download and merge. Throws when offline. */
 		async cycle({ rounds = PUSH_ROUNDS }: { rounds?: number } = {}): Promise<void> {
+			arrived = new Set();
 			const info = await api.info();
 			if (info.version < SYNC_API_VERSION || !info.syncId) throw new SyncError('unsupported');
 			const state = await db.syncState.get('sync');
 			if (state?.syncId !== info.syncId) await startOver(db, info.syncId);
 			await push(rounds);
-			const changed = await pull();
+			await pull();
 			// Records merged during the download that still differ from the server go up now.
 			await push(rounds);
 			const done = await db.syncState.get('sync');
 			await db.syncState.put({ ...done, id: 'sync', cursor: done?.cursor ?? 0, lastSyncAt: now().toISOString(), syncId: info.syncId });
-			if (changed) await options.afterPull?.();
+			if (arrived.size) options.onArrived?.([...arrived]);
 		},
 		/** Turning sync on: everything goes up again and the next cycle downloads everything. */
 		enable: () => startOver(db),

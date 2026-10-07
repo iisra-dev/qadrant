@@ -87,6 +87,8 @@ test('a second device joins from the welcome and sees completions from the first
 	await phone.page.getByRole('link', { name: 'Matriz' }).click();
 	await phone.page.getByRole('checkbox', { name: 'Completar: Llamar al taller' }).check();
 	await expect(laptop.page.getByRole('checkbox', { name: 'Completar: Llamar al taller' })).toBeChecked();
+	// It arrives tinted, as a task just saved does (docs/05, "Movimiento").
+	await expect(taskRow(laptop.page, 'Llamar al taller').locator('xpath=..')).toHaveClass(/landed/);
 
 	await phone.context.close();
 	await laptop.context.close();
@@ -123,6 +125,37 @@ test('offline edits on two devices are merged field by field', async ({ browser 
 	await laptop.context.close();
 });
 
+test('a change from another device does not overwrite what is being typed', async ({ browser }) => {
+	const phone = await newDevice(browser);
+	await startApp(phone.page, 'Ventas Q4');
+	await addTask(phone.page, 'Revisar el contrato mañana, media hora');
+	await connectAndSync(phone.page);
+	const laptop = await newDevice(browser);
+	await joinFromWelcome(laptop.page);
+
+	await taskRow(laptop.page, 'Revisar el contrato').click();
+	const notes = laptop.page.getByLabel('Notas');
+	await notes.click();
+	await notes.pressSequentially('Llamar antes');
+
+	await phone.page.getByRole('link', { name: 'Matriz' }).click();
+	await taskRow(phone.page, 'Revisar el contrato').click();
+	await phone.page.getByLabel('Notas').fill('Desde el móvil');
+	await phone.page.getByLabel('Notas').blur();
+	await expect.poll(() => [...server.state.records.values()].some((r) => r.content.includes('Desde el móvil'))).toBe(true);
+	// The laptop got it, yet the field keeps what is being typed.
+	await expect(laptop.page.getByLabel('Tarea', { exact: true })).toHaveValue('Revisar el contrato');
+	await laptop.page.waitForTimeout(1500);
+	await expect(notes).toHaveValue('Llamar antes');
+
+	// Leaving the field saves it: the newest change wins everywhere.
+	await notes.blur();
+	await expect(phone.page.getByLabel('Notas')).toHaveValue('Llamar antes', { timeout: 15_000 });
+
+	await phone.context.close();
+	await laptop.context.close();
+});
+
 test('only one tab per device talks to the server, and another takes over when it closes', async ({ browser }) => {
 	const device = await newDevice(browser);
 	await startApp(device.page, 'Ventas Q4');
@@ -142,6 +175,21 @@ test('only one tab per device talks to the server, and another takes over when i
 	await addTask(second, 'Llamar a Ana mañana, media hora');
 	await expect.poll(() => [...server.state.records.values()].some((r) => r.content.includes('Llamar a Ana'))).toBe(true);
 
+	await device.context.close();
+});
+
+test('a slow sync shows a small ring in the Matrix, a quick one does not', async ({ browser }) => {
+	const device = await newDevice(browser);
+	await startApp(device.page, 'Ventas Q4');
+	await connectAndSync(device.page);
+	await device.page.getByRole('link', { name: 'Matriz' }).click();
+	const ring = device.page.locator('header .date .ring');
+	await expect(ring).not.toHaveClass(/shown/);
+
+	server.slowPull = 1500;
+	await addTask(device.page, 'Pagar recibo mañana, media hora');
+	await expect(ring).toHaveClass(/shown/);
+	await expect(ring).not.toHaveClass(/shown/, { timeout: 10_000 });
 	await device.context.close();
 });
 

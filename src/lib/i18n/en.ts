@@ -328,6 +328,7 @@ export const en = {
 		privacySync:
 			'While syncing, the server keeps an unencrypted copy of your tasks, goals, people, corrections and shared settings, which whoever runs the server can read (and the tunnel service, if there is one). The assistant does not go to the server: each device classifies with its own.',
 		sync: 'Sync my tasks',
+		syncing: 'Syncing…',
 		syncLive: 'Changes made on another device show up on their own; on iPhone, when you come back to the app.',
 		syncNever: 'Not synced yet.',
 		syncedAgo: (ago: string) => `Synced ${ago}.`,
