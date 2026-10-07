@@ -174,6 +174,10 @@ export const es: Messages = {
 		noFollowUp: 'Sin fecha de revisión',
 		calendarMeta: (duration) => `Calendario · ${duration}`,
 		days: 'Día de la semana',
+		review: 'Revisión semanal',
+		reviewHours: 'Horas en la agenda esta semana',
+		reviewStale: 'Llevan semanas en Programar',
+		weeks: (n) => (n === 1 ? '1 semana' : `${n} semanas`),
 		now: 'Ahora'
 	},
 	welcome: {

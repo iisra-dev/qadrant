@@ -175,6 +175,10 @@ export const en = {
 		noFollowUp: 'No check date',
 		calendarMeta: (duration: string) => `Calendar · ${duration}`,
 		days: 'Day of the week',
+		review: 'Weekly review',
+		reviewHours: 'Time in the agenda this week',
+		reviewStale: 'In Schedule for weeks',
+		weeks: (n: number) => (n === 1 ? '1 week' : `${n} weeks`),
 		now: 'Now'
 	},
 	welcome: {
