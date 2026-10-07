@@ -90,12 +90,14 @@ export interface Settings extends Base {
 		autoDownload?: boolean;
 	};
 	server?: { url: string; token: string };
+	/** Phase 4: "Sincronizar mis tareas"; undefined counts as false. */
+	sync?: boolean;
 	onboardingDone: boolean;
 	/** Agreed to dictate with the browser's service, which sends the audio to Apple or Google. */
 	voiceConsent?: boolean;
 }
 
-export const DEVICE_LOCAL_SETTINGS = ['theme', 'language', 'model', 'server', 'onboardingDone', 'voiceConsent'] as const;
+export const DEVICE_LOCAL_SETTINGS = ['theme', 'language', 'model', 'server', 'sync', 'onboardingDone', 'voiceConsent'] as const;
 export type DeviceLocalSettingsKey = (typeof DEVICE_LOCAL_SETTINGS)[number];
 export type SharedSettings = Omit<Settings, DeviceLocalSettingsKey>;
 

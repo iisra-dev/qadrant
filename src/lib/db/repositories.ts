@@ -1,3 +1,4 @@
+import type { Table } from 'dexie';
 import type {
 	Base,
 	CalendarEvent,
@@ -8,6 +9,9 @@ import type {
 	Settings,
 	Task
 } from '$lib/domain/types';
+import { changedFields, noteChange, patch } from '$lib/sync/track';
+import { SYNCED_SETTINGS } from '$lib/sync/merge';
+import type { SyncCollection } from '$lib/sync/types';
 import { db as defaultDb, type QadrantDB } from './schema';
 import { defaultSettings, GOAL_SUMMARY_MAX, MAX_GOALS } from './defaults';
 
@@ -23,48 +27,76 @@ function alive<T extends Base>(record: T | undefined): T | undefined {
 }
 
 export function createRepositories(db: QadrantDB = defaultDb) {
+	/**
+	 * Every write goes through here: the record and, in the same transaction,
+	 * which of its fields changed and when (docs/04). Automatic changes (the
+	 * passage of time) keep the old times and are not queued for upload.
+	 */
+	function writer<T extends Base>(collection: SyncCollection) {
+		const table = db[collection] as unknown as Table<T, string>;
+
+		async function put(before: T | undefined, after: T, time: string, automatic = false): Promise<void> {
+			await table.put(after);
+			if (!automatic) await noteChange(db, collection, before, after, time);
+		}
+
+		return {
+			/** Runs `work` in a transaction over the table and the sync tables. */
+			run<R>(work: () => Promise<R>): Promise<R> {
+				return db.transaction('rw', [table, db.syncMeta, db.outbox], work);
+			},
+			async add(record: T): Promise<void> {
+				await db.transaction('rw', [table, db.syncMeta, db.outbox], () => put(undefined, record, record.updatedAt));
+			},
+			/** Applies the changes inside the caller's transaction; a missing record is skipped. */
+			async change(id: string, changes: Partial<T>, now: Date, automatic = false): Promise<void> {
+				const before = await table.get(id);
+				if (!before) return;
+				const iso = now.toISOString();
+				await put(before, patch(before, { ...changes, updatedAt: iso }), iso, automatic);
+			}
+		};
+	}
+
+	const taskTable = writer<Task>('tasks');
+	const goalTable = writer<Goal>('goals');
+	const personTable = writer<Person>('people');
+	const correctionTable = writer<Correction>('corrections');
+
 	const tasks = {
 		async create(data: NewRecord<Task>, now = new Date()): Promise<Task> {
 			const task = stamp<Task>(data, now);
-			await db.tasks.add(task);
+			await taskTable.add(task);
 			return task;
 		},
 		async get(id: string): Promise<Task | undefined> {
 			return alive(await db.tasks.get(id));
 		},
 		async update(id: string, changes: Partial<NewRecord<Task>>, now = new Date()): Promise<void> {
-			await db.tasks.update(id, { ...changes, updatedAt: now.toISOString() });
+			await taskTable.run(() => taskTable.change(id, changes, now));
 		},
-		/** Several updates in one transaction, e.g. reevaluation over time. */
+		/** Several updates in one transaction, e.g. reevaluation over time (`automatic`). */
 		async updateMany(
 			changes: { id: string; changes: Partial<NewRecord<Task>> }[],
-			now = new Date()
+			now = new Date(),
+			{ automatic = false } = {}
 		): Promise<void> {
-			const updatedAt = now.toISOString();
-			await db.transaction('rw', db.tasks, async () => {
-				for (const item of changes) await db.tasks.update(item.id, { ...item.changes, updatedAt });
+			await taskTable.run(async () => {
+				for (const item of changes) await taskTable.change(item.id, item.changes, now, automatic);
 			});
 		},
 		async complete(id: string, now = new Date()): Promise<void> {
-			const iso = now.toISOString();
-			await db.tasks.update(id, { status: 'done', doneAt: iso, updatedAt: iso });
+			await tasks.update(id, { status: 'done', doneAt: now.toISOString() }, now);
 		},
 		async reopen(id: string, now = new Date()): Promise<void> {
-			const task = await db.tasks.get(id);
-			if (!task) return;
-			const { doneAt: _doneAt, ...rest } = task;
-			await db.tasks.put({ ...rest, status: 'open', updatedAt: now.toISOString() });
+			await tasks.update(id, { status: 'open', doneAt: undefined }, now);
 		},
 		async archive(ids: string[], now = new Date()): Promise<void> {
-			const updatedAt = now.toISOString();
-			await db.transaction('rw', db.tasks, async () => {
-				for (const id of ids) await db.tasks.update(id, { status: 'archived', updatedAt });
-			});
+			await tasks.updateMany(ids.map((id) => ({ id, changes: { status: 'archived' as const } })), now);
 		},
 		/** Logical delete, kept for sync (docs/04). */
 		async remove(id: string, now = new Date()): Promise<void> {
-			const iso = now.toISOString();
-			await db.tasks.update(id, { deletedAt: iso, updatedAt: iso });
+			await tasks.update(id, { deletedAt: now.toISOString() } as Partial<NewRecord<Task>>, now);
 		},
 		async listOpen(): Promise<Task[]> {
 			return db.tasks
@@ -105,20 +137,15 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 				{ title: clean, summary: clean.slice(0, GOAL_SUMMARY_MAX), active: true, order },
 				now
 			);
-			await db.goals.add(goal);
+			await goalTable.add(goal);
 			return goal;
 		},
 		async rename(id: string, title: string, now = new Date()): Promise<void> {
 			const clean = title.trim();
-			await db.goals.update(id, {
-				title: clean,
-				summary: clean.slice(0, GOAL_SUMMARY_MAX),
-				updatedAt: now.toISOString()
-			});
+			await goalTable.run(() => goalTable.change(id, { title: clean, summary: clean.slice(0, GOAL_SUMMARY_MAX) }, now));
 		},
 		async remove(id: string, now = new Date()): Promise<void> {
-			const iso = now.toISOString();
-			await db.goals.update(id, { deletedAt: iso, updatedAt: iso });
+			await goalTable.run(() => goalTable.change(id, { deletedAt: now.toISOString() }, now));
 		}
 	};
 
@@ -129,7 +156,7 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 		},
 		async add(name: string, aliases: string[] = [], now = new Date()): Promise<Person> {
 			const person = stamp<Person>({ name: name.trim(), aliases: cleanAliases(aliases) }, now);
-			await db.people.add(person);
+			await personTable.add(person);
 			return person;
 		},
 		async update(
@@ -137,22 +164,26 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 			changes: { name?: string; aliases?: string[] },
 			now = new Date()
 		): Promise<void> {
-			await db.people.update(id, {
-				...(changes.name !== undefined && { name: changes.name.trim() }),
-				...(changes.aliases !== undefined && { aliases: cleanAliases(changes.aliases) }),
-				updatedAt: now.toISOString()
-			});
+			await personTable.run(() =>
+				personTable.change(
+					id,
+					{
+						...(changes.name !== undefined && { name: changes.name.trim() }),
+						...(changes.aliases !== undefined && { aliases: cleanAliases(changes.aliases) })
+					},
+					now
+				)
+			);
 		},
 		async remove(id: string, now = new Date()): Promise<void> {
-			const iso = now.toISOString();
-			await db.people.update(id, { deletedAt: iso, updatedAt: iso });
+			await personTable.run(() => personTable.change(id, { deletedAt: now.toISOString() }, now));
 		}
 	};
 
 	const corrections = {
 		async add(data: NewRecord<Correction>, now = new Date()): Promise<Correction> {
 			const correction = stamp<Correction>(data, now);
-			await db.corrections.add(correction);
+			await correctionTable.add(correction);
 			return correction;
 		},
 		async listForTask(taskId: string): Promise<Correction[]> {
@@ -165,7 +196,7 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 		async peek(now = new Date()): Promise<Settings> {
 			return (await db.settings.get('settings')) ?? defaultSettings(now);
 		},
-		/** The single settings record, created with defaults on first use. */
+		/** The single settings record, created with defaults on first use (not a change: nothing to sync). */
 		async get(now = new Date()): Promise<Settings> {
 			return db.transaction('rw', db.settings, async () => {
 				const existing = await db.settings.get('settings');
@@ -175,14 +206,19 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 				return created;
 			});
 		},
+		/** updatedAt moves only with the shared fields, so import and sync compare well (docs/04). */
 		async update(
 			changes: Partial<Omit<Settings, keyof Base>>,
 			now = new Date()
 		): Promise<Settings> {
-			return db.transaction('rw', db.settings, async () => {
+			return db.transaction('rw', [db.settings, db.syncMeta, db.outbox], async () => {
 				const current = (await db.settings.get('settings')) ?? defaultSettings(now);
-				const next: Settings = { ...current, ...changes, updatedAt: now.toISOString() };
+				let next = patch<Settings>(current, changes as Partial<Settings>);
+				if (changedFields(current, next, SYNCED_SETTINGS).length) {
+					next = { ...next, updatedAt: now.toISOString() };
+				}
 				await db.settings.put(next);
+				await noteChange(db, 'settings', current, next, now.toISOString());
 				return next;
 			});
 		}
@@ -203,15 +239,9 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 
 	/** "Borrar todos los datos" (docs/01): every table; the model lives in OPFS and stays. */
 	async function clearAll(): Promise<void> {
-		await db.transaction('rw', [db.tasks, db.goals, db.people, db.corrections, db.settings, db.events], async () => {
-			await Promise.all([
-				db.tasks.clear(),
-				db.goals.clear(),
-				db.people.clear(),
-				db.corrections.clear(),
-				db.settings.clear(),
-				db.events.clear()
-			]);
+		const tables = [db.tasks, db.goals, db.people, db.corrections, db.settings, db.events, db.syncMeta, db.outbox, db.syncState];
+		await db.transaction('rw', tables, async () => {
+			await Promise.all(tables.map((table) => table.clear()));
 		});
 	}
 
