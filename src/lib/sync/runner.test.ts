@@ -93,6 +93,15 @@ describe('sync runner', () => {
 		expect(cycle).toHaveBeenCalledTimes(1);
 	});
 
+	it('says when a cycle starts and ends', async () => {
+		const busy: boolean[] = [];
+		const target = new EventTarget();
+		stops.push(
+			startSyncRunner({ db, engine: { cycle: async () => {} }, openEvents: events([[]]), target, visible: () => true, delays: quick, onBusy: (b) => busy.push(b) })
+		);
+		await vi.waitFor(() => expect(busy).toEqual([true, false]));
+	});
+
 	it('runs on coming back online and stops when asked', async () => {
 		const cycle = vi.fn(async () => {});
 		const { target, stop } = start(cycle);

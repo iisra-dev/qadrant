@@ -178,6 +178,21 @@ test('only one tab per device talks to the server, and another takes over when i
 	await device.context.close();
 });
 
+test('a slow sync shows a small ring in the Matrix, a quick one does not', async ({ browser }) => {
+	const device = await newDevice(browser);
+	await startApp(device.page, 'Ventas Q4');
+	await connectAndSync(device.page);
+	await device.page.getByRole('link', { name: 'Matriz' }).click();
+	const ring = device.page.locator('header .date .ring');
+	await expect(ring).not.toHaveClass(/shown/);
+
+	server.slowPull = 1500;
+	await addTask(device.page, 'Pagar recibo mañana, media hora');
+	await expect(ring).toHaveClass(/shown/);
+	await expect(ring).not.toHaveClass(/shown/, { timeout: 10_000 });
+	await device.context.close();
+});
+
 test('says when the server does not sync', async ({ browser }) => {
 	await server.close();
 	server = await startSyncServer({ apiVersion: 1 });

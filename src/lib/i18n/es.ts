@@ -326,6 +326,7 @@ export const es: Messages = {
 		privacySync:
 			'Sincronizando, el servidor guarda una copia sin cifrar de tus tareas, objetivos, personas, correcciones y ajustes compartidos, que puede leer quien lo administre (y el servicio del túnel, si lo hay). El asistente no va al servidor: cada dispositivo clasifica con el suyo.',
 		sync: 'Sincronizar mis tareas',
+		syncing: 'Sincronizando…',
 		syncLive: 'Los cambios hechos en otro dispositivo aparecen solos; en iPhone, al volver a la app.',
 		syncNever: 'Todavía sin sincronizar.',
 		syncedAgo: (ago) => `Sincronizado ${ago}.`,

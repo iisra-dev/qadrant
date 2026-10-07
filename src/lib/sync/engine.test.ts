@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { liveQuery } from 'dexie';
 import { QadrantDB } from '$lib/db/schema';
 import { createRepositories, type Repositories } from '$lib/db/repositories';
 import { MemorySync } from '../../../tests/support/memory-sync';
@@ -227,6 +228,30 @@ describe('sync cycle', () => {
 		const calls = arrived.length;
 		await laptop.engine.cycle();
 		expect(arrived.length).toBe(calls);
+	});
+
+	it('applies a whole download and the passage of time in one go, so screens change once', async () => {
+		const phone = device();
+		for (const title of ['a', 'b', 'c', 'd', 'e']) await phone.repos.tasks.create(newTask(title), T0);
+		await phone.engine.cycle();
+		const db = new QadrantDB(`device-${crypto.randomUUID()}`);
+		const repos = createRepositories(db);
+		const laptop = createSyncEngine(db, memoryApi(server), {
+			// Writes like the passage of time does, inside the same transaction.
+			afterPull: async () => {
+				const first = (await repos.tasks.listOpen())[0];
+				await repos.tasks.updateMany([{ id: first.id, changes: { movedAt: T1.toISOString() } }], T1, { automatic: true });
+			}
+		});
+		devices.push({ db, repos, engine: laptop, afterPull: vi.fn() });
+		const seen: number[] = [];
+		const subscription = liveQuery(() => db.tasks.count()).subscribe((n) => seen.push(n));
+		await new Promise((resolve) => setTimeout(resolve, 30));
+		await laptop.cycle();
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		subscription.unsubscribe();
+		expect(seen).toEqual([0, 5]);
+		expect((await db.tasks.filter((t) => Boolean(t.movedAt)).count())).toBe(1);
 	});
 
 	it('pending() counts the changes still to upload', async () => {

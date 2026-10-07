@@ -16,9 +16,9 @@
 	import { groupByQuadrant, isOverdue, matrixTasks, staleEliminate } from '$lib/domain/matrix';
 	import { QUADRANTS, type Quadrant, type Task } from '$lib/domain/types';
 	import { allTasks, openTasks, people } from '$lib/stores';
-	import { arrivals } from '$lib/sync/arrivals.svelte';
+	import { arrivals } from '$lib/sync/activity.svelte';
 	import { i18n } from '$lib/i18n/index.svelte';
-	import { AgendaBlock, AiDot, Button, Drawer, Icon, QuadrantCard, quadrantVars, Sheet, TaskRow, UndoToast } from '$lib/ui';
+	import { AgendaBlock, AiDot, Button, Drawer, Icon, QuadrantCard, quadrantVars, Sheet, SyncIndicator, TaskRow, UndoToast } from '$lib/ui';
 
 	// Open tasks plus those done in the last 24 hours, struck through (docs/01).
 	const groups = $derived(groupByQuadrant(matrixTasks($openTasks, $allTasks, clock.now), clock.now));
@@ -129,7 +129,7 @@
 <div class="page" class:wide={media.wide}>
 <div class="matrix">
 	<header>
-		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}</span>
+		<span class="date">{today.charAt(0).toUpperCase() + today.slice(1)}<SyncIndicator /></span>
 		<h1>{i18n.m.matrix.title}</h1>
 		{#if !media.web && summary.length > 0}
 			<!-- One line of pills: only quadrants with something to do; each jumps to its list. -->

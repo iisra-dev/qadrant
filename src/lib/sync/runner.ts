@@ -29,6 +29,8 @@ export interface RunnerOptions {
 	target?: EventTarget;
 	visible?: () => boolean;
 	delays?: Partial<RunnerDelays>;
+	/** Told when a cycle starts and ends, for the indicator. */
+	onBusy?: (busy: boolean) => void;
 }
 
 function errorCode(error: unknown): NonNullable<SyncState['lastError']> {
@@ -46,7 +48,7 @@ function errorCode(error: unknown): NonNullable<SyncState['lastError']> {
  * shortly after each local change; retries with growing waits. Only the
  * leading tab runs it. Returns a function that stops everything.
  */
-export function startSyncRunner({ db, engine, openEvents, target, visible, delays }: RunnerOptions): () => void {
+export function startSyncRunner({ db, engine, openEvents, target, visible, delays, onBusy }: RunnerOptions): () => void {
 	const wait = { ...DEFAULT_DELAYS, ...delays };
 	const isVisible = visible ?? (() => document.visibilityState === 'visible');
 	const controller = new AbortController();
@@ -80,6 +82,7 @@ export function startSyncRunner({ db, engine, openEvents, target, visible, delay
 			return;
 		}
 		running = true;
+		onBusy?.(true);
 		try {
 			await engine.cycle();
 			retry = wait.retry;
@@ -94,6 +97,7 @@ export function startSyncRunner({ db, engine, openEvents, target, visible, delay
 			}
 		} finally {
 			running = false;
+			onBusy?.(false);
 			if (again) {
 				again = false;
 				schedule(0);

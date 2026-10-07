@@ -34,10 +34,22 @@ class Arrivals {
 
 export const arrivals = new Arrivals();
 
-const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('qadrant-arrivals') : null;
-channel?.addEventListener('message', (event: MessageEvent<{ ids?: unknown }>) => {
+/** Whether this device is syncing right now, in every tab (the small ring in the Matrix). */
+export const syncActivity = $state({ busy: false });
+
+type Message = { ids?: unknown; busy?: unknown };
+
+const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('qadrant-sync-activity') : null;
+channel?.addEventListener('message', (event: MessageEvent<Message>) => {
 	if (Array.isArray(event.data?.ids)) arrivals.mark(event.data.ids.filter((id): id is string => typeof id === 'string'));
+	if (typeof event.data?.busy === 'boolean') syncActivity.busy = event.data.busy;
 });
+
+/** Called by the syncing tab around each cycle. */
+export function announceBusy(busy: boolean) {
+	syncActivity.busy = busy;
+	channel?.postMessage({ busy });
+}
 
 /** Called by the syncing tab: tints the rows here and in the other tabs. */
 export function announceArrivals(ids: readonly string[]) {

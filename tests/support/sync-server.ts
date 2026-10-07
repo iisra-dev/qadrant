@@ -18,6 +18,8 @@ export interface FakeSyncServer {
 	state: MemorySync;
 	/** Open change streams, to check that only one tab per device listens. */
 	streams: () => number;
+	/** Milliseconds every pull waits before answering, to see a slow sync. */
+	slowPull: number;
 	close: () => Promise<void>;
 }
 
@@ -50,6 +52,17 @@ export async function startSyncServer(options: { apiVersion?: number } = {}): Pr
 	const state = new MemorySync();
 	if (options.apiVersion) state.apiVersion = options.apiVersion;
 	const open = new Set<ServerResponse>();
+	const fake: FakeSyncServer = {
+		url: '',
+		state,
+		streams: () => open.size,
+		slowPull: 0,
+		close: () =>
+			new Promise((resolve) => {
+				for (const res of open) res.destroy();
+				server.close(() => resolve());
+			})
+	};
 
 	const server: Server = createServer(certificate(), async (req, res) => {
 		if (req.method === 'OPTIONS') {
@@ -73,7 +86,10 @@ export async function startSyncServer(options: { apiVersion?: number } = {}): Pr
 		}
 		if (state.apiVersion >= 2) {
 			if (path === '/sync/push' && req.method === 'POST') return json(res, state.push(JSON.parse(body)));
-			if (path === '/sync/pull') return json(res, state.pull(Number(url.searchParams.get('since') ?? 0)));
+			if (path === '/sync/pull') {
+				if (fake.slowPull) await new Promise((resolve) => setTimeout(resolve, fake.slowPull));
+				return json(res, state.pull(Number(url.searchParams.get('since') ?? 0)));
+			}
 			if (path === '/sync/events') {
 				res.writeHead(200, { ...CORS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' });
 				const send = (version: number) => res.write(`event: version\ndata: ${JSON.stringify({ version })}\n\n`);
@@ -95,14 +111,6 @@ export async function startSyncServer(options: { apiVersion?: number } = {}): Pr
 
 	await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
 	const { port } = server.address() as AddressInfo;
-	return {
-		url: `https://127.0.0.1:${port}`,
-		state,
-		streams: () => open.size,
-		close: () =>
-			new Promise((resolve) => {
-				for (const res of open) res.destroy();
-				server.close(() => resolve());
-			})
-	};
+	fake.url = `https://127.0.0.1:${port}`;
+	return fake;
 }
