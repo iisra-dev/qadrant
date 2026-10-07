@@ -30,7 +30,7 @@
   </p>
 </div>
 
-Current version: **1.1.0** (Oct 6, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for changes.
+Current version: **1.2.0** (Oct 7, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for changes.
 
 <!-- TABLE OF CONTENTS -->
 <details>
