@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agendaForDay, agendaItems, eventsForDay, hourRange, waitingOnOthers, weekDays, withoutSlot } from './agenda';
+import { agendaForDay, agendaItems, busyHours, dayLoad, eventsForDay, hourLayout, hourRange, offsetOf, ROW_BUSY, ROW_IDLE, waitingOnOthers, weekDays, withoutSlot } from './agenda';
 import type { Task } from './types';
 
 function task(id: string, scheduledAt?: Date, overrides: Partial<Task> = {}): Task {
@@ -100,5 +100,60 @@ describe('eventsForDay', () => {
 		expect(day.allDay.map((e) => e.id)).toEqual(['trip']);
 		expect(day.timed.map((e) => e.id)).toEqual(['early', 'late']);
 		expect(eventsForDay(events, new Date(2026, 9, 3)).allDay).toEqual([]);
+	});
+});
+
+describe('dayLoad', () => {
+	it('counts open tasks due that local day, by quadrant', () => {
+		const day = new Date(2026, 9, 7);
+		const due = (h: number, d = 7) => new Date(2026, 9, d, h).toISOString();
+		const load = dayLoad(
+			[
+				task('a', undefined, { dueAt: due(9) }),
+				task('b', undefined, { dueAt: due(23), quadrant: 'schedule' }),
+				task('c', undefined, { dueAt: due(10), quadrant: 'schedule' }),
+				task('other day', undefined, { dueAt: due(9, 8) }),
+				task('done', undefined, { dueAt: due(9), status: 'done' }),
+				task('deleted', undefined, { dueAt: due(9), deletedAt: due(8) }),
+				task('no date')
+			],
+			day
+		);
+		expect(load).toEqual({ do: 1, schedule: 2, delegate: 0, eliminate: 0 });
+	});
+});
+
+describe('hourLayout', () => {
+	const at = (h: number, m = 0) => new Date(2026, 9, 7, h, m);
+
+	it('marks every hour a span touches as busy', () => {
+		const busy = busyHours([
+			{ start: at(10, 30), minutes: 60 },
+			{ start: at(14), minutes: 60 },
+			{ start: at(16, 45), minutes: 15 }
+		]);
+		expect([...busy].sort((a, b) => a - b)).toEqual([10, 11, 14, 16]);
+	});
+
+	it('gives busy hours room for a 30-minute block and squeezes empty ones', () => {
+		const layout = hourLayout({ from: 9, to: 13 }, new Set([10, 11]));
+		expect(layout.heights).toEqual([ROW_IDLE, ROW_BUSY, ROW_BUSY, ROW_IDLE]);
+		expect(layout.offsets).toEqual([0, ROW_IDLE, ROW_IDLE + ROW_BUSY, ROW_IDLE + 2 * ROW_BUSY]);
+		expect(layout.total).toBe(2 * ROW_IDLE + 2 * ROW_BUSY);
+		expect(ROW_BUSY / 2).toBeGreaterThanOrEqual(44);
+	});
+
+	it('an empty week is all short rows', () => {
+		expect(hourLayout({ from: 9, to: 18 }, new Set()).total).toBe(9 * ROW_IDLE);
+	});
+
+	it('places a time inside its hour row', () => {
+		const layout = hourLayout({ from: 9, to: 13 }, new Set([10, 11]));
+		expect(offsetOf(layout, at(9))).toBe(0);
+		expect(offsetOf(layout, at(10, 30))).toBe(ROW_IDLE + ROW_BUSY / 2);
+		expect(offsetOf(layout, at(12))).toBe(ROW_IDLE + 2 * ROW_BUSY);
+		expect(offsetOf(layout, at(13))).toBe(layout.total);
+		expect(offsetOf(layout, at(8))).toBe(0);
+		expect(offsetOf(layout, at(20))).toBe(layout.total);
 	});
 });
