@@ -86,8 +86,8 @@ export function dayLoad(tasks: Task[], day: Date): Record<Quadrant, number> {
 	return load;
 }
 
-/** Hour row heights in the week grid: busy hours fit a 30-minute block at 44 px (the touch minimum), empty ones shrink. */
-export const ROW_BUSY = 88;
+/** Hour row heights in the week grid: busy hours fit a 30-minute block at 44 px (the touch minimum) plus the gap between blocks, empty ones shrink. */
+export const ROW_BUSY = 92;
 export const ROW_IDLE = 28;
 
 /** Hours of the day that any span (task block or event) touches. */

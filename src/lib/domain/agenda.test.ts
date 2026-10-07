@@ -140,7 +140,7 @@ describe('hourLayout', () => {
 		expect(layout.heights).toEqual([ROW_IDLE, ROW_BUSY, ROW_BUSY, ROW_IDLE]);
 		expect(layout.offsets).toEqual([0, ROW_IDLE, ROW_IDLE + ROW_BUSY, ROW_IDLE + 2 * ROW_BUSY]);
 		expect(layout.total).toBe(2 * ROW_IDLE + 2 * ROW_BUSY);
-		expect(ROW_BUSY / 2).toBeGreaterThanOrEqual(44);
+		expect(ROW_BUSY / 2 - 2).toBeGreaterThanOrEqual(44);
 	});
 
 	it('an empty week is all short rows', () => {

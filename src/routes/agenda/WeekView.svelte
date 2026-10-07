@@ -23,7 +23,7 @@
 		workHours
 	}: { days: Date[]; tasks: Task[]; events?: CalendarEvent[]; now: Date; workHours: { start: string; end: string } } = $props();
 
-	// Below this a block is one line: time and title (a 30-minute block is 44 px tall).
+	// Below this a block is one line: time and title (a 30-minute block is 44 px tall, the touch minimum).
 	const COMPACT_MIN = 45;
 	const GAP = 2; // px between back-to-back blocks
 	// One-letter day initials from the catalog (L M X J V / M T W T F).
@@ -62,7 +62,7 @@
 	function place(start: Date, minutes: number): string {
 		const top = offsetOf(layout, start);
 		const bottom = offsetOf(layout, new Date(start.getTime() + minutes * 60_000));
-		return `top: ${top}px; height: ${Math.max(44, bottom - top) - GAP}px`;
+		return `top: ${top}px; height: ${Math.max(44, bottom - top - GAP)}px`;
 	}
 
 	function loadLabel(load: Record<string, number>): string {
