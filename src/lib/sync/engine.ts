@@ -147,31 +147,13 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 		}
 	}
 
-	/**
-	 * Starts over (docs/04): every record enters the outbox and is downloaded
-	 * again. On turning sync on and when the server's data changed identity.
-	 */
-	async function requeueAll(syncId?: string): Promise<void> {
-		await db.transaction('rw', tables, async () => {
-			for (const meta of await db.syncMeta.toArray()) await db.syncMeta.put({ ...meta, version: 0 });
-			for (const collection of SYNC_COLLECTIONS) {
-				const records = await table(collection).toArray();
-				await db.outbox.bulkPut(
-					records.map((record) => ({ key: syncKey(collection, record.id), collection, id: record.id, rev: crypto.randomUUID() }))
-				);
-			}
-			await db.syncState.clear();
-			if (syncId !== undefined) await db.syncState.put({ id: 'sync', cursor: 0, syncId });
-		});
-	}
-
 	return {
 		/** One cycle: check the server, upload, download and merge. Throws when offline. */
 		async cycle({ rounds = PUSH_ROUNDS }: { rounds?: number } = {}): Promise<void> {
 			const info = await api.info();
 			if (info.version < SYNC_API_VERSION || !info.syncId) throw new SyncError('unsupported');
 			const state = await db.syncState.get('sync');
-			if (state?.syncId !== info.syncId) await requeueAll(info.syncId);
+			if (state?.syncId !== info.syncId) await startOver(db, info.syncId);
 			await push(rounds);
 			const changed = await pull();
 			// Records merged during the download that still differ from the server go up now.
@@ -181,9 +163,29 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 			if (changed) await options.afterPull?.();
 		},
 		/** Turning sync on: everything goes up again and the next cycle downloads everything. */
-		enable: () => requeueAll(),
+		enable: () => startOver(db),
 		pending: () => db.outbox.count()
 	};
 }
 
 export type SyncEngine = ReturnType<typeof createSyncEngine>;
+
+/**
+ * Starts over (docs/04): every record enters the outbox and everything is
+ * downloaded again. On turning sync on and when the server's data changed
+ * identity (emptied, or another server).
+ */
+export async function startOver(db: QadrantDB, syncId?: string): Promise<void> {
+	const collections = SYNC_COLLECTIONS.map((collection) => db[collection] as unknown as Table<Base, string>);
+	await db.transaction('rw', [...collections, db.syncMeta, db.outbox, db.syncState], async () => {
+		for (const meta of await db.syncMeta.toArray()) await db.syncMeta.put({ ...meta, version: 0 });
+		for (const [index, collection] of SYNC_COLLECTIONS.entries()) {
+			const records = await collections[index].toArray();
+			await db.outbox.bulkPut(
+				records.map((record) => ({ key: syncKey(collection, record.id), collection, id: record.id, rev: crypto.randomUUID() }))
+			);
+		}
+		await db.syncState.clear();
+		if (syncId !== undefined) await db.syncState.put({ id: 'sync', cursor: 0, syncId });
+	});
+}

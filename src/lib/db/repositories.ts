@@ -237,6 +237,12 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 		}
 	};
 
+	/** What the sync status line shows, in every tab (docs/01). */
+	const sync = {
+		state: () => db.syncState.get('sync'),
+		pending: () => db.outbox.count()
+	};
+
 	/** "Borrar todos los datos" (docs/01): every table; the model lives in OPFS and stays. */
 	async function clearAll(): Promise<void> {
 		const tables = [db.tasks, db.goals, db.people, db.corrections, db.settings, db.events, db.syncMeta, db.outbox, db.syncState];
@@ -245,7 +251,7 @@ export function createRepositories(db: QadrantDB = defaultDb) {
 		});
 	}
 
-	return { tasks, goals, people, corrections, settings, events, clearAll };
+	return { tasks, goals, people, corrections, settings, events, sync, clearAll };
 }
 
 function cleanAliases(aliases: string[]): string[] {

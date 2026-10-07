@@ -12,7 +12,11 @@ export function createReminderSync() {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let lastSent = '';
 
-	function update(tasks: Task[], server: Settings['server']) {
+	/**
+	 * With sync on, `version` is the sync version the tasks come from: the
+	 * server ignores lists older than the last one it got (docs/02).
+	 */
+	function update(tasks: Task[], server: Settings['server'], version?: number) {
 		clearTimeout(timer);
 		if (!server) {
 			lastSent = '';
@@ -20,10 +24,10 @@ export function createReminderSync() {
 		}
 		timer = setTimeout(async () => {
 			const list = remindersFor(tasks, new Date());
-			const key = server.url + fingerprint(list);
+			const key = `${server.url} ${version ?? ''} ${fingerprint(list)}`;
 			if (key === lastSent) return;
 			try {
-				await serverApi.putReminders(server, list);
+				await serverApi.putReminders(server, list, version);
 				lastSent = key;
 			} catch {
 				// Offline or server down: the next change (or the next start) tries again.
