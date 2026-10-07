@@ -363,6 +363,14 @@ export const es: Messages = {
 		calendarNote:
 			'Google, iCloud y Outlook ofrecen una dirección secreta de solo lectura. Se guarda en tu servidor, no en este dispositivo; la agenda muestra tus eventos y no coloca tareas encima de los que tienen hora.'
 	},
+	error: {
+		notFound: 'Página no encontrada',
+		notFoundText: 'Esta página no existe en Qadrant. Tus tareas siguen en este dispositivo.',
+		generic: 'Algo ha fallado',
+		genericText: 'La app ha tenido un error. Tus tareas siguen en este dispositivo.',
+		home: 'Ir a la matriz',
+		storage: 'Este navegador no deja a Qadrant leer su almacenamiento y no se pueden mostrar tus tareas. Puede pasar en navegación privada o si los datos del sitio están bloqueados.'
+	},
 	footer: {
 		app: (version) => `Qadrant ${version}`,
 		licenses: 'Licencias de terceros',
