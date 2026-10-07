@@ -1,6 +1,6 @@
 import { DEFAULT_DURATION_MIN } from './scheduler';
 import { addDays, dateKey, isoWeekday, sameDay, startOfDay } from './dates';
-import type { CalendarEvent, Task } from './types';
+import { QUADRANTS, type CalendarEvent, type Quadrant, type Task } from './types';
 
 /** Open tasks scheduled on the given local day, by start time. */
 export function agendaForDay(tasks: Task[], day: Date): Task[] {
@@ -75,4 +75,54 @@ export function eventsForDay(events: CalendarEvent[], day: Date): { allDay: Cale
 		allDay: events.filter((e) => e.allDay && e.start <= key && key < e.end),
 		timed: events.filter((e) => !e.allDay && sameDay(new Date(e.start), day)).sort((a, b) => a.start.localeCompare(b.start))
 	};
+}
+
+/** Open tasks due on a local day, by quadrant: the load strip over each day of the week. */
+export function dayLoad(tasks: Task[], day: Date): Record<Quadrant, number> {
+	const load = Object.fromEntries(QUADRANTS.map((q) => [q, 0])) as Record<Quadrant, number>;
+	for (const task of tasks) {
+		if (task.status === 'open' && !task.deletedAt && task.dueAt && sameDay(new Date(task.dueAt), day)) load[task.quadrant]++;
+	}
+	return load;
+}
+
+/** Hour row heights in the week grid: busy hours fit a 30-minute block at 44 px (the touch minimum) plus the gap between blocks, empty ones shrink. */
+export const ROW_BUSY = 92;
+export const ROW_IDLE = 28;
+
+/** Hours of the day that any span (task block or event) touches. */
+export function busyHours(spans: { start: Date; minutes: number }[]): Set<number> {
+	const busy = new Set<number>();
+	for (const { start, minutes } of spans) {
+		const end = new Date(start.getTime() + Math.max(1, minutes) * 60_000 - 1);
+		const last = sameDay(start, end) ? end.getHours() : 23;
+		for (let hour = start.getHours(); hour <= last; hour++) busy.add(hour);
+	}
+	return busy;
+}
+
+export interface HourLayout {
+	from: number;
+	heights: number[];
+	offsets: number[];
+	total: number;
+}
+
+export function hourLayout(range: { from: number; to: number }, busy: Set<number>): HourLayout {
+	const heights = Array.from({ length: range.to - range.from }, (_, i) => (busy.has(range.from + i) ? ROW_BUSY : ROW_IDLE));
+	const offsets: number[] = [];
+	let total = 0;
+	for (const height of heights) {
+		offsets.push(total);
+		total += height;
+	}
+	return { from: range.from, heights, offsets, total };
+}
+
+/** Vertical pixel of a time in the grid, clamped to it. */
+export function offsetOf(layout: HourLayout, date: Date): number {
+	const index = date.getHours() - layout.from;
+	if (index < 0) return 0;
+	if (index >= layout.heights.length) return layout.total;
+	return layout.offsets[index] + (date.getMinutes() / 60) * layout.heights[index];
 }

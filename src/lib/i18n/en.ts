@@ -174,6 +174,7 @@ export const en = {
 		checkOn: (when: string) => `Check ${when}`,
 		noFollowUp: 'No check date',
 		calendarMeta: (duration: string) => `Calendar · ${duration}`,
+		dueLoad: (parts: string) => `Due: ${parts}`,
 		days: 'Day of the week',
 		review: 'Weekly review',
 		reviewHours: 'Time in the agenda this week',
@@ -363,6 +364,14 @@ export const en = {
 		calendarUnavailable: 'The calendar cannot be checked right now.',
 		calendarNote:
 			'Google, iCloud and Outlook offer a secret read-only address. It is stored on your server, not on this device; the agenda shows your events and never places tasks over timed ones.'
+	},
+	error: {
+		notFound: 'Page not found',
+		notFoundText: 'This page does not exist in Qadrant. Your tasks are still on this device.',
+		generic: 'Something went wrong',
+		genericText: 'The app hit an error. Your tasks are still on this device.',
+		home: 'Go to the matrix',
+		storage: 'This browser is not letting Qadrant read its storage, so your tasks cannot be shown. Private browsing or blocked site data can cause this.'
 	},
 	footer: {
 		app: (version: string) => `Qadrant ${version}`,

@@ -62,7 +62,10 @@ test.describe('web week view', () => {
 		await expect(page.getByText('5 oct – 9 oct')).toBeVisible();
 		await expect(page.getByRole('group', { name: 'Vista' }).getByRole('button', { name: 'Semana' })).toHaveAttribute('aria-pressed', 'true');
 		const monday = page.getByRole('list', { name: 'lunes 5' });
-		await expect(monday.getByRole('link', { name: /Llamar al taller/ })).toContainText('10:00 · Hacer · 30 min');
+		// Short blocks show time and title; quadrant and duration stay for screen readers.
+		const block = monday.getByRole('link', { name: /Llamar al taller/ });
+		await expect(block).toContainText('10:00');
+		await expect(block).toHaveAccessibleName(/Llamar al taller · Hacer · 30 min/);
 		await expect(page.getByRole('list', { name: 'sábado 10' })).toHaveCount(0);
 
 		await page.getByRole('button', { name: 'Semana siguiente' }).click();
