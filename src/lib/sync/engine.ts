@@ -22,6 +22,8 @@ const PUSH_ROUNDS = 5;
 export interface SyncEngineOptions {
 	/** Runs after each download that changed something: the passage of time (docs/02). */
 	afterPull?: () => Promise<void>;
+	/** Tasks whose content changed here because of another device, to tint them on screen. */
+	onArrived?: (taskIds: string[]) => void;
 	now?: () => Date;
 }
 
@@ -31,6 +33,7 @@ export interface SyncEngineOptions {
  */
 export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngineOptions = {}) {
 	const now = options.now ?? (() => new Date());
+	let arrived = new Set<string>();
 	const tables = [db.tasks, db.goals, db.people, db.corrections, db.settings, db.syncMeta, db.outbox, db.syncState];
 
 	function table(collection: SyncCollection): Table<Base, string> {
@@ -76,6 +79,7 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 			local = { record: defaultSettings(now()), changedAt: {} };
 		}
 		const merged = local ? mergeCopies(local, remote, trackedFields(collection)) : remote;
+		if (collection === 'tasks' && JSON.stringify(local?.record) !== JSON.stringify(merged.record)) arrived.add(id);
 		await table(collection).put(merged.record);
 		await db.syncMeta.put({ key: syncKey(collection, id), changedAt: merged.changedAt, version });
 	}
@@ -150,6 +154,7 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 	return {
 		/** One cycle: check the server, upload, download and merge. Throws when offline. */
 		async cycle({ rounds = PUSH_ROUNDS }: { rounds?: number } = {}): Promise<void> {
+			arrived = new Set();
 			const info = await api.info();
 			if (info.version < SYNC_API_VERSION || !info.syncId) throw new SyncError('unsupported');
 			const state = await db.syncState.get('sync');
@@ -161,6 +166,7 @@ export function createSyncEngine(db: QadrantDB, api: SyncApi, options: SyncEngin
 			const done = await db.syncState.get('sync');
 			await db.syncState.put({ ...done, id: 'sync', cursor: done?.cursor ?? 0, lastSyncAt: now().toISOString(), syncId: info.syncId });
 			if (changed) await options.afterPull?.();
+			if (arrived.size) options.onArrived?.([...arrived]);
 		},
 		/** Turning sync on: everything goes up again and the next cycle downloads everything. */
 		enable: () => startOver(db),

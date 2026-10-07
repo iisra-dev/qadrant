@@ -16,6 +16,7 @@
 	import { groupByQuadrant, isOverdue, matrixTasks, staleEliminate } from '$lib/domain/matrix';
 	import { QUADRANTS, type Quadrant, type Task } from '$lib/domain/types';
 	import { allTasks, openTasks, people } from '$lib/stores';
+	import { arrivals } from '$lib/sync/arrivals.svelte';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { AgendaBlock, AiDot, Button, Drawer, Icon, QuadrantCard, quadrantVars, Sheet, TaskRow, UndoToast } from '$lib/ui';
 
@@ -159,7 +160,7 @@
 						meta={timeToday(task)}
 						overdue={isOverdue(task, clock.now)}
 						done={task.status === 'done'}
-						landed={task.id === capture.landed}
+						landed={task.id === capture.landed || arrivals.has(task.id)}
 						oncomplete={() => complete(task)}
 						onreopen={() => repos.tasks.reopen(task.id)}
 					/>

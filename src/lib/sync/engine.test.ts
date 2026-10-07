@@ -205,6 +205,30 @@ describe('sync cycle', () => {
 		expect((await phone.db.syncState.get('sync'))?.cursor).toBe(1);
 	});
 
+	it('tells which tasks changed here because of another device', async () => {
+		const phone = device();
+		const arrived: string[][] = [];
+		const db = new QadrantDB(`device-${crypto.randomUUID()}`);
+		const laptop = { db, repos: createRepositories(db), engine: createSyncEngine(db, memoryApi(server), { onArrived: (ids) => arrived.push(ids) }) };
+		devices.push({ ...laptop, afterPull: vi.fn() });
+		const a = await phone.repos.tasks.create(newTask('a'), T0);
+		const b = await phone.repos.tasks.create(newTask('b'), T0);
+		await phone.engine.cycle();
+		await laptop.engine.cycle();
+		expect(arrived.at(-1)?.sort()).toEqual([a.id, b.id].sort());
+
+		// Only what really changed; goals and own uploads do not count.
+		await phone.repos.tasks.complete(a.id, T1);
+		await phone.repos.goals.add('Ventas', T1);
+		await phone.engine.cycle();
+		await laptop.repos.tasks.update(b.id, { notes: 'aquí' }, T1);
+		await laptop.engine.cycle();
+		expect(arrived.at(-1)).toEqual([a.id]);
+		const calls = arrived.length;
+		await laptop.engine.cycle();
+		expect(arrived.length).toBe(calls);
+	});
+
 	it('pending() counts the changes still to upload', async () => {
 		const phone = device();
 		await phone.repos.tasks.create(newTask('a'), T0);

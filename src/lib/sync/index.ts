@@ -3,10 +3,11 @@ import { serverApi, type ServerConfig } from '$lib/ownserver/client';
 import { httpSyncApi } from './api';
 import { createSyncEngine, startOver } from './engine';
 import { startSyncRunner } from './runner';
+import { announceArrivals } from './arrivals.svelte';
 
 /** Keeps this device in sync with the own server until the returned function is called. */
 export function startDeviceSync(server: ServerConfig, afterPull: () => Promise<void>): () => void {
-	const engine = createSyncEngine(db, httpSyncApi(server), { afterPull });
+	const engine = createSyncEngine(db, httpSyncApi(server), { afterPull, onArrived: announceArrivals });
 	return startSyncRunner({ db, engine, openEvents: (signal) => serverApi.syncEvents(server, signal) });
 }
 

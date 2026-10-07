@@ -10,6 +10,7 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { AiDot, Button, Field, Icon, QuadrantPicker, Sheet } from '$lib/ui';
+	import { liveValue } from '$lib/ui/liveValue';
 
 	let { id, onclose }: { id: string; onclose: () => void } = $props();
 	// undefined while loading, null when it does not exist.
@@ -105,7 +106,7 @@
 				<textarea
 					id="task-title"
 					rows="2"
-					value={$task.title}
+					use:liveValue={$task.title}
 					onchange={(e) => setTitle(e.currentTarget.value)}
 					onkeydown={(e) => {
 						if (e.key === 'Enter') {
@@ -136,7 +137,7 @@
 					<input
 						id="task-due"
 						type="datetime-local"
-						value={toLocalInput($task.dueAt)}
+						use:liveValue={toLocalInput($task.dueAt)}
 						onchange={(e) => taskActions.changeDueDate($task!, fromLocalInput(e.currentTarget.value), currentSettings())}
 					/>
 				</Field>
@@ -160,7 +161,7 @@
 							max="720"
 							step="5"
 							inputmode="numeric"
-							value={$task.durationMin ?? ''}
+							use:liveValue={String($task.durationMin ?? '')}
 							onchange={(e) => update({ durationMin: Number(e.currentTarget.value) || undefined })}
 						/>
 					</Field>
@@ -169,7 +170,7 @@
 					<input
 						id="task-when"
 						type="datetime-local"
-						value={toLocalInput($task.scheduledAt)}
+						use:liveValue={toLocalInput($task.scheduledAt)}
 						onchange={(e) => update({ scheduledAt: fromLocalInput(e.currentTarget.value) })}
 					/>
 				</Field>
@@ -178,7 +179,7 @@
 						<input
 							id="task-follow-up"
 							type="date"
-							value={$task.followUpAt ? dateKey(new Date($task.followUpAt)) : ''}
+							use:liveValue={$task.followUpAt ? dateKey(new Date($task.followUpAt)) : ''}
 							onchange={(e) =>
 								update({
 									followUpAt: e.currentTarget.value
@@ -204,7 +205,7 @@
 					id="task-notes"
 					rows="3"
 					placeholder={i18n.m.detail.notesPlaceholder}
-					value={$task.notes ?? ''}
+					use:liveValue={$task.notes ?? ''}
 					onchange={(e) => update({ notes: e.currentTarget.value || undefined })}
 				></textarea>
 			</div>
