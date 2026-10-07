@@ -62,7 +62,7 @@
 					{@const quadrant = item.tasks[0].quadrant}
 					<li style="top: {top(item.start)}px; height: {Math.max(28, item.minutes * (ROW / 60) - 4)}px; {quadrantVars(quadrant)}">
 						<a href={`/task/${item.tasks[0].id}`}>
-							{#if item.focus}<span class="label"><AiDot />BLOQUE DE FOCO</span>{/if}
+							{#if item.focus}<span class="label"><AiDot />{i18n.m.common.focusBlock}</span>{/if}
 							<span class="title">{item.tasks.map((t) => t.title).join(' · ')}</span>
 							<span class="meta">{formatTime(item.start)} · {i18n.m.quadrants[quadrant].name} · {formatDuration(item.minutes)}</span>
 						</a>
