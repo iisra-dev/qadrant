@@ -174,6 +174,7 @@ export const en = {
 		checkOn: (when: string) => `Check ${when}`,
 		noFollowUp: 'No check date',
 		calendarMeta: (duration: string) => `Calendar · ${duration}`,
+		dueLoad: (parts: string) => `Due: ${parts}`,
 		days: 'Day of the week',
 		review: 'Weekly review',
 		reviewHours: 'Time in the agenda this week',

@@ -173,6 +173,7 @@ export const es: Messages = {
 		checkOn: (when) => `Revisar ${when}`,
 		noFollowUp: 'Sin fecha de revisión',
 		calendarMeta: (duration) => `Calendario · ${duration}`,
+		dueLoad: (parts) => `Vencen: ${parts}`,
 		days: 'Día de la semana',
 		review: 'Revisión semanal',
 		reviewHours: 'Horas en la agenda esta semana',

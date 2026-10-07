@@ -17,6 +17,8 @@
 	// Web: week view by default, working week (docs/01); mobile: day view only.
 	let view = $state<'day' | 'week'>('week');
 	const week = $derived(media.web && view === 'week');
+	// From 1024 px the week keeps "No slot yet" and "Waiting on others" in a column beside it (docs/01).
+	const side = $derived(week && media.wide);
 	let weekOffset = $state(0);
 	const days = $derived(weekDays(clock.now, weekOffset, ($settings ?? currentSettings()).workDays));
 	const weekLabel = $derived(
@@ -135,8 +137,14 @@
 	</header>
 
 	{#if week}
-		<div class="week">
+		<div class="week" class:side>
 			<WeekView {days} tasks={$openTasks} events={$calendarEvents} now={clock.now} workHours={($settings ?? currentSettings()).workHours} />
+			{#if side}
+				<aside>
+					{@render pendingSection()}
+					{@render waitingSection()}
+				</aside>
+			{/if}
 		</div>
 	{:else}
 	<div class="strip" role="group" aria-label={i18n.m.agenda.days}>
@@ -195,6 +203,7 @@
 	</div>
 {/snippet}
 
+{#snippet waitingSection()}
 	{#if waiting.length}
 		<section class="waiting" aria-labelledby="waiting-title">
 			<h2 id="waiting-title">{i18n.m.agenda.waiting}</h2>
@@ -208,13 +217,15 @@
 			{/each}
 		</section>
 	{/if}
+{/snippet}
 
+{#snippet pendingSection()}
 	<section class="pending" aria-labelledby="no-slot">
 		<h2 id="no-slot">{i18n.m.agenda.noSlot}</h2>
 		{#if pending.length}
 			<ul>
 				{#each pending as task (task.id)}
-					<li><a href={`/task/${task.id}`}>{task.title}<span> · {i18n.m.quadrants[task.quadrant].name}</span></a></li>
+					<li><a href={`/task/${task.id}`}>{task.title}<span>{` · ${i18n.m.quadrants[task.quadrant].name}`}</span></a></li>
 				{/each}
 			</ul>
 			<button class="find" type="button" onclick={findSlots} disabled={busy}>{i18n.m.agenda.findSlots}</button>
@@ -223,6 +234,12 @@
 		{/if}
 		<p class="note" role="status">{message}</p>
 	</section>
+{/snippet}
+
+	{#if !side}
+		{@render waitingSection()}
+		{@render pendingSection()}
+	{/if}
 
 	{#if review.totalMinutes || review.stale.length}
 		<section class="review" aria-labelledby="review-title">
@@ -242,7 +259,7 @@
 				<h3 id="review-stale">{i18n.m.agenda.reviewStale}</h3>
 				<ul aria-labelledby="review-stale">
 					{#each review.stale as { task, weeks } (task.id)}
-						<li><a href={`/task/${task.id}`}>{task.title}<span> · {i18n.m.agenda.weeks(weeks)}</span></a></li>
+						<li><a href={`/task/${task.id}`}>{task.title}<span>{` · ${i18n.m.agenda.weeks(weeks)}`}</span></a></li>
 					{/each}
 				</ul>
 			{/if}
@@ -270,6 +287,28 @@
 	}
 	.week {
 		padding: var(--space-1) var(--space-4) var(--space-3);
+	}
+	.week.side {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 300px;
+		gap: var(--space-5);
+		align-items: start;
+	}
+	aside {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+	}
+	aside .pending,
+	aside .waiting {
+		margin: 0;
+	}
+	aside .waiting a {
+		min-height: var(--touch);
+		padding: var(--space-2) var(--space-3);
+	}
+	aside .what {
+		font-size: 13px;
 	}
 	.views {
 		display: flex;
