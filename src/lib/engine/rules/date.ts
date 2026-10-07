@@ -13,7 +13,7 @@ type Hours = Settings['workHours'];
 interface DateRules {
 	parser: { parse: typeof chrono.es.parse };
 	/** Time-of-day phrases chrono does not understand, or reads in its own way (docs/03, step 2). */
-	timePhrases: { pattern: RegExp; time: (hours: Hours) => string }[];
+	timePhrases: { pattern: RegExp; time: (hours: Hours, match: RegExpExecArray) => string | null }[];
 	dayAfterTomorrow: RegExp;
 	/** Words that introduce a date and go away with it. Also right after "(". */
 	introducer: RegExp;
@@ -21,6 +21,8 @@ interface DateRules {
 	timeIntroducer: RegExp;
 	/** chrono's text starts with a time of day, not a day. */
 	timeFirst: RegExp;
+	/** Part of the day said after an hour, "a las 7 de la mañana"; group 1 is afternoon or evening. */
+	dayPartAfter?: RegExp;
 	/** "el viernes pasado" (after the date) / "last Friday" (in chrono's own text). */
 	pastAfter?: RegExp;
 	pastInText?: RegExp;
@@ -37,7 +39,9 @@ const RULES: Record<Lang, DateRules> = {
 			{ pattern: /\ba [uú]ltima hora\b/i, time: (h) => h.end },
 			{ pattern: /\bpor la tarde\b/i, time: (h) => h.end },
 			{ pattern: /\bpor la mañana\b/i, time: () => '12:00' },
-			{ pattern: /\b(?:a|al) mediod[ií]a\b/i, time: () => '12:00' }
+			{ pattern: /\b(?:a|al) mediod[ií]a\b/i, time: () => '12:00' },
+			// "a las 21h", "las 9h": chrono does not read them and the duration rules would take "21h".
+			{ pattern: /\b(?:a\s+)?las?\s+(\d{1,2})(?:[:.](\d{2}))?\s?h\b/i, time: (_, m) => clock(Number(m[1]), Number(m[2] ?? 0)) }
 		],
 		dayAfterTomorrow: /\bpasado mañana\b/i,
 		// "para el martes", "antes del jueves", "venció ayer", "el cine del sábado", "la clase de mañana".
@@ -46,6 +50,7 @@ const RULES: Record<Lang, DateRules> = {
 		// "a las 17:30", "sobre las 6", "a eso de las 7"; "hablar sobre mañana" keeps its "sobre".
 		timeIntroducer: /(?:^|[\s(])(?:a eso de|alrededor de|sobre|hacia|a)\s*$/i,
 		timeFirst: /^(?:las?\s+)?\d/i,
+		dayPartAfter: /^\s+de\s+la\s+(?:(tarde|noche)|ma[ñn]ana|madrugada)\b/i,
 		pastAfter: /^\s+pasad[oa]\b/i,
 		nextWeekAfter: /^\s+(?:de\s+)?la\s+(?:semana\s+que\s+viene|pr[oó]xima\s+semana)\b/i
 	},
@@ -72,6 +77,22 @@ const RULES: Record<Lang, DateRules> = {
 
 function mask(text: string, start: number, end: number): string {
 	return text.slice(0, start) + ' '.repeat(end - start) + text.slice(end);
+}
+
+/** "HH:MM", or null when it is not a time of day. */
+function clock(hour: number, minute: number): string | null {
+	if (hour > 23 || minute > 59) return null;
+	return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+/**
+ * An hour said without am/pm ("a las 5", "at 5"): chrono takes the morning. 1-7
+ * is the afternoon and 8-11 the morning, unless the text says which ("de la
+ * tarde"). A leading zero ("05:30") is a 24-hour time and stays (docs/03, step 2).
+ */
+function isAfternoon(hour: number, text: string, saidAfternoon: boolean | undefined): boolean {
+	if (hour < 1 || hour > 11 || /(?:^|\D)0\d/.test(text)) return false;
+	return saidAfternoon ?? hour <= 7;
 }
 
 function withTime(day: Date, time: string): Date {
@@ -103,7 +124,9 @@ export function extractDate(text: string, now: Date, hours: Hours, lang: Lang = 
 	for (const phrase of rules.timePhrases) {
 		const match = phrase.pattern.exec(masked);
 		if (!match) continue;
-		timeOverride ??= phrase.time(hours);
+		const time = phrase.time(hours, match);
+		if (!time) continue;
+		timeOverride ??= time;
 		ranges.push([match.index, match.index + match[0].length]);
 		masked = mask(masked, match.index, match.index + match[0].length);
 	}
@@ -130,6 +153,19 @@ export function extractDate(text: string, now: Date, hours: Hours, lang: Lang = 
 	const start = timeStart < result.index ? timeStart : introducerStart(masked, result.index, rules.introducer);
 	let end = result.index + result.text.length;
 	let parsed = result.start.date();
+	const hour = result.start.get('hour');
+	if (result.start.isCertain('hour') && !result.start.isCertain('meridiem') && hour !== null) {
+		const dayPart = rules.dayPartAfter?.exec(masked.slice(end));
+		if (dayPart) end += dayPart[0].length;
+		if (isAfternoon(hour, result.text, dayPart ? Boolean(dayPart[1]) : undefined)) {
+			parsed = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), hour + 12, parsed.getMinutes());
+			// chrono moved a bare "a las 5" to tomorrow because 05:00 had passed; 17:00 may still be today.
+			if (!result.start.isCertain('day') && !result.start.isCertain('weekday')) {
+				const todayAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour + 12, parsed.getMinutes());
+				parsed = todayAt.getTime() >= now.getTime() ? todayAt : shiftDays(todayAt, 1);
+			}
+		}
+	}
 	const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 	const weekday = now.getDay() || 7;
 	const nextMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 8 - weekday).getTime();

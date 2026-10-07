@@ -136,12 +136,29 @@ describe('own date expressions', () => {
 		['llamar a Aldo a eso de las 18:00', local(2026, 10, 2, 18), 'Llamar a Aldo'],
 		['llamar a Aldo alrededor de las 16:00', local(2026, 10, 2, 16), 'Llamar a Aldo'],
 		// Before a day they stay: only a time takes them along.
-		['hablar sobre mañana con Ana', local(2026, 10, 3, 18), 'Hablar sobre con Ana']
+		['hablar sobre mañana con Ana', local(2026, 10, 3, 18), 'Hablar sobre con Ana'],
+		// An hour without am/pm: 1-7 is the afternoon, 8-11 the morning, unless the text says it.
+		['llamar a Aldo a las 5', local(2026, 10, 2, 17), 'Llamar a Aldo'],
+		['llamar a Aldo a las 5:30', local(2026, 10, 2, 17, 30), 'Llamar a Aldo'],
+		['llamar a Aldo a las 11', local(2026, 10, 2, 11), 'Llamar a Aldo'],
+		['llamar a Aldo a las 9', local(2026, 10, 3, 9), 'Llamar a Aldo'],
+		['el lunes a las 4 reunión', local(2026, 10, 5, 16), 'Reunión'],
+		['correr a las 7 de la mañana', local(2026, 10, 3, 7), 'Correr'],
+		['llamar a Aldo a las 5 de la tarde', local(2026, 10, 2, 17), 'Llamar a Aldo'],
+		['cenar a las 9 de la noche', local(2026, 10, 2, 21), 'Cenar'],
+		['despertador a las 05:30', local(2026, 10, 3, 5, 30), 'Despertador'],
+		// "21h" is a time, not a duration of 21 hours.
+		['cena con Ana a las 21h', local(2026, 10, 2, 21), 'Cena con Ana'],
+		['mañana a las 9h dentista', local(2026, 10, 3, 9), 'Dentista']
 	])('%s', (text, dueAt, title) => {
 		const result = run(text);
 		expect(result.dueAt).toBe(dueAt);
 		expect(result.title).toBe(title);
 	});
+});
+
+it('"a las 21h" is a time, not a duration', () => {
+	expect(run('cena con Ana a las 21h').durationMin).toBeUndefined();
 });
 
 describe('extractDuration', () => {
