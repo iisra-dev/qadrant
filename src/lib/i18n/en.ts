@@ -338,9 +338,10 @@ export const en = {
 		licenses: 'Third-party licenses',
 		author: 'Author: iisra-dev on GitHub'
 	},
+	// Push notices: the task is the title; iOS adds "from Qadrant" below it.
 	notice: {
-		due: (title: string) => `Due: ${title}`,
-		followUp: (title: string) => `Check: ${title}`
+		due: 'Due now',
+		followUp: 'Time to check how it is going'
 	}
 };
 

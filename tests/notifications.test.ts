@@ -27,7 +27,7 @@ test('the service worker shows a notice for a push message and opens the task on
 		}
 		return [];
 	});
-	expect(shown).toEqual([['Qadrant', 'Vence: Pagar recibo', 'abc:due', 'abc']]);
+	expect(shown).toEqual([['Pagar recibo', 'Vence ahora', 'abc:due', 'abc']]);
 
 	await worker.evaluate(async () => {
 		const sw = self as unknown as ServiceWorkerGlobalScope;

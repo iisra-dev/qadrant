@@ -337,7 +337,7 @@ export const es: Messages = {
 		author: 'Autor: iisra-dev en GitHub'
 	},
 	notice: {
-		due: (title) => `Vence: ${title}`,
-		followUp: (title) => `Revisar: ${title}`
+		due: 'Vence ahora',
+		followUp: 'Toca preguntar cómo va'
 	}
 };
