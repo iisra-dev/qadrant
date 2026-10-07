@@ -3,7 +3,7 @@
 	import type { Settings } from '$lib/domain/types';
 	import { normaliseUrl, ServerError, serverApi } from '$lib/ownserver/client';
 	import { refreshCalendar } from '$lib/ownserver/calendar';
-	import { disablePush, enablePush } from '$lib/ownserver/push';
+	import { askPermission, disablePush, enablePush, pushStatus, pushSupported, type PushStatus } from '$lib/ownserver/push';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import { Button, SettingsGroup } from '$lib/ui';
 
@@ -18,6 +18,40 @@
 	let calendarConnected = $state<boolean | null>(null);
 	let calendarUrl = $state('');
 	let calendarMessage = $state('');
+
+	// Notices on this device: permission and push subscription, checked again on return
+	// to the app (after granting it in the system settings, for example).
+	let notices = $state<PushStatus | null>(null);
+	let noticesMessage = $state('');
+
+	function refreshNotices() {
+		pushStatus()
+			.then((status) => (notices = status))
+			.catch(() => (notices = null));
+	}
+
+	$effect(() => {
+		if (!server) return;
+		refreshNotices();
+		const onVisible = () => document.visibilityState === 'visible' && refreshNotices();
+		document.addEventListener('visibilitychange', onVisible);
+		return () => document.removeEventListener('visibilitychange', onVisible);
+	});
+
+	async function turnOnNotices() {
+		if (!server) return;
+		// First thing in the tap, so Safari shows the permission prompt.
+		const outcome = enablePush(server);
+		busy = true;
+		noticesMessage = '';
+		try {
+			const result = await outcome;
+			noticesMessage = result === 'failed' ? m.noticesFailed : '';
+		} finally {
+			busy = false;
+			refreshNotices();
+		}
+	}
 
 	$effect(() => {
 		const current = server;
@@ -88,14 +122,17 @@
 			message = m.httpsOnly;
 			return;
 		}
+		// Asked before any await: Safari only shows the prompt within the tap.
+		const permission = pushSupported() ? askPermission() : null;
 		busy = true;
 		message = m.connecting;
 		try {
 			const config = { url: clean, token: token.trim() };
 			await serverApi.ping(config);
 			await repos.settings.update({ server: config });
-			message = m[await enablePush(config)];
+			message = m[await enablePush(config, permission ?? undefined)];
 			url = token = '';
+			refreshNotices();
 		} catch (error) {
 			message = errorText(error, m.genericError);
 		} finally {
@@ -137,6 +174,20 @@
 	<p class="note" role="status">{message}</p>
 
 	{#if server}
+		<h3 id="s-notices">{m.notices}</h3>
+		<div class="card" aria-labelledby="s-notices" role="group">
+			<div class="row">
+				<span>{notices ? m.noticesState[notices] : ''}</span>
+				{#if notices === 'off' || notices === 'blocked'}
+					<Button variant="secondary" onclick={turnOnNotices} disabled={busy}>{m.turnOnNotices}</Button>
+				{/if}
+			</div>
+		</div>
+		<p class="note" role="status">{noticesMessage}</p>
+		{#if notices === 'blocked' || notices === 'unsupported'}
+			<p class="note">{notices === 'blocked' ? m.noticesBlockedHelp : m.noticesUnsupportedHelp}</p>
+		{/if}
+
 		<h3 id="s-calendar">{m.calendar}</h3>
 		<div class="card" aria-labelledby="s-calendar" role="group">
 			{#if calendarConnected}

@@ -63,3 +63,64 @@ test('connects to the own server and keeps its reminders in step', async ({ page
 	await page.getByRole('checkbox', { name: 'Completar: Pagar recibo' }).check();
 	await expect.poll(() => reminders.at(-1)).toEqual([]);
 });
+
+// The test browser has no push service and never remembers a refusal: these stand
+// in for them. The subscription lives in the page, so a reload loses it.
+async function fakePush(page: Page, permission: 'granted' | 'denied') {
+	await page.addInitScript((state) => {
+		const query = navigator.permissions.query.bind(navigator.permissions);
+		navigator.permissions.query = (descriptor) =>
+			descriptor.name === 'notifications' ? Promise.resolve({ state } as PermissionStatus) : query(descriptor);
+		Notification.requestPermission = () => Promise.resolve(state);
+		let subscription: PushSubscription | null = null;
+		PushManager.prototype.getSubscription = async () => subscription;
+		PushManager.prototype.subscribe = async () => {
+			subscription = {
+				endpoint: 'https://push.test/device',
+				options: { applicationServerKey: null, userVisibleOnly: true },
+				toJSON: () => ({ endpoint: 'https://push.test/device', keys: { p256dh: 'key', auth: 'auth' } }),
+				unsubscribe: async () => {
+					subscription = null;
+					return true;
+				}
+			} as unknown as PushSubscription;
+			return subscription;
+		};
+	}, permission);
+}
+
+async function connect(page: Page) {
+	await startApp(page);
+	await page.getByRole('link', { name: 'Ajustes' }).click();
+	await openGroup(page, 'Servidor propio');
+	await page.getByLabel('Dirección').fill(SERVER);
+	await page.getByLabel('Clave de acceso').fill(KEY);
+	await page.getByRole('button', { name: 'Conectar' }).click();
+	await expect(page.getByText(SERVER)).toBeVisible();
+	return page.getByRole('group', { name: 'Avisos en este dispositivo' });
+}
+
+test('says how to unblock notices when they were refused', async ({ page }) => {
+	await fakeServer(page);
+	await fakePush(page, 'denied');
+	const notices = await connect(page);
+	await expect(page.getByRole('status').filter({ hasText: 'Conectado' })).toContainText('sin permiso');
+	await expect(notices).toContainText('Bloqueados');
+	await expect(notices.getByRole('button', { name: 'Activar avisos' })).toBeVisible();
+	await expect(page.getByText('Ajustes > Notificaciones > Qadrant')).toBeVisible();
+});
+
+test('turns notices on from Settings when this device is not subscribed', async ({ page }) => {
+	await fakeServer(page);
+	await fakePush(page, 'granted');
+	const notices = await connect(page);
+	await expect(notices).toContainText('Activados');
+	await expect(notices.getByRole('button', { name: 'Activar avisos' })).toHaveCount(0);
+
+	// Subscription lost (as when the prompt did not show on connecting): the button subscribes again.
+	await page.reload();
+	await openGroup(page, 'Servidor propio');
+	await expect(notices).toContainText('Sin activar');
+	await notices.getByRole('button', { name: 'Activar avisos' }).click();
+	await expect(notices).toContainText('Activados');
+});
