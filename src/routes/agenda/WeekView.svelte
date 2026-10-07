@@ -112,6 +112,7 @@
 					<li class="event" class:compact={minutes < COMPACT_MIN} style={place(start, minutes)}>
 						{#if minutes < COMPACT_MIN}
 							<span class="line"><span class="time">{formatTime(start)}</span> {event.title}</span>
+							<span class="visually-hidden">{` · ${i18n.m.common.calendar}`}</span>
 						{:else}
 							<span class="title">{event.title}</span>
 							<span class="meta">{formatTime(start)} · {i18n.m.common.calendar}</span>
@@ -128,6 +129,7 @@
 									{#if item.focus}<AiDot />{/if}<span class="time">{formatTime(item.start)}</span>
 									{title}
 								</span>
+								<span class="visually-hidden">{` · ${i18n.m.quadrants[quadrant].name} · ${formatDuration(item.minutes)}`}</span>
 							{:else}
 								{#if item.focus}<span class="label"><AiDot />{i18n.m.common.focusBlock}</span>{/if}
 								<span class="title">{title}</span>
