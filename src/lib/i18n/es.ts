@@ -309,6 +309,13 @@ export const es: Messages = {
 		genericError: 'No se pudo conectar.',
 		privacy:
 			'Tus tareas no salen del dispositivo. El servidor solo recibe, para avisarte, el título y la fecha de las tareas con aviso; más adelante servirá también para sincronizar y para clasificar cuando el asistente no esté en el dispositivo.',
+		notices: 'Avisos en este dispositivo',
+		noticesState: { on: 'Activados', off: 'Sin activar', blocked: 'Bloqueados', unsupported: 'No disponibles' },
+		turnOnNotices: 'Activar avisos',
+		noticesFailed: 'No se pudieron activar los avisos. Revisa la conexión y vuelve a intentarlo.',
+		noticesBlockedHelp:
+			'Este navegador los ha bloqueado. En iPhone, permítelos en Ajustes > Notificaciones > Qadrant; en otros navegadores, en los permisos del sitio. Después pulsa Activar avisos.',
+		noticesUnsupportedHelp: 'Este navegador no admite avisos. En iPhone, añade la app a la pantalla de inicio y ábrela desde allí.',
 		calendar: 'Calendario',
 		connected: 'Conectado',
 		calendarAddress: 'Dirección secreta en formato iCal',

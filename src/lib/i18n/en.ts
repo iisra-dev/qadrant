@@ -311,6 +311,13 @@ export const en = {
 		genericError: 'Could not connect.',
 		privacy:
 			'Your tasks never leave your device. To notify you, the server only gets the title and date of tasks with a notice; later it will also be used to sync and to classify when the assistant is not on the device.',
+		notices: 'Notices on this device',
+		noticesState: { on: 'On', off: 'Off', blocked: 'Blocked', unsupported: 'Not available' },
+		turnOnNotices: 'Turn on notices',
+		noticesFailed: 'Notices could not be turned on. Check your connection and try again.',
+		noticesBlockedHelp:
+			'This browser has blocked them. On iPhone, allow them in Settings > Notifications > Qadrant; in other browsers, in the site permissions. Then tap Turn on notices.',
+		noticesUnsupportedHelp: 'This browser does not support notices. On iPhone, add the app to the Home Screen and open it from there.',
 		calendar: 'Calendar',
 		connected: 'Connected',
 		calendarAddress: 'Secret address in iCal format',
