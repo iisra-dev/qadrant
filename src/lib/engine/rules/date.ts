@@ -36,9 +36,10 @@ const RULES: Record<Lang, DateRules> = {
 			{ pattern: /\b(?:a|al) mediod[ií]a\b/i, time: () => '12:00' }
 		],
 		dayAfterTomorrow: /\bpasado mañana\b/i,
-		// "para el martes", "antes del jueves", "venció ayer", "el cine del sábado", "la clase de mañana".
+		// "para el martes", "antes del jueves", "venció ayer", "el cine del sábado", "la clase de mañana",
+		// and before a time, "a las 17:30", "sobre las 6", "a eso de las 7".
 		introducer:
-			/(?:^|[\s(])(?:(?:vence|venci[oó])(?: el| la)?|para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|del|de|el|la|los)\s*$/i,
+			/(?:^|[\s(])(?:(?:vence|venci[oó])(?: el| la)?|para el|para la|para|antes del|antes de la|antes de|hasta el|hasta la|hasta|a eso de|alrededor de|sobre|hacia|del|de|el|la|los|a)\s*$/i,
 		pastAfter: /^\s+pasad[oa]\b/i,
 		nextWeekAfter: /^\s+(?:de\s+)?la\s+(?:semana\s+que\s+viene|pr[oó]xima\s+semana)\b/i
 	},

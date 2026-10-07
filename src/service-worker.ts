@@ -60,8 +60,10 @@ self.addEventListener('push', (event) => {
 		(async () => {
 			const lang = await readLanguage();
 			const notice = messages(lang).notice;
-			const body = data.taskTitle ? (data.kind === 'follow-up' ? notice.followUp : notice.due)(data.taskTitle) : data.body;
-			await self.registration.showNotification(data.title || 'Qadrant', {
+			// The task is the title: iOS already adds "from Qadrant", so "Qadrant" would show twice.
+			const title = data.taskTitle || data.title || 'Qadrant';
+			const body = data.taskTitle ? (data.kind === 'follow-up' ? notice.followUp : notice.due) : data.body;
+			await self.registration.showNotification(title, {
 				body,
 				tag: `${data.taskId}:${data.kind}`,
 				icon: '/pwa-192x192.png',
