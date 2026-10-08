@@ -20,7 +20,10 @@
 		"bench:preview": "vite preview --config tools/model-bench/vite.config.ts",
 		"bench:deploy": "pnpm bench:build && wrangler pages deploy tools/model-bench/dist --project-name qadrant-bench --branch main",
 		"model:prepare": "node scripts/chunk-model.mjs --model tools/embed-eval/model --out static/models --calibration tools/embed-eval/calibration.json",
-		"test:e2e:webkit": "scripts/e2e-webkit.sh"
+		"test:e2e:webkit": "scripts/e2e-webkit.sh",
+		"site:build": "node scripts/build-site.mjs",
+		"site:preview": "pnpm site:build && sirv site/dist --dev --port 4174",
+		"site:deploy": "pnpm site:build && scripts/deploy-site.sh"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",

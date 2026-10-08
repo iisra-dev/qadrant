@@ -56,6 +56,7 @@ Current version: **1.4.2** (Oct 8, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for
         <li><a href="#commands">Commands</a></li>
         <li><a href="#testing-on-webkit-safari">Testing on WebKit (Safari)</a></li>
         <li><a href="#deploying-to-cloudflare-pages">Deploying to Cloudflare Pages</a></li>
+        <li><a href="#landing-page">Landing page</a></li>
         <li><a href="#self-hosted-server-optional">Self-hosted server (optional)</a></li>
         <li><a href="#working-with-claude-code">Working with Claude Code</a></li>
         <li><a href="#repository-layout">Repository layout</a></li>
@@ -217,6 +218,10 @@ The model (about 113 MiB) is not in git. From a machine that has it downloaded (
 2. `pnpm deploy:pages`: the build also copies ONNX Runtime to `/ort/` in chunks.
 
 A deployment without `static/models/` still works: Settings says the server does not offer the assistant and the app classifies with rules.
+
+### Landing page
+
+A static, script-free presentation page lives in `site/` (separate from the app). `pnpm site:build` writes it to `site/dist` (English at `/`, Spanish at `/es/`), `pnpm site:preview` serves it on port 4174 and `pnpm site:deploy` publishes it with rsync over SSH to the homelab host behind `https://qadrant.iisra.dev` (from the home network; `QADRANT_SITE_SSH` and `QADRANT_SITE_KEY` override the target and key). Set `QADRANT_APP_URL` and `QADRANT_SITE_URL` when the domains change.
 
 ### Self-hosted server (optional)
 

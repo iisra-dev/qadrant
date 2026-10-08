@@ -61,3 +61,7 @@ tools/model-bench/dist/
 
 # Personal course material (not part of the project)
 Mobile-First-Documentation/
+
+# Landing page (generated)
+site/dist/
+site/*.tar.gz
