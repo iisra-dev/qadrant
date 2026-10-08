@@ -159,7 +159,9 @@
 	</fieldset>
 
 	<div class="intro">
-		<img src="/logo.svg" alt="" width="48" height="48" />
+		<!-- Dark variant chosen in CSS, so it follows the theme set in Settings too (docs/05, "Logotipo"). -->
+		<img class="logo logo-light" src="/logo.svg" alt="" width="48" height="48" />
+		<img class="logo logo-dark" src="/logo-dark.svg" alt="" width="48" height="48" />
 		<h1>{i18n.m.common.appName}</h1>
 		<p>{m.intro}</p>
 	</div>
@@ -275,6 +277,23 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-3);
+	}
+	.logo-dark {
+		display: none;
+	}
+	@media (prefers-color-scheme: dark) {
+		:global(:root:not([data-theme='light'])) .logo-light {
+			display: none;
+		}
+		:global(:root:not([data-theme='light'])) .logo-dark {
+			display: block;
+		}
+	}
+	:global(:root[data-theme='dark']) .logo-light {
+		display: none;
+	}
+	:global(:root[data-theme='dark']) .logo-dark {
+		display: block;
 	}
 	h1 {
 		margin: 0;
