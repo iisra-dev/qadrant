@@ -10,7 +10,7 @@ const out = join(site, 'dist');
 
 // Public addresses. Override with env vars when the domains change.
 const APP_URL = (process.env.QADRANT_APP_URL ?? 'https://qadrant-62h.pages.dev').replace(/\/$/, '');
-const SITE_URL = (process.env.QADRANT_SITE_URL ?? 'https://qadrant-site.pages.dev').replace(/\/?$/, '/');
+const SITE_URL = (process.env.QADRANT_SITE_URL ?? 'https://qadrant.iisra.dev').replace(/\/?$/, '/');
 const SERVER_REPO_URL = 'https://github.com/iisra-dev/qadrant-server';
 
 const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));

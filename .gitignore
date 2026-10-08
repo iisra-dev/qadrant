@@ -64,3 +64,4 @@ Mobile-First-Documentation/
 
 # Landing page (generated)
 site/dist/
+site/*.tar.gz
