@@ -28,7 +28,7 @@
 <header class="top">
   <div class="wrap top-row">
     <a class="brand" href="{{root}}{{langPath}}" aria-label="Qadrant">
-      <img src="{{root}}logo.svg" alt="" width="28" height="28">
+      <img src="{{root}}logo.svg" alt="" width="26" height="26">
       <span>Qadrant</span>
     </a>
     <nav aria-label="{{navLabel}}" class="top-nav">
@@ -40,61 +40,73 @@
 
 <main id="main">
 
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow">{{eyebrow}}</p>
-      <h1>{{heroTitle}}</h1>
-      <p class="lead">{{heroLead}}</p>
-      <div class="actions">
-        <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>
-        <a class="btn btn-ghost" href="#install">{{ctaInstall}}</a>
-      </div>
-      <p class="fineprint">{{heroFine}}</p>
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <p class="eyebrow">{{eyebrow}}</p>
+    <h1 id="hero-title">{{heroTitle}}</h1>
+    <p class="lead">{{heroLead}}</p>
+    <div class="actions">
+      <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>
+      <a class="btn btn-ghost" href="#install">{{ctaInstall}}</a>
     </div>
+    <p class="fineprint">{{heroFine}}</p>
+  </div>
+</section>
 
-    <div class="phone" aria-hidden="true">
-      <div class="phone-screen">
-        <p class="ph-date">{{mockDate}}</p>
-        <p class="ph-title">{{mockToday}}</p>
-        <div class="ph-capture">
-          <p class="ph-input">{{mockTask}}<span class="caret"></span></p>
-          <div class="ph-proposal">
-            <p class="ph-label"><span class="dot"></span>{{mockGoesTo}}</p>
-            <p class="ph-q">{{qDo}}</p>
-            <dl>
-              <div><dt>{{mockUrgent}}</dt><dd>{{mockUrgentVal}}</dd></div>
-              <div><dt>{{mockImportant}}</dt><dd>{{mockImportantVal}}</dd></div>
-            </dl>
+<section class="showcase" aria-labelledby="how-title">
+  <div class="wrap">
+    <h2 id="how-title" class="visually-hidden">{{howTitle}}</h2>
+    <div class="stage">
+      <ol class="notes notes-start">
+        <li><h3>{{a1Title}}</h3><p>{{a1Text}}</p></li>
+        <li><h3>{{a2Title}}</h3><p>{{a2Text}}</p></li>
+      </ol>
+
+      <figure class="phone">
+        <div class="phone-screen" aria-hidden="true">
+          <p class="ph-date">{{mockDate}}</p>
+          <p class="ph-title">{{mockToday}}</p>
+          <div class="ph-capture">
+            <p class="ph-input">{{mockTask}}<span class="caret"></span></p>
+            <div class="ph-proposal">
+              <p class="ph-label"><span class="dot"></span>{{mockGoesTo}}</p>
+              <p class="ph-q">{{qDo}}</p>
+              <dl>
+                <div><dt>{{mockUrgent}}</dt><dd>{{mockUrgentVal}}</dd></div>
+                <div><dt>{{mockImportant}}</dt><dd>{{mockImportantVal}}</dd></div>
+              </dl>
+            </div>
+            <p class="ph-segment"><span class="on">{{qDo}}</span><span>{{qSchedule}}</span><span>{{qDelegate}}</span><span>{{qEliminate}}</span></p>
+          </div>
+          <div class="ph-grid">
+            <span class="q q-do"><b>{{qDo}}</b><i>3</i></span>
+            <span class="q q-schedule"><b>{{qSchedule}}</b><i>4</i></span>
+            <span class="q q-delegate"><b>{{qDelegate}}</b><i>2</i></span>
+            <span class="q q-eliminate"><b>{{qEliminate}}</b><i>1</i></span>
           </div>
         </div>
-        <div class="ph-grid">
-          <span class="q q-do"><b>{{qDo}}</b><i>3</i></span>
-          <span class="q q-schedule"><b>{{qSchedule}}</b><i>4</i></span>
-          <span class="q q-delegate"><b>{{qDelegate}}</b><i>2</i></span>
-          <span class="q q-eliminate"><b>{{qEliminate}}</b><i>1</i></span>
-        </div>
-      </div>
+        <figcaption class="visually-hidden">{{mockAlt}}</figcaption>
+      </figure>
+
+      <ol class="notes notes-end" start="3">
+        <li><h3>{{a3Title}}</h3><p>{{a3Text}}</p></li>
+        <li><h3>{{a4Title}}</h3><p>{{a4Text}}</p></li>
+      </ol>
     </div>
   </div>
 </section>
 
-<section class="band" aria-labelledby="how-title">
+<section class="matrix-section" aria-labelledby="matrix-title">
   <div class="wrap">
-    <h2 id="how-title">{{howTitle}}</h2>
-    <ol class="steps">
-      <li><span class="num">01</span><h3>{{step1Title}}</h3><p>{{step1Text}}</p></li>
-      <li><span class="num">02</span><h3>{{step2Title}}</h3><p>{{step2Text}}</p></li>
-      <li><span class="num">03</span><h3>{{step3Title}}</h3><p>{{step3Text}}</p></li>
-    </ol>
-  </div>
-</section>
-
-<section aria-labelledby="matrix-title">
-  <div class="wrap">
-    <h2 id="matrix-title">{{matrixTitle}}</h2>
-    <p class="section-lead">{{matrixLead}}</p>
+    <div class="intro">
+      <h2 id="matrix-title">{{matrixTitle}}</h2>
+      <p class="section-lead">{{matrixLead}}</p>
+    </div>
     <div class="matrix">
+      <span class="axis axis-x1" aria-hidden="true">{{axisUrgent}}</span>
+      <span class="axis axis-x2" aria-hidden="true">{{axisNotUrgent}}</span>
+      <span class="axis axis-y1" aria-hidden="true">{{axisImportant}}</span>
+      <span class="axis axis-y2" aria-hidden="true">{{axisNotImportant}}</span>
       <article class="card q-do"><p class="rule">{{qDoRule}}</p><h3>{{qDo}}</h3><p>{{qDoText}}</p></article>
       <article class="card q-schedule"><p class="rule">{{qScheduleRule}}</p><h3>{{qSchedule}}</h3><p>{{qScheduleText}}</p></article>
       <article class="card q-delegate"><p class="rule">{{qDelegateRule}}</p><h3>{{qDelegate}}</h3><p>{{qDelegateText}}</p></article>
@@ -103,45 +115,51 @@
   </div>
 </section>
 
-<section class="band" aria-labelledby="private-title">
+<section class="privacy" aria-labelledby="private-title">
   <div class="wrap">
-    <h2 id="private-title">{{privateTitle}}</h2>
+    <p class="eyebrow">{{privateEyebrow}}</p>
+    <h2 id="private-title" class="statement">{{privateTitle}}</h2>
     <p class="section-lead">{{privateLead}}</p>
-    <ul class="features">
-      <li><h3>{{f1Title}}</h3><p>{{f1Text}}</p></li>
-      <li><h3>{{f2Title}}</h3><p>{{f2Text}}</p></li>
-      <li><h3>{{f3Title}}</h3><p>{{f3Text}}</p></li>
-      <li><h3>{{f4Title}}</h3><p>{{f4Text}}</p></li>
-      <li><h3>{{f5Title}}</h3><p>{{f5Text}}</p></li>
-      <li><h3>{{f6Title}}</h3><p>{{f6Text}}</p></li>
+    <ul class="tiles">
+      <li class="tile tile-wide"><h3>{{f2Title}}</h3><p>{{f2Text}}</p></li>
+      <li class="tile"><h3>{{f1Title}}</h3><p>{{f1Text}}</p></li>
+      <li class="tile"><h3>{{f3Title}}</h3><p>{{f3Text}}</p></li>
+      <li class="tile"><h3>{{f4Title}}</h3><p>{{f4Text}}</p></li>
+      <li class="tile"><h3>{{f5Title}}</h3><p>{{f5Text}}</p></li>
+      <li class="tile tile-wide"><h3>{{f6Title}}</h3><p>{{f6Text}}</p></li>
     </ul>
   </div>
 </section>
 
-<section id="install" aria-labelledby="install-title">
+<section id="install" class="install-section" aria-labelledby="install-title">
   <div class="wrap">
-    <h2 id="install-title">{{installTitle}}</h2>
-    <p class="section-lead">{{installLead}}</p>
+    <div class="intro">
+      <h2 id="install-title">{{installTitle}}</h2>
+      <p class="section-lead">{{installLead}}</p>
+    </div>
     <div class="install">
-      <article class="panel"><h3>{{iosTitle}}</h3><p>{{iosText}}</p></article>
-      <article class="panel"><h3>{{androidTitle}}</h3><p>{{androidText}}</p></article>
-      <article class="panel"><h3>{{desktopTitle}}</h3><p>{{desktopText}}</p></article>
+      <article class="panel"><h3>{{iosTitle}}</h3><ol><li>{{ios1}}</li><li>{{ios2}}</li><li>{{ios3}}</li></ol><p class="note">{{iosNote}}</p></article>
+      <article class="panel"><h3>{{androidTitle}}</h3><ol><li>{{android1}}</li><li>{{android2}}</li></ol></article>
+      <article class="panel"><h3>{{desktopTitle}}</h3><ol><li>{{desktop1}}</li><li>{{desktop2}}</li></ol><p class="note">{{desktopNote}}</p></article>
     </div>
   </div>
 </section>
 
-<section class="band" aria-labelledby="sync-title">
-  <div class="wrap sync">
-    <div>
-      <h2 id="sync-title">{{syncTitle}}</h2>
-      <p class="section-lead">{{syncLead}}</p>
+<section class="sync-section" aria-labelledby="sync-title">
+  <div class="wrap">
+    <div class="sync">
+      <div>
+        <h2 id="sync-title">{{syncTitle}}</h2>
+        <p class="section-lead">{{syncLead}}</p>
+      </div>
+      <a class="btn btn-ghost" href="{{serverRepoUrl}}">{{syncCta}}</a>
     </div>
-    <a class="btn btn-ghost" href="{{serverRepoUrl}}">{{syncCta}}</a>
   </div>
 </section>
 
 <section class="closing" aria-labelledby="closing-title">
   <div class="wrap">
+    <img src="{{root}}logo.svg" alt="" width="56" height="56">
     <h2 id="closing-title">{{closingTitle}}</h2>
     <p class="section-lead">{{closingLead}}</p>
     <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>
