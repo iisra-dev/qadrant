@@ -47,3 +47,25 @@ test('serves the fonts from our origin', async ({ page }) => {
 	expect(loaded).toEqual([1, 1, 1]);
 	expect(external).toEqual([]);
 });
+
+test('the welcome logo follows the system scheme and the saved theme', async ({ page }) => {
+	const light = page.locator('.intro img[src="/logo.svg"]');
+	const dark = page.locator('.intro img[src="/logo-dark.svg"]');
+
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/welcome');
+	await expect(light).toBeVisible();
+	await expect(dark).toBeHidden();
+
+	await page.emulateMedia({ colorScheme: 'dark' });
+	await expect(dark).toBeVisible();
+	await expect(light).toBeHidden();
+
+	// A theme chosen in Settings wins over the system scheme.
+	await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+	await expect(light).toBeVisible();
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+	await expect(dark).toBeVisible();
+	await expect(light).toBeHidden();
+});
