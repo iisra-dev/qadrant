@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Qadrant">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{siteUrl}}">
+<meta property="og:image" content="{{appUrl}}/pwa-512x512.png">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#FAF9F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E10" media="(prefers-color-scheme: dark)">
+<link rel="alternate" hreflang="en" href="{{siteUrl}}">
+<link rel="alternate" hreflang="es" href="{{siteUrl}}es/">
+<link rel="icon" href="{{root}}favicon.ico" sizes="48x48">
+<link rel="icon" href="{{root}}logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{root}}apple-touch-icon.png">
+<link rel="preload" href="{{root}}fonts/bricolage-grotesque-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{root}}tokens.css">
+<link rel="stylesheet" href="{{root}}site.css">
+</head>
+<body>
+<a class="skip" href="#main">{{skip}}</a>
+
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="{{root}}{{langPath}}" aria-label="Qadrant">
+      <img src="{{root}}logo.svg" alt="" width="28" height="28">
+      <span>Qadrant</span>
+    </a>
+    <nav aria-label="{{navLabel}}" class="top-nav">
+      <a class="lang" href="{{otherLangHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}">{{otherLangName}}</a>
+      <a class="btn btn-small" href="{{appUrl}}/">{{ctaOpen}}</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">{{eyebrow}}</p>
+      <h1>{{heroTitle}}</h1>
+      <p class="lead">{{heroLead}}</p>
+      <div class="actions">
+        <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>
+        <a class="btn btn-ghost" href="#install">{{ctaInstall}}</a>
+      </div>
+      <p class="fineprint">{{heroFine}}</p>
+    </div>
+
+    <div class="phone" aria-hidden="true">
+      <div class="phone-screen">
+        <p class="ph-date">{{mockDate}}</p>
+        <p class="ph-title">{{mockToday}}</p>
+        <div class="ph-capture">
+          <p class="ph-input">{{mockTask}}<span class="caret"></span></p>
+          <div class="ph-proposal">
+            <p class="ph-label"><span class="dot"></span>{{mockGoesTo}}</p>
+            <p class="ph-q">{{qDo}}</p>
+            <dl>
+              <div><dt>{{mockUrgent}}</dt><dd>{{mockUrgentVal}}</dd></div>
+              <div><dt>{{mockImportant}}</dt><dd>{{mockImportantVal}}</dd></div>
+            </dl>
+          </div>
+        </div>
+        <div class="ph-grid">
+          <span class="q q-do"><b>{{qDo}}</b><i>3</i></span>
+          <span class="q q-schedule"><b>{{qSchedule}}</b><i>4</i></span>
+          <span class="q q-delegate"><b>{{qDelegate}}</b><i>2</i></span>
+          <span class="q q-eliminate"><b>{{qEliminate}}</b><i>1</i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="how-title">
+  <div class="wrap">
+    <h2 id="how-title">{{howTitle}}</h2>
+    <ol class="steps">
+      <li><span class="num">01</span><h3>{{step1Title}}</h3><p>{{step1Text}}</p></li>
+      <li><span class="num">02</span><h3>{{step2Title}}</h3><p>{{step2Text}}</p></li>
+      <li><span class="num">03</span><h3>{{step3Title}}</h3><p>{{step3Text}}</p></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="matrix-title">
+  <div class="wrap">
+    <h2 id="matrix-title">{{matrixTitle}}</h2>
+    <p class="section-lead">{{matrixLead}}</p>
+    <div class="matrix">
+      <article class="card q-do"><p class="rule">{{qDoRule}}</p><h3>{{qDo}}</h3><p>{{qDoText}}</p></article>
+      <article class="card q-schedule"><p class="rule">{{qScheduleRule}}</p><h3>{{qSchedule}}</h3><p>{{qScheduleText}}</p></article>
+      <article class="card q-delegate"><p class="rule">{{qDelegateRule}}</p><h3>{{qDelegate}}</h3><p>{{qDelegateText}}</p></article>
+      <article class="card q-eliminate"><p class="rule">{{qEliminateRule}}</p><h3>{{qEliminate}}</h3><p>{{qEliminateText}}</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="private-title">
+  <div class="wrap">
+    <h2 id="private-title">{{privateTitle}}</h2>
+    <p class="section-lead">{{privateLead}}</p>
+    <ul class="features">
+      <li><h3>{{f1Title}}</h3><p>{{f1Text}}</p></li>
+      <li><h3>{{f2Title}}</h3><p>{{f2Text}}</p></li>
+      <li><h3>{{f3Title}}</h3><p>{{f3Text}}</p></li>
+      <li><h3>{{f4Title}}</h3><p>{{f4Text}}</p></li>
+      <li><h3>{{f5Title}}</h3><p>{{f5Text}}</p></li>
+      <li><h3>{{f6Title}}</h3><p>{{f6Text}}</p></li>
+    </ul>
+  </div>
+</section>
+
+<section id="install" aria-labelledby="install-title">
+  <div class="wrap">
+    <h2 id="install-title">{{installTitle}}</h2>
+    <p class="section-lead">{{installLead}}</p>
+    <div class="install">
+      <article class="panel"><h3>{{iosTitle}}</h3><p>{{iosText}}</p></article>
+      <article class="panel"><h3>{{androidTitle}}</h3><p>{{androidText}}</p></article>
+      <article class="panel"><h3>{{desktopTitle}}</h3><p>{{desktopText}}</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="sync-title">
+  <div class="wrap sync">
+    <div>
+      <h2 id="sync-title">{{syncTitle}}</h2>
+      <p class="section-lead">{{syncLead}}</p>
+    </div>
+    <a class="btn btn-ghost" href="{{serverRepoUrl}}">{{syncCta}}</a>
+  </div>
+</section>
+
+<section class="closing" aria-labelledby="closing-title">
+  <div class="wrap">
+    <h2 id="closing-title">{{closingTitle}}</h2>
+    <p class="section-lead">{{closingLead}}</p>
+    <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <p>Qadrant Calendar {{version}}</p>
+    <nav aria-label="{{footLabel}}">
+      <a href="{{appUrl}}/">{{ctaOpen}}</a>
+      <a href="{{serverRepoUrl}}">{{footServer}}</a>
+      <a href="{{otherLangHref}}" hreflang="{{otherLang}}" lang="{{otherLang}}">{{otherLangName}}</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
