@@ -1,5 +1,6 @@
 // Builds the static landing page (site/) into site/dist: one page per language,
 // with the design tokens, self-hosted fonts and icons copied in (docs/07, "Landing page").
+import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -66,6 +67,21 @@ const fonts = [
 for (const [family, weight] of fonts) {
 	const file = `${family}-latin-${weight}-normal.woff2`;
 	copyFileSync(join(root, 'node_modules', '@fontsource', family, 'files', file), join(out, 'fonts', file));
+}
+
+// Cloudflare caches .css and .svg at the edge whatever the origin says, while the HTML is never
+// cached: a content hash in each URL makes every deploy point at files the edge has not seen.
+const versioned = ['tokens.css', 'site.css', 'logo.svg', 'logo-dark.svg'];
+const hashes = Object.fromEntries(
+	versioned.map((file) => [file, createHash('sha256').update(readFileSync(join(out, file))).digest('hex').slice(0, 10)])
+);
+for (const page of Object.values(languages)) {
+	const path = join(out, page.dir, 'index.html');
+	const html = readFileSync(path, 'utf8').replace(
+		/(href|src|srcset)="((?:\.\.?\/)?)(tokens\.css|site\.css|logo\.svg|logo-dark\.svg)"/g,
+		(_, attr, prefix, file) => `${attr}="${prefix}${file}?v=${hashes[file]}"`
+	);
+	writeFileSync(path, html);
 }
 
 console.log(`Landing page ${version} built in site/dist (app: ${APP_URL})`);
