@@ -81,5 +81,7 @@
   "android2": "Toca «Instalar aplicación» en el menú, o acepta el aviso cuando aparezca.",
   "desktop1": "Abre Qadrant en Chrome o Edge.",
   "desktop2": "Pulsa el icono de instalar de la barra de direcciones.",
-  "desktopNote": "También funciona como una pestaña normal en cualquier navegador actual."
+  "desktopNote": "También funciona como una pestaña normal en cualquier navegador actual.",
+  "demoPlay": "Reproducir demo",
+  "demoPause": "Pausar demo"
 }

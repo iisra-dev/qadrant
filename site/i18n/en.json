@@ -81,5 +81,7 @@
   "android2": "Tap “Install app” in the menu, or accept the banner when it appears.",
   "desktop1": "Open Qadrant in Chrome or Edge.",
   "desktop2": "Click the install icon in the address bar.",
-  "desktopNote": "It also works as a normal tab in any modern browser."
+  "desktopNote": "It also works as a normal tab in any modern browser.",
+  "demoPlay": "Play demo",
+  "demoPause": "Pause demo"
 }

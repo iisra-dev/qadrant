@@ -215,3 +215,18 @@ section h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
 .foot nav a { display: inline-flex; align-items: center; gap: 0.5rem; min-height: var(--touch); text-decoration: none; }
 .foot nav a:hover { color: var(--text); text-decoration: underline; }
 .gh svg { flex-shrink: 0; }
+
+/* Demo video slot (docs/08-video-demo.md): replaces the mockup when site/media has the video */
+.phone { position: relative; }
+.has-video .phone-screen { display: none; }
+.ph-video { display: block; width: 100%; height: auto; aspect-ratio: 390 / 844; border-radius: 2.4rem; background: var(--bg); object-fit: cover; }
+.ph-toggle {
+  position: absolute; left: 50%; bottom: 1.5rem; transform: translateX(-50%);
+  min-height: var(--touch); padding: 0 1.125rem;
+  border-radius: var(--radius-pill); border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--surface) 88%, transparent); color: var(--text);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+}
+.ph-toggle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+@media (prefers-reduced-transparency: reduce) { .ph-toggle { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
