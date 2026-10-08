@@ -1,7 +1,7 @@
 // Builds the static landing page (site/) into site/dist: one page per language,
 // with the design tokens, self-hosted fonts and icons copied in (docs/07, "Landing page").
 import { createHash } from 'node:crypto';
-import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,9 +28,29 @@ const languages = {
 rmSync(out, { recursive: true, force: true });
 mkdirSync(join(out, 'fonts'), { recursive: true });
 
+// Demo video slot (docs/08-video-demo.md): site/media/demo-<lang>.mp4 and .jpg (poster).
+// Without them the page shows the HTML mockup, as before.
+const media = join(site, 'media');
+const demoFor = (lang) => {
+	const files = [`demo-${lang}.mp4`, `demo-${lang}.jpg`];
+	if (!files.every((file) => existsSync(join(media, file)))) return null;
+	mkdirSync(join(out, 'media'), { recursive: true });
+	for (const file of files) copyFileSync(join(media, file), join(out, 'media', file));
+	return files.map((file) => `media/${file}`);
+};
+
 for (const [lang, page] of Object.entries(languages)) {
 	const strings = JSON.parse(readFileSync(join(site, 'i18n', `${lang}.json`), 'utf8'));
+	const demo = demoFor(lang);
 	const values = {
+		phoneClass: demo ? 'phone has-video' : 'phone',
+		demoVideo: demo
+			? `        <video class="ph-video" muted loop playsinline controls preload="none" width="780" height="1688" poster="${page.root}${demo[1]}">
+          <source src="${page.root}${demo[0]}" type="video/mp4">
+        </video>
+        <button class="ph-toggle" type="button" hidden data-play="${escape(strings.demoPlay)}" data-pause="${escape(strings.demoPause)}">${escape(strings.demoPlay)}</button>`
+			: '',
+		demoScript: demo ? `<script src="${page.root}demo.js" defer></script>\n` : '',
 		...Object.fromEntries(Object.entries(strings).map(([k, v]) => [k, escape(v)])),
 		lang,
 		root: page.root,
@@ -54,6 +74,7 @@ for (const [lang, page] of Object.entries(languages)) {
 copyFileSync(join(root, 'design', 'tokens.css'), join(out, 'tokens.css'));
 copyFileSync(join(site, 'site.css'), join(out, 'site.css'));
 copyFileSync(join(site, '_headers'), join(out, '_headers'));
+if (existsSync(join(out, 'media'))) copyFileSync(join(site, 'demo.js'), join(out, 'demo.js'));
 for (const file of ['logo.svg', 'logo-dark.svg', 'favicon.ico', 'apple-touch-icon.png']) {
 	copyFileSync(join(root, 'static', file), join(out, file));
 }
@@ -71,15 +92,15 @@ for (const [family, weight] of fonts) {
 
 // Cloudflare caches .css and .svg at the edge whatever the origin says, while the HTML is never
 // cached: a content hash in each URL makes every deploy point at files the edge has not seen.
-const versioned = ['tokens.css', 'site.css', 'logo.svg', 'logo-dark.svg'];
+const versioned = ['tokens.css', 'site.css', 'logo.svg', 'logo-dark.svg', 'demo.js', ...Object.keys(languages).flatMap((lang) => [`media/demo-${lang}.mp4`, `media/demo-${lang}.jpg`])].filter((file) => existsSync(join(out, file)));
 const hashes = Object.fromEntries(
 	versioned.map((file) => [file, createHash('sha256').update(readFileSync(join(out, file))).digest('hex').slice(0, 10)])
 );
 for (const page of Object.values(languages)) {
 	const path = join(out, page.dir, 'index.html');
 	const html = readFileSync(path, 'utf8').replace(
-		/(href|src|srcset)="((?:\.\.?\/)?)(tokens\.css|site\.css|logo\.svg|logo-dark\.svg)"/g,
-		(_, attr, prefix, file) => `${attr}="${prefix}${file}?v=${hashes[file]}"`
+		/(href|src|srcset|poster)="((?:\.\.?\/)?)([\w./-]+)"/g,
+		(match, attr, prefix, file) => (file in hashes ? `${attr}="${prefix}${file}?v=${hashes[file]}"` : match)
 	);
 	writeFileSync(path, html);
 }

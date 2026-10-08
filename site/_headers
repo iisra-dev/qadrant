@@ -1,6 +1,6 @@
-# Cloudflare Pages headers for the landing page. No scripts at all.
+# Headers for the landing page. Caddy in the homelab sets the same ones (docs/07); kept here as the reference.
 /*
-  Content-Security-Policy: default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; media-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), geolocation=(), microphone=()
