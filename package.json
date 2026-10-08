@@ -23,7 +23,7 @@
 		"test:e2e:webkit": "scripts/e2e-webkit.sh",
 		"site:build": "node scripts/build-site.mjs",
 		"site:preview": "pnpm site:build && sirv site/dist --dev --port 4174",
-		"site:deploy": "pnpm site:build && wrangler pages deploy site/dist --project-name qadrant-site --branch main"
+		"site:deploy": "pnpm site:build && scripts/deploy-site.sh"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.63.0",

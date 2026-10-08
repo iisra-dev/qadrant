@@ -221,7 +221,7 @@ A deployment without `static/models/` still works: Settings says the server does
 
 ### Landing page
 
-A static, script-free presentation page lives in `site/` (separate from the app). `pnpm site:build` writes it to `site/dist` (English at `/`, Spanish at `/es/`), `pnpm site:preview` serves it on port 4174 and `pnpm site:deploy` publishes it to the Cloudflare Pages project `qadrant-site`. Set `QADRANT_APP_URL` and `QADRANT_SITE_URL` when the domains change.
+A static, script-free presentation page lives in `site/` (separate from the app). `pnpm site:build` writes it to `site/dist` (English at `/`, Spanish at `/es/`), `pnpm site:preview` serves it on port 4174 and `pnpm site:deploy` publishes it with rsync over SSH to the homelab host behind `https://qadrant.iisra.dev` (from the home network; `QADRANT_SITE_SSH` and `QADRANT_SITE_KEY` override the target and key). Set `QADRANT_APP_URL` and `QADRANT_SITE_URL` when the domains change.
 
 ### Self-hosted server (optional)
 
