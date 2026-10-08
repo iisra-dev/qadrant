@@ -141,3 +141,5 @@ section h2 { font-size: clamp(30px, 4.5vw, 44px); max-width: 20em; }
 .foot nav { display: flex; flex-wrap: wrap; gap: 0 20px; }
 .foot nav a { display: inline-flex; align-items: center; min-height: var(--touch); text-decoration: none; }
 .foot nav a:hover { color: var(--text); text-decoration: underline; }
+.foot nav a.gh { gap: 8px; }
+.gh svg { flex-shrink: 0; }

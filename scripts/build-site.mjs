@@ -12,6 +12,7 @@ const out = join(site, 'dist');
 const APP_URL = (process.env.QADRANT_APP_URL ?? 'https://qadrant-62h.pages.dev').replace(/\/$/, '');
 const SITE_URL = (process.env.QADRANT_SITE_URL ?? 'https://qadrant.iisra.dev').replace(/\/?$/, '/');
 const SERVER_REPO_URL = 'https://github.com/iisra-dev/qadrant-server';
+const GITHUB_URL = 'https://github.com/iisra-dev';
 
 const { version } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const template = readFileSync(join(site, 'template.html'), 'utf8');
@@ -38,6 +39,7 @@ for (const [lang, page] of Object.entries(languages)) {
 		appUrl: APP_URL,
 		siteUrl: SITE_URL,
 		serverRepoUrl: SERVER_REPO_URL,
+		githubUrl: GITHUB_URL,
 		version
 	};
 	const html = template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
