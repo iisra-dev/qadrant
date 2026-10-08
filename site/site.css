@@ -111,7 +111,6 @@ section h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
   margin: 0; width: 100%; max-width: min(21.5rem, 100%);
   border-radius: 3rem; padding: 0.625rem;
   background: var(--surface); border: 1px solid var(--border-strong);
-  box-shadow: 0 2rem 4rem -2rem color-mix(in srgb, var(--text) 35%, transparent);
 }
 .phone-screen { border-radius: 2.4rem; background: var(--bg); padding: 1.75rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .ph-date { font-size: 0.8125rem; color: var(--text-muted); padding: 0 0.25rem; }
@@ -130,7 +129,7 @@ section h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
 .ph-proposal dd { margin: 0; }
 .ph-segment { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 2px; border-radius: var(--radius-control); background: var(--surface-muted); font-size: 0.6875rem; font-weight: 600; text-align: center; }
 .ph-segment span { padding: 0.4rem 0; border-radius: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
-.ph-segment .on { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 15%, transparent); }
+.ph-segment .on { background: var(--surface); color: var(--text); outline: 1px solid var(--border); }
 .ph-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
 .q { min-width: 0; overflow-wrap: anywhere; border-radius: var(--radius-block); padding: 0.625rem 0.75rem; min-height: 4rem; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.875rem; }
 .q b { font-weight: 600; }
@@ -204,7 +203,7 @@ section h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
 
 /* Closing */
 .closing { text-align: center; padding-top: 2rem; }
-.closing img { margin: 0 auto 1.5rem; }
+.closing picture { display: block; width: fit-content; margin: 0 auto 1.5rem; }
 .closing h2, .closing .section-lead { margin-left: auto; margin-right: auto; }
 .closing .btn { margin-top: 2rem; }
 

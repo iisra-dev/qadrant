@@ -28,7 +28,7 @@
 <header class="top">
   <div class="wrap top-row">
     <a class="brand" href="{{root}}{{langPath}}" aria-label="Qadrant">
-      <img src="{{root}}logo.svg" alt="" width="26" height="26">
+      <picture><source srcset="{{root}}logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="{{root}}logo.svg" alt="" width="26" height="26"></picture>
       <span>Qadrant</span>
     </a>
     <nav aria-label="{{navLabel}}" class="top-nav">
@@ -159,7 +159,7 @@
 
 <section class="closing" aria-labelledby="closing-title">
   <div class="wrap">
-    <img src="{{root}}logo.svg" alt="" width="56" height="56">
+    <picture><source srcset="{{root}}logo-dark.svg" media="(prefers-color-scheme: dark)"><img src="{{root}}logo.svg" alt="" width="56" height="56"></picture>
     <h2 id="closing-title">{{closingTitle}}</h2>
     <p class="section-lead">{{closingLead}}</p>
     <a class="btn" href="{{appUrl}}/">{{ctaOpen}}</a>

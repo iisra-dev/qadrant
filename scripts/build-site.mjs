@@ -53,7 +53,7 @@ for (const [lang, page] of Object.entries(languages)) {
 copyFileSync(join(root, 'design', 'tokens.css'), join(out, 'tokens.css'));
 copyFileSync(join(site, 'site.css'), join(out, 'site.css'));
 copyFileSync(join(site, '_headers'), join(out, '_headers'));
-for (const file of ['logo.svg', 'favicon.ico', 'apple-touch-icon.png']) {
+for (const file of ['logo.svg', 'logo-dark.svg', 'favicon.ico', 'apple-touch-icon.png']) {
 	copyFileSync(join(root, 'static', file), join(out, file));
 }
 const fonts = [
