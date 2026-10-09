@@ -374,7 +374,22 @@ export const es: Messages = {
 	footer: {
 		app: (version) => `Qadrant ${version}`,
 		licenses: 'Licencias de terceros',
-		author: 'Autor: iisra-dev en GitHub'
+		author: 'Autor: iisra-dev en GitHub',
+		report: 'Informar de un problema'
+	},
+	report: {
+		intro: 'Esta página es pública: no pegues tus tareas ni nada privado.',
+		happened: 'Qué ha pasado',
+		expected: 'Qué esperabas',
+		steps: 'Pasos para reproducirlo',
+		device: 'Dispositivo',
+		language: 'Idioma',
+		installed: 'Instalada',
+		assistant: 'Asistente',
+		sync: 'Sincronización',
+		browser: 'Navegador',
+		yes: 'sí',
+		no: 'no'
 	},
 	notice: {
 		due: 'Vence ahora',

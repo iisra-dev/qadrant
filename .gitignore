@@ -69,3 +69,4 @@ site/*.tar.gz
 # Project notes and specs stay local; only the root README is public
 *.md
 !/README.md
+!/.github/ISSUE_TEMPLATE/*.md
