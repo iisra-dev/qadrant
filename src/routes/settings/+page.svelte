@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { storageMode } from '$lib/db/database';
 	import { GOAL_SUMMARY_MAX, MAX_GOALS } from '$lib/db/defaults';
 	import { repos } from '$lib/db/repositories';
 	import { fromDateKey } from '$lib/domain/dates';
@@ -32,6 +33,8 @@
 
 	onMount(async () => {
 		await repos.settings.get();
+		// In memory the banner already says it; "may be evicted" would add nothing.
+		if (storageMode === 'memory') return;
 		try {
 			persisted = (await navigator.storage?.persisted?.()) ?? null;
 		} catch {

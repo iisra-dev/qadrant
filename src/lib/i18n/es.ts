@@ -391,7 +391,9 @@ export const es: Messages = {
 		generic: 'Algo ha fallado',
 		genericText: 'La app ha tenido un error. Tus tareas siguen en este dispositivo.',
 		home: 'Ir a la matriz',
-		storage: 'Este navegador no deja a Qadrant leer su almacenamiento y no se pueden mostrar tus tareas. Puede pasar en navegación privada o si los datos del sitio están bloqueados.'
+		storage: 'Este navegador no deja a Qadrant leer su almacenamiento y no se pueden mostrar tus tareas. Puede pasar en navegación privada o si los datos del sitio están bloqueados.',
+		memoryOnly:
+			'Este navegador no deja a Qadrant guardar en su almacenamiento y tus tareas solo duran hasta que cierres la app. Para conservarlas, expórtalas en Ajustes.'
 	},
 	footer: {
 		app: (version) => `Qadrant ${version}`,

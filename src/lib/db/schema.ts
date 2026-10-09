@@ -1,4 +1,4 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type DexieOptions, type EntityTable } from 'dexie';
 import type { CalendarEvent, Correction, Goal, Person, Settings, Task } from '$lib/domain/types';
 import type { OutboxEntry, SyncMeta, SyncState } from '$lib/sync/types';
 
@@ -15,8 +15,8 @@ export class QadrantDB extends Dexie {
 	outbox!: EntityTable<OutboxEntry, 'key'>;
 	syncState!: EntityTable<SyncState, 'id'>;
 
-	constructor(name = 'qadrant') {
-		super(name);
+	constructor(name = 'qadrant', options?: DexieOptions) {
+		super(name, options);
 		// Booleans are not valid IndexedDB keys, so goals.active is filtered in memory (docs/04).
 		this.version(1).stores({
 			tasks: 'id, quadrant, status, dueAt, scheduledAt, delegatedTo, followUpAt, updatedAt',
@@ -29,5 +29,3 @@ export class QadrantDB extends Dexie {
 		this.version(3).stores({ syncMeta: 'key', outbox: 'key', syncState: 'id' });
 	}
 }
-
-export const db = new QadrantDB();

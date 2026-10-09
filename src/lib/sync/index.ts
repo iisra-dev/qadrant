@@ -1,4 +1,4 @@
-import { db } from '$lib/db/schema';
+import { db } from '$lib/db/database';
 import { serverApi, type ServerConfig } from '$lib/ownserver/client';
 import { httpSyncApi } from './api';
 import { createSyncEngine, startOver } from './engine';
