@@ -3,7 +3,9 @@
 # The host serves it with Caddy behind a Cloudflare Tunnel at qadrant.iisra.dev.
 set -eu
 
-TARGET="${QADRANT_SITE_SSH:-deploy@HOMELAB_HOST}"
+# The host lives in .env.site (git-ignored): QADRANT_SITE_SSH=user@host
+[ -f .env.site ] && . ./.env.site
+TARGET="${QADRANT_SITE_SSH:?set QADRANT_SITE_SSH in .env.site}"
 KEY="${QADRANT_SITE_KEY:-$HOME/.ssh/qadrant_site}"
 
 [ -f site/dist/index.html ] || { echo "site/dist is empty: run pnpm site:build first" >&2; exit 1; }
