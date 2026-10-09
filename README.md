@@ -245,13 +245,12 @@ Qadrant works fully without a server and does not provide one. Anyone who wants 
 - [x] Phase 1: MVP without AI (matrix, capture, agenda, settings, export and import, English and Spanish)
 - [x] Phase 2: on-device AI (embedding model in the browser, calibration from your corrections)
 - [x] Phase 3: agenda and reminders (scheduler, delegation, archiving, optional server with reminders and calendar)
-- [ ] Phase 4: sync across devices and weekly review
+- [x] Phase 4: sync across devices and weekly review
     - [x] Field-by-field merge and change queue
     - [x] Sync on the self-hosted server
     - [x] Weekly review card in the Agenda
     - [x] Publish the server in a public repository
     - [x] Test sync between phone and desktop on a real server
-    - [ ] Pilot with 5 users
 
 The completed phases still have exit criteria that depend on real-world use.
 
