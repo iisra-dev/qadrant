@@ -5,7 +5,7 @@
 	import { GOAL_SUMMARY_MAX } from '$lib/db/defaults';
 	import { i18n } from '$lib/i18n/index.svelte';
 	import type { Lang } from '$lib/i18n/lang';
-	import { AiDot, Button, Icon } from '$lib/ui';
+	import { AiDot, Button, Icon, Sheet } from '$lib/ui';
 	import { normaliseUrl, serverApi } from '$lib/ownserver/client';
 	import { serverErrorText } from '$lib/ownserver/errors';
 	import { askPermission, enablePush, pushSupported } from '$lib/ownserver/push';
@@ -27,6 +27,7 @@
 	let serverKey = $state('');
 	let joinMessage = $state('');
 	let goalNotice = $state('');
+	let installOpen = $state(false);
 
 	const m = $derived(i18n.m.welcome);
 	const hint = $derived(
@@ -222,10 +223,26 @@
 	</div>
 
 	<div class="submit">
-		{#if hint}<p class="hint">{hint}</p>{/if}
+		{#if hint && installHint}
+			<p class="hint">
+				{hint}
+				<button class="how" type="button" aria-haspopup="dialog" onclick={() => (installOpen = true)}>{m.installHow}</button>
+			</p>
+		{/if}
 		<Button type="submit" size="lg" block disabled={saving}>{joining ? m.joinStart : m.start}</Button>
 	</div>
 </form>
+
+{#if installHint}
+	<Sheet open={installOpen} label={m.installTitle} onclose={() => (installOpen = false)}>
+		<h2 class="install-title">{m.installTitle}</h2>
+		<ol class="install-steps">
+			{#each m.installSteps[installHint] as step (step)}<li>{step}</li>{/each}
+		</ol>
+		<p class="install-note">{m.installNote[installHint]}</p>
+		<Button variant="secondary" size="lg" block onclick={() => (installOpen = false)}>{m.installDone}</Button>
+	</Sheet>
+{/if}
 
 <style>
 	.welcome {
@@ -408,6 +425,37 @@
 		color: var(--text-muted);
 	}
 	.hint {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: var(--text-muted);
+	}
+	.how {
+		min-height: var(--touch);
+		padding: 0 var(--space-1);
+		border: 0;
+		background: none;
+		color: var(--text);
+		font: inherit;
+		font-weight: 700;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+	.install-title {
+		margin: 0;
+		font-size: 22px;
+	}
+	.install-steps {
+		margin: 0;
+		padding-left: 1.4em;
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		font-size: 15px;
+		line-height: 1.45;
+	}
+	.install-note {
 		margin: 0;
 		font-size: 13px;
 		line-height: 1.45;

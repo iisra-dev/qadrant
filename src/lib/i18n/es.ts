@@ -198,6 +198,19 @@ export const es: Messages = {
 		installIos: 'En iPhone, instálala para que iOS no borre tus tareas: Compartir y luego «Añadir a pantalla de inicio».',
 		installDesktop: 'Puedes instalarla desde la barra de direcciones para usarla sin conexión.',
 		installAndroid: 'Instálala desde el menú del navegador para usarla sin conexión.',
+		installHow: '¿Cómo?',
+		installTitle: 'Instala Qadrant',
+		installSteps: {
+			ios: ['Abre Qadrant en Safari.', 'Toca Compartir.', 'Elige «Añadir a pantalla de inicio».'],
+			android: ['Abre Qadrant en Chrome.', 'Toca «Instalar aplicación» en el menú, o acepta el aviso cuando aparezca.'],
+			desktop: ['Abre Qadrant en Chrome o Edge.', 'Pulsa el icono de instalar de la barra de direcciones.']
+		},
+		installNote: {
+			ios: 'Instalarla también evita que iOS borre tus tareas tras unos días sin visitarla.',
+			android: 'Después se abre desde la pantalla de inicio como cualquier otra app, también sin conexión.',
+			desktop: 'También funciona como una pestaña normal en cualquier navegador actual.'
+		},
+		installDone: 'Entendido',
 		start: 'Empezar',
 		join: 'Ya uso Qadrant en otro dispositivo',
 		joinText: 'Conecta con tu servidor propio para traer tus tareas y objetivos a este dispositivo.',
