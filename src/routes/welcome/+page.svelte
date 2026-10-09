@@ -180,6 +180,7 @@
 	<div class="goals">
 		{#if goalNotice}<p class="help" role="status">{goalNotice}</p>{/if}
 		<label class="main-goal" for="goal-0">{m.mainGoal}</label>
+		<p id="goal-what" class="what">{m.goalWhat}</p>
 		<input
 			id="goal-0"
 			type="text"
@@ -187,7 +188,7 @@
 			maxlength={GOAL_SUMMARY_MAX}
 			required
 			aria-invalid={missingGoal}
-			aria-describedby={missingGoal ? 'goal-error goal-help' : 'goal-help'}
+			aria-describedby={missingGoal ? 'goal-error goal-what goal-help' : 'goal-what goal-help'}
 			bind:value={goals[0]}
 			oninput={() => (missingGoal = false)}
 		/>
@@ -313,8 +314,15 @@
 		gap: var(--space-2);
 	}
 	.main-goal {
-		font-size: 16px;
-		font-weight: 600;
+		font-family: var(--font-display);
+		font-size: 22px;
+		font-weight: 700;
+		line-height: 1.2;
+	}
+	.what {
+		margin: 0 0 var(--space-1);
+		font-size: 15px;
+		line-height: 1.45;
 	}
 	.goals input {
 		min-height: 52px;
