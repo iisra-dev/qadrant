@@ -66,7 +66,12 @@ export const en = {
 		pageTitle: (page: string) => `${page} · Qadrant`
 	},
 	nav: { label: 'Main navigation', matrix: 'Matrix', agenda: 'Agenda', settings: 'Settings', newTask: 'New task', placeholder: "What's on your mind?", dictate: 'Dictate a task', captureKey: (mac: boolean) => (mac ? '⌘ K' : 'Ctrl K') },
-	update: { available: 'A new version is available', reload: 'Update', later: 'Not now' },
+	update: {
+		available: 'A new version is available',
+		text: 'Update to start using it. Your tasks stay as they are.',
+		reload: 'Update',
+		later: 'Not now'
+	},
 	matrix: {
 		title: 'Today',
 		nextLabel: 'Next',

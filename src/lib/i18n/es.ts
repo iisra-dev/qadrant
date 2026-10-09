@@ -65,7 +65,12 @@ export const es: Messages = {
 		pageTitle: (page) => `${page} · Qadrant`
 	},
 	nav: { label: 'Navegación principal', matrix: 'Matriz', agenda: 'Agenda', settings: 'Ajustes', newTask: 'Nueva tarea', placeholder: '¿Qué tienes en mente?', dictate: 'Dictar una tarea', captureKey: (mac: boolean) => (mac ? '⌘ K' : 'Ctrl K') },
-	update: { available: 'Hay una versión nueva', reload: 'Actualizar', later: 'Ahora no' },
+	update: {
+		available: 'Hay una versión nueva',
+		text: 'Actualiza para empezar a usarla. Tus tareas se quedan como están.',
+		reload: 'Actualizar',
+		later: 'Ahora no'
+	},
 	matrix: {
 		title: 'Hoy',
 		nextLabel: 'Siguiente',
