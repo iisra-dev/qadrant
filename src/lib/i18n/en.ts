@@ -213,6 +213,9 @@ export const en = {
 			desktop: 'It also works as a normal tab in any modern browser.'
 		},
 		installDone: 'Got it',
+		installNow: 'Install now',
+		installReady: 'Your browser can install it right now: it opens like any other app, even offline.',
+		installLater: 'Not now',
 		start: 'Start',
 		join: 'I already use Qadrant on another device',
 		joinText: 'Connect to your own server to bring your tasks and goals to this device.',

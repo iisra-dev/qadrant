@@ -211,6 +211,9 @@ export const es: Messages = {
 			desktop: 'También funciona como una pestaña normal en cualquier navegador actual.'
 		},
 		installDone: 'Entendido',
+		installNow: 'Instalar ahora',
+		installReady: 'Tu navegador puede instalarla ahora mismo: se abrirá como cualquier otra app, también sin conexión.',
+		installLater: 'Ahora no',
 		start: 'Empezar',
 		join: 'Ya uso Qadrant en otro dispositivo',
 		joinText: 'Conecta con tu servidor propio para traer tus tareas y objetivos a este dispositivo.',

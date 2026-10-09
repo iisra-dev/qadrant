@@ -6,6 +6,7 @@
 	import { i18n } from '$lib/i18n/index.svelte';
 	import type { Lang } from '$lib/i18n/lang';
 	import { AiDot, Button, Icon, Sheet } from '$lib/ui';
+	import { install } from '$lib/app/install.svelte';
 	import { normaliseUrl, serverApi } from '$lib/ownserver/client';
 	import { serverErrorText } from '$lib/ownserver/errors';
 	import { askPermission, enablePush, pushSupported } from '$lib/ownserver/push';
@@ -43,6 +44,11 @@
 		const mobile = /Android|Mobi/.test(navigator.userAgent);
 		installHint = ios ? 'ios' : mobile ? 'android' : 'desktop';
 	});
+
+	async function installNow() {
+		installOpen = false;
+		await install.prompt();
+	}
 
 	async function addGoal() {
 		shown += 1;
@@ -223,7 +229,7 @@
 	</div>
 
 	<div class="submit">
-		{#if hint && installHint}
+		{#if hint && installHint && !install.installed}
 			<p class="hint">
 				{hint}
 				<button class="how" type="button" aria-haspopup="dialog" onclick={() => (installOpen = true)}>{m.installHow}</button>
@@ -236,11 +242,17 @@
 {#if installHint}
 	<Sheet open={installOpen} label={m.installTitle} onclose={() => (installOpen = false)}>
 		<h2 class="install-title">{m.installTitle}</h2>
-		<ol class="install-steps">
-			{#each m.installSteps[installHint] as step (step)}<li>{step}</li>{/each}
-		</ol>
-		<p class="install-note">{m.installNote[installHint]}</p>
-		<Button variant="secondary" size="lg" block onclick={() => (installOpen = false)}>{m.installDone}</Button>
+		{#if install.available}
+			<p class="install-ready">{m.installReady}</p>
+			<Button size="lg" block onclick={installNow}>{m.installNow}</Button>
+			<Button variant="secondary" size="lg" block onclick={() => (installOpen = false)}>{m.installLater}</Button>
+		{:else}
+			<ol class="install-steps">
+				{#each m.installSteps[installHint] as step (step)}<li>{step}</li>{/each}
+			</ol>
+			<p class="install-note">{m.installNote[installHint]}</p>
+			<Button variant="secondary" size="lg" block onclick={() => (installOpen = false)}>{m.installDone}</Button>
+		{/if}
 	</Sheet>
 {/if}
 
@@ -445,6 +457,11 @@
 	.install-title {
 		margin: 0;
 		font-size: 22px;
+	}
+	.install-ready {
+		margin: 0;
+		font-size: 15px;
+		line-height: 1.45;
 	}
 	.install-steps {
 		margin: 0;

@@ -27,3 +27,29 @@ test('first run asks for a goal, saves it and is shown only once', async ({ page
 test('helper completes the welcome', async ({ page }) => {
 	await startApp(page);
 });
+
+test('"How?" shows the install steps, or the browser install button when offered', async ({ page }) => {
+	await page.goto('/welcome');
+	await page.getByLabel('Español').check();
+	await page.getByRole('button', { name: '¿Cómo?' }).click();
+	const sheet = page.getByRole('dialog', { name: 'Instala Qadrant' });
+	await expect(sheet.getByRole('listitem')).not.toHaveCount(0);
+	await sheet.getByRole('button', { name: 'Entendido' }).click();
+	await expect(sheet).toBeHidden();
+
+	// What Chrome sends when the app can be installed.
+	await page.evaluate(() => {
+		const event = Object.assign(new Event('beforeinstallprompt', { cancelable: true }), {
+			prompt: async () => {
+				(window as unknown as { prompted: boolean }).prompted = true;
+			},
+			userChoice: Promise.resolve({ outcome: 'accepted' })
+		});
+		dispatchEvent(event);
+	});
+	await page.getByRole('button', { name: '¿Cómo?' }).click();
+	await sheet.getByRole('button', { name: 'Instalar ahora' }).click();
+	await expect.poll(() => page.evaluate(() => (window as unknown as { prompted?: boolean }).prompted)).toBe(true);
+	await page.evaluate(() => dispatchEvent(new Event('appinstalled')));
+	await expect(page.getByRole('button', { name: '¿Cómo?' })).toHaveCount(0);
+});
