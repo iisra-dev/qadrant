@@ -1,7 +1,8 @@
 import type { Base, Correction, Goal, Person, Settings, SharedSettings, Task } from '$lib/domain/types';
 import { DEVICE_LOCAL_SETTINGS } from '$lib/domain/types';
 import { dateKey } from '$lib/domain/dates';
-import { db as defaultDb, type QadrantDB } from './schema';
+import { db as defaultDb } from './database';
+import type { QadrantDB } from './schema';
 import { defaultSettings } from './defaults';
 import { noteChange } from '$lib/sync/track';
 import type { SyncCollection } from '$lib/sync/types';

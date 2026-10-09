@@ -394,7 +394,9 @@ export const en = {
 		generic: 'Something went wrong',
 		genericText: 'The app hit an error. Your tasks are still on this device.',
 		home: 'Go to the matrix',
-		storage: 'This browser is not letting Qadrant read its storage, so your tasks cannot be shown. Private browsing or blocked site data can cause this.'
+		storage: 'This browser is not letting Qadrant read its storage, so your tasks cannot be shown. Private browsing or blocked site data can cause this.',
+		memoryOnly:
+			'This browser is not letting Qadrant save to its storage, so your tasks last only until you close the app. To keep them, export them in Settings.'
 	},
 	footer: {
 		app: (version: string) => `Qadrant ${version}`,

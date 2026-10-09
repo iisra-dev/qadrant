@@ -15,6 +15,7 @@
 	import { taskActions } from '$lib/tasks/actions';
 	import { CALENDAR_REFRESH_MS, refreshCalendar } from '$lib/ownserver/calendar';
 	import { createReminderSync } from '$lib/ownserver/sync';
+	import { storageMode } from '$lib/db/database';
 	import { activeGoals, allTasks, openTasks, settings, storageError, syncState } from '$lib/stores';
 	import { claimLeadership, leader } from '$lib/sync/leader.svelte';
 	import { startDeviceSync } from '$lib/sync';
@@ -142,6 +143,9 @@
 		<WebHeader current={section} oncapture={(text) => capture.show(text)} />
 	{/if}
 	<main>
+		{#if storageMode === 'memory'}
+			<p class="storage-error" role="status">{i18n.m.error.memoryOnly}</p>
+		{/if}
 		{#if $storageError}
 			<p class="storage-error" role="alert">{i18n.m.error.storage}</p>
 		{/if}

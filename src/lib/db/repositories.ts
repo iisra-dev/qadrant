@@ -12,7 +12,8 @@ import type {
 import { changedFields, noteChange, patch } from '$lib/sync/track';
 import { SYNCED_SETTINGS } from '$lib/sync/merge';
 import type { SyncCollection } from '$lib/sync/types';
-import { db as defaultDb, type QadrantDB } from './schema';
+import { db as defaultDb } from './database';
+import type { QadrantDB } from './schema';
 import { defaultSettings, GOAL_SUMMARY_MAX, MAX_GOALS } from './defaults';
 
 type NewRecord<T extends Base> = Omit<T, keyof Base>;
