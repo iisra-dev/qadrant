@@ -65,3 +65,7 @@ Mobile-First-Documentation/
 # Landing page (generated)
 site/dist/
 site/*.tar.gz
+
+# Project notes and specs stay local; only the root README is public
+*.md
+!/README.md

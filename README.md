@@ -19,18 +19,12 @@
   <p align="center">
     A phone-first Eisenhower-matrix planner that sorts your tasks on your own device.
     <br />
-    <a href="docs/"><strong>Explore the docs »</strong></a>
     <br />
-    <br />
-    <a href="https://qadrant-62h.pages.dev">Open it on your phone</a>
-    &middot;
-    <a href="CHANGELOG.md">Changelog</a>
-    &middot;
-    <a href="docs/06-hoja-de-ruta.md">Roadmap</a>
+    <a href="https://qadrant-62h.pages.dev"><strong>Open it on your phone »</strong></a>
   </p>
 </div>
 
-Current version: **1.4.2** (Oct 8, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for changes.
+Current version: **1.4.2** (Oct 8, 2026).
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -58,7 +52,6 @@ Current version: **1.4.2** (Oct 8, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for
         <li><a href="#deploying-to-cloudflare-pages">Deploying to Cloudflare Pages</a></li>
         <li><a href="#landing-page">Landing page</a></li>
         <li><a href="#self-hosted-server-optional">Self-hosted server (optional)</a></li>
-        <li><a href="#working-with-claude-code">Working with Claude Code</a></li>
         <li><a href="#repository-layout">Repository layout</a></li>
       </ul>
     </li>
@@ -99,7 +92,7 @@ Current version: **1.4.2** (Oct 8, 2026). See [`CHANGELOG.md`](CHANGELOG.md) for
 * **Reminders on your phone** with the optional self-hosted server (on iPhone, with the app installed).
 * **Also on desktop.** The same app adapts to tablet and desktop, with a week view and keyboard shortcuts.
 
-The full specification is in [`docs/`](docs/) and the mockups are in [`design/screens/`](design/screens/). Both are written in Spanish.
+The mockups are in [`design/screens/`](design/screens/).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -221,19 +214,11 @@ A deployment without `static/models/` still works: Settings says the server does
 
 ### Landing page
 
-A static, script-free presentation page lives in `site/` (separate from the app). `pnpm site:build` writes it to `site/dist` (English at `/`, Spanish at `/es/`), `pnpm site:preview` serves it on port 4174 and `pnpm site:deploy` publishes it with rsync over SSH to the homelab host behind `https://qadrant.iisra.dev` (from the home network; `QADRANT_SITE_SSH` and `QADRANT_SITE_KEY` override the target and key). Set `QADRANT_APP_URL` and `QADRANT_SITE_URL` when the domains change.
+A static, script-free presentation page lives in `site/` (separate from the app). `pnpm site:build` writes it to `site/dist` (English at `/`, Spanish at `/es/`), `pnpm site:preview` serves it on port 4174 and `pnpm site:deploy` publishes it with rsync over SSH to the host behind `https://qadrant.iisra.dev` (`QADRANT_SITE_SSH` in a git-ignored `.env.site` sets the target and `QADRANT_SITE_KEY` the key). Set `QADRANT_APP_URL` and `QADRANT_SITE_URL` when the domains change.
 
 ### Self-hosted server (optional)
 
-Qadrant works fully without a server and does not provide one. Anyone who wants reminders, a calendar or the same tasks on all their devices (sync, off by default) can run their own by following [`server/README.md`](server/README.md). Each server belongs to one person and serves all of their devices. Synced data is not encrypted: whoever runs that server, and the tunnel service if there is one, can read it. Each device keeps classifying with its own assistant. The server is also published on its own, with instructions in English and Spanish, at [github.com/iisra-dev/qadrant-server](https://github.com/iisra-dev/qadrant-server).
-
-### Working with Claude Code
-
-1. Open Claude Code at the repository root. It reads [`CLAUDE.md`](CLAUDE.md) automatically; that file holds the project rules.
-2. Ask for one phase at a time, for example: "Implement phase 1 following docs/06-hoja-de-ruta.md. When you finish, tick the completed boxes."
-3. Or let it work on its own with `/loop`, following the "Trabajo por iteraciones" section of `CLAUDE.md`: it stops when what is left depends on you (the boxes marked "(usuario)").
-
-If anything conflicts, `CLAUDE.md` wins over `docs/`, and `docs/` wins over the mockups. The mockups show the look; the documents define the behavior.
+Qadrant works fully without a server and does not provide one. Anyone who wants reminders, a calendar or the same tasks on all their devices (sync, off by default) can run their own. Each server belongs to one person and serves all of their devices. Synced data is not encrypted: whoever runs that server, and the tunnel service if there is one, can read it. Each device keeps classifying with its own assistant. The server is published on its own, with setup instructions in English and Spanish, at [github.com/iisra-dev/qadrant-server](https://github.com/iisra-dev/qadrant-server).
 
 ### Repository layout
 
@@ -241,14 +226,6 @@ If anything conflicts, `CLAUDE.md` wins over `docs/`, and `docs/` wins over the 
 | --- | --- |
 | `src/` | The app (SvelteKit) |
 | `server/` | Optional server in Go (PocketBase) |
-| `CLAUDE.md` | Instructions for Claude Code: stack, conventions, non-negotiable rules |
-| `docs/01-producto.md` | Vision, principles, screens, flows and detailed behavior |
-| `docs/02-arquitectura.md` | Layers, stack, folder structure and PWA requirements |
-| `docs/03-motor-de-decision.md` | How a task is classified: rules, model, thresholds and fallback |
-| `docs/04-modelo-de-datos.md` | TypeScript types and IndexedDB schema |
-| `docs/05-sistema-de-diseno.md` | Colors (light and dark), typography, spacing and components |
-| `docs/06-hoja-de-ruta.md` | Phased action plan with tasks and exit criteria |
-| `docs/07-riesgos-y-decisiones.md` | Risks, decisions made and open decisions |
 | `design/tokens.css`, `design/tokens.json` | Ready-to-use design tokens |
 | `design/screens/` | Static HTML mockups; open `index.html` in a browser |
 | `design/canvas/` | Original design canvas sources (`.dc.html` + `canvas.json`) |
@@ -273,7 +250,7 @@ If anything conflicts, `CLAUDE.md` wins over `docs/`, and `docs/` wins over the 
     - [ ] Sync on the self-hosted server
     - [ ] Publish the server in a public repository
 
-The completed phases still have exit criteria that depend on real-world use. The full checklist is in [`docs/06-hoja-de-ruta.md`](docs/06-hoja-de-ruta.md).
+The completed phases still have exit criteria that depend on real-world use.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -282,7 +259,7 @@ The completed phases still have exit criteria that depend on real-world use. The
 <!-- CONTRIBUTING -->
 ## Contributing
 
-This is a personal project in a private repository and does not accept outside contributions for now. The working conventions (small commits with conventional prefixes, tests before wiring logic into the UI, `pnpm check`, `pnpm test` and `pnpm build` passing) are in [`CLAUDE.md`](CLAUDE.md).
+This is a personal project and does not accept outside contributions for now.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -327,8 +304,8 @@ Project Link: [https://github.com/iisra-dev/qadrant](https://github.com/iisra-de
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[version-shield]: https://img.shields.io/badge/version-1.1.0-0B3A5E?style=for-the-badge
-[changelog-url]: CHANGELOG.md
+[version-shield]: https://img.shields.io/badge/version-1.4.2-0B3A5E?style=for-the-badge
+[changelog-url]: #readme-top
 [license-shield]: https://img.shields.io/badge/license-all%20rights%20reserved-555?style=for-the-badge
 [license-url]: #license
 [Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
