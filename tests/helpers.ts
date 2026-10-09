@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 /** Label of the one goal the welcome asks for. */
-export const MAIN_GOAL = { es: '¿Qué es lo más importante para ti ahora?', en: 'What matters most to you right now?' } as const;
+export const MAIN_GOAL = { es: '¿Cuál es tu gran objetivo ahora mismo?', en: 'What is your big goal right now?' } as const;
 
 /** Opens a collapsible group of Settings (closed on a phone, except Goals). */
 export async function openGroup(page: Page, title: string) {
