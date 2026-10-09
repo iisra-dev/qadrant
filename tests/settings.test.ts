@@ -101,12 +101,13 @@ test('exports and imports tasks as JSON', async ({ page }) => {
 	await expect(page.getByRole('region', { name: 'Hacer' }).getByRole('link', { name: 'Tarea de otro dispositivo' })).toBeVisible();
 });
 
-test('the footer links the licenses and the author', async ({ page, request }) => {
+test('the footer links the licenses, the author and the issue tracker', async ({ page, request }) => {
 	await startApp(page);
 	await page.getByRole('link', { name: 'Ajustes', exact: true }).click();
 	await expect(page.getByText(/^Qadrant \d+\.\d+\.\d+$/)).toBeVisible();
 	await expect(page.getByRole('link', { name: 'Licencias de terceros' })).toHaveAttribute('href', '/licenses.txt');
 	await expect(page.getByRole('link', { name: 'Autor: iisra-dev en GitHub' })).toHaveAttribute('href', 'https://github.com/iisra-dev');
+	await expect(page.getByRole('link', { name: 'Informar de un problema' })).toHaveAttribute('href', /github\.com\/iisra-dev\/qadrant\/issues\/new/);
 	const licenses = await (await request.get('/licenses.txt')).text();
 	expect(licenses).toContain('onnxruntime-web');
 	expect(licenses).toContain('paraphrase-multilingual-MiniLM-L12-v2');

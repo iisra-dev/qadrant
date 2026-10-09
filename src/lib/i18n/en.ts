@@ -376,7 +376,23 @@ export const en = {
 	footer: {
 		app: (version: string) => `Qadrant ${version}`,
 		licenses: 'Third-party licenses',
-		author: 'Author: iisra-dev on GitHub'
+		author: 'Author: iisra-dev on GitHub',
+		report: 'Report a problem'
+	},
+	// Body of the GitHub issue opened by "Report a problem" (src/lib/app/report.ts).
+	report: {
+		intro: 'This page is public: do not paste your tasks or anything private.',
+		happened: 'What happened',
+		expected: 'What you expected',
+		steps: 'Steps to reproduce',
+		device: 'Device',
+		language: 'Language',
+		installed: 'Installed',
+		assistant: 'Assistant',
+		sync: 'Sync',
+		browser: 'Browser',
+		yes: 'yes',
+		no: 'no'
 	},
 	// Push notices: the task is the title; iOS adds "from Qadrant" below it.
 	notice: {
