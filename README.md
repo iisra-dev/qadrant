@@ -24,7 +24,7 @@
   </p>
 </div>
 
-Current version: **1.6.0** (Oct 9, 2026).
+Current version: **1.6.1** (Oct 9, 2026).
 
 <!-- TABLE OF CONTENTS -->
 <details>
