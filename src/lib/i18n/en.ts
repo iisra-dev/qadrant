@@ -199,6 +199,23 @@ export const en = {
 		installIos: 'On iPhone, install it so iOS does not delete your tasks: Share, then “Add to Home Screen”.',
 		installDesktop: 'You can install it from the address bar to use it offline.',
 		installAndroid: 'Install it from the browser menu to use it offline.',
+		installHow: 'How?',
+		installTitle: 'Install Qadrant',
+		// Same steps as the landing page (site/i18n/en.json).
+		installSteps: {
+			ios: ['Open Qadrant in Safari.', 'Tap Share.', 'Choose “Add to Home Screen”.'],
+			android: ['Open Qadrant in Chrome.', 'Tap “Install app” in the menu, or accept the banner when it appears.'],
+			desktop: ['Open Qadrant in Chrome or Edge.', 'Click the install icon in the address bar.']
+		},
+		installNote: {
+			ios: 'Installing it also stops iOS from clearing your tasks after days without a visit.',
+			android: 'It then opens from your home screen like any other app, even offline.',
+			desktop: 'It also works as a normal tab in any modern browser.'
+		},
+		installDone: 'Got it',
+		installNow: 'Install now',
+		installReady: 'Your browser can install it right now: it opens like any other app, even offline.',
+		installLater: 'Not now',
 		start: 'Start',
 		join: 'I already use Qadrant on another device',
 		joinText: 'Connect to your own server to bring your tasks and goals to this device.',

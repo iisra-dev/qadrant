@@ -7,6 +7,7 @@
 	import { capture } from '$lib/app/capture.svelte';
 	import { clock } from '$lib/app/clock.svelte';
 	import { media } from '$lib/app/media.svelte';
+	import { install } from '$lib/app/install.svelte';
 	import { currentSettings } from '$lib/app/context';
 	import CaptureSheet from '$lib/capture/CaptureSheet.svelte';
 	import UpdateNotice from '$lib/pwa/UpdateNotice.svelte';
@@ -29,10 +30,12 @@
 	onMount(() => {
 		const stopClock = clock.start();
 		const stopMedia = media.start();
+		const stopInstall = install.start();
 		const release = claimLeadership();
 		return () => {
 			stopClock();
 			stopMedia();
+			stopInstall();
 			release();
 		};
 	});
